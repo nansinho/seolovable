@@ -18,16 +18,23 @@ export const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/60 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-50 glass-strong">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-[72px]">
-          <Link to="/" className="flex items-center gap-3 group">
-            <span className="font-bold text-lg tracking-tight text-foreground font-display">
-              SEO Lovable
-            </span>
-            <span className="hidden sm:inline-flex rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] tracking-[0.2em] uppercase text-primary font-mono transition-colors group-hover:bg-primary/20">
-              Prerender
-            </span>
+        <div className="flex items-center justify-between h-20">
+          <Link to="/" className="flex items-center gap-4 group">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center group-hover:neon-glow transition-shadow duration-300">
+                <span className="font-display font-bold text-primary text-lg">S</span>
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-lg text-foreground tracking-tight">
+                SEO LOVABLE
+              </span>
+              <span className="text-[10px] tracking-[0.3em] text-primary font-mono">
+                PRERENDER
+              </span>
+            </div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -36,22 +43,24 @@ export const Header = () => {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors underline-animate",
+                  "relative text-sm font-medium tracking-wide transition-colors",
                   location.pathname === link.href
-                    ? "text-foreground"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
+                {location.pathname === link.href && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-px bg-primary neon-glow" />
+                )}
               </Link>
             ))}
           </nav>
 
-          {/* Auth Buttons & Language */}
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <Link to="/auth">
-              <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-sm">
                 {t("nav.login")}
               </Button>
             </Link>
@@ -62,49 +71,47 @@ export const Header = () => {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
-              <X className="w-5 h-5 text-foreground" />
+              <X className="w-6 h-6 text-foreground" />
             ) : (
-              <Menu className="w-5 h-5 text-foreground" />
+              <Menu className="w-6 h-6 text-foreground" />
             )}
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex justify-center mb-4">
+          <div className="md:hidden py-6 border-t border-border/50 animate-fade-in-up">
+            <div className="flex justify-center mb-6">
               <LanguageSwitcher />
             </div>
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={cn(
-                    "text-sm py-3 px-4 rounded-md transition-colors",
+                    "text-sm py-3 px-4 rounded-lg transition-colors font-medium",
                     location.pathname === link.href
-                      ? "text-foreground bg-muted"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-border">
+              <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-border/50">
                 <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full text-sm">
+                  <Button variant="ghost" className="w-full">
                     {t("nav.login")}
                   </Button>
                 </Link>
                 <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full text-sm">
+                  <Button className="w-full">
                     {t("nav.trial")}
                   </Button>
                 </Link>

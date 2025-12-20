@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, Star } from "lucide-react";
+import { ArrowRight, Check, Zap, Globe, BarChart3, Shield, Server, Bot } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { AnimatedSection, StaggeredList } from "@/hooks/useScrollAnimation";
@@ -13,134 +13,140 @@ const Index = () => {
   const content = {
     fr: {
       hero: {
-        title: "Rendez vos apps Lovable",
+        badge: "NOUVELLE GÉNÉRATION SEO",
+        title: "Rendez vos apps",
         titleHighlight: "visibles sur Google",
         subtitle: "Service de prerendering qui rend vos sites React indexables par les moteurs de recherche et les crawlers IA.",
-        cta: "Commencer gratuitement",
+        cta: "DÉMARRER",
+        secondary: "Voir la démo",
       },
       stats: [
-        { value: "12ms", label: "Temps de réponse" },
-        { value: "100%", label: "Indexable" },
-        { value: "5min", label: "Configuration" },
+        { value: "12", unit: "ms", label: "Latence" },
+        { value: "100", unit: "%", label: "Indexable" },
+        { value: "5", unit: "min", label: "Setup" },
       ],
       problem: {
         label: "Le problème",
         title: "Vos apps React sont invisibles",
         desc: "Les moteurs de recherche ne peuvent pas lire le contenu généré par JavaScript. Votre site apparaît vide pour Google.",
+        code: `<html>\n  <body>\n    <div id="root"></div>\n    <!-- VIDE -->\n  </body>\n</html>`,
       },
       solution: {
         label: "La solution",
         title: "Prerendering automatique",
         desc: "Nous générons une version HTML statique de vos pages, lisible par tous les crawlers.",
         steps: [
-          "Inscription en 30 secondes",
-          "Configuration DNS simple",
-          "Vérification automatique",
-          "Votre site est indexable",
+          { num: "01", text: "Inscription en 30 secondes" },
+          { num: "02", text: "Configuration DNS simple" },
+          { num: "03", text: "Vérification automatique" },
+          { num: "04", text: "Votre site est indexable" },
         ],
       },
       features: {
         label: "Fonctionnalités",
-        title: "Tout ce qu'il vous faut",
+        title: "Technologie de pointe",
         items: [
-          { title: "Ultra-rapide", desc: "HTML généré en moins de 50ms" },
-          { title: "Multi-sites", desc: "Gérez tous vos projets" },
-          { title: "Analytics", desc: "Suivez les crawls en temps réel" },
-          { title: "SSL inclus", desc: "Certificats gratuits" },
-          { title: "Edge global", desc: "Serveurs distribués" },
-          { title: "AI-ready", desc: "Compatible ChatGPT, Claude" },
+          { icon: Zap, title: "Ultra-rapide", desc: "HTML généré en moins de 50ms" },
+          { icon: Globe, title: "Multi-sites", desc: "Gérez tous vos projets" },
+          { icon: BarChart3, title: "Analytics", desc: "Suivez les crawls en temps réel" },
+          { icon: Shield, title: "SSL inclus", desc: "Certificats gratuits" },
+          { icon: Server, title: "Edge global", desc: "Serveurs distribués" },
+          { icon: Bot, title: "AI-ready", desc: "Compatible ChatGPT, Claude" },
         ],
       },
       testimonials: {
         label: "Témoignages",
-        title: "Ils utilisent SEO Lovable",
+        title: "Ils nous font confiance",
         items: [
-          { name: "Marc D.", role: "Fondateur", text: "Mon trafic a triplé en 2 mois." },
-          { name: "Sophie L.", role: "Product Manager", text: "Solution simple et efficace." },
-          { name: "Thomas R.", role: "Développeur", text: "La meilleure solution du marché." },
+          { name: "Marc D.", role: "Fondateur", text: "Mon trafic a triplé en 2 mois.", avatar: "M" },
+          { name: "Sophie L.", role: "Product Manager", text: "Solution simple et efficace.", avatar: "S" },
+          { name: "Thomas R.", role: "Développeur", text: "La meilleure solution du marché.", avatar: "T" },
         ],
       },
       pricing: {
         label: "Tarifs",
-        title: "Tarification simple",
+        title: "Choisissez votre plan",
         plans: [
           { name: "Starter", price: "7", period: "/mois", features: ["1 site", "10k pages/mois", "Support email"], popular: false },
           { name: "Pro", price: "15", period: "/mois", features: ["5 sites", "Pages illimitées", "Analytics", "Support prioritaire"], popular: true },
           { name: "Business", price: "39", period: "/mois", features: ["Sites illimités", "Rapports SEO", "Support 24/7", "API"], popular: false },
         ],
-        cta: "Choisir",
-        popular: "Recommandé",
+        cta: "CHOISIR",
+        popular: "POPULAIRE",
       },
       cta: {
-        title: "Prêt à commencer ?",
+        title: "Prêt à dominer les SERPs ?",
         desc: "14 jours d'essai gratuit. Sans carte bancaire.",
-        button: "Démarrer maintenant",
+        button: "COMMENCER MAINTENANT",
       },
     },
     en: {
       hero: {
-        title: "Make your Lovable apps",
+        badge: "NEXT-GEN SEO",
+        title: "Make your apps",
         titleHighlight: "visible on Google",
         subtitle: "Prerendering service that makes your React sites indexable by search engines and AI crawlers.",
-        cta: "Start for free",
+        cta: "GET STARTED",
+        secondary: "Watch demo",
       },
       stats: [
-        { value: "12ms", label: "Response time" },
-        { value: "100%", label: "Indexable" },
-        { value: "5min", label: "Setup" },
+        { value: "12", unit: "ms", label: "Latency" },
+        { value: "100", unit: "%", label: "Indexable" },
+        { value: "5", unit: "min", label: "Setup" },
       ],
       problem: {
         label: "The problem",
         title: "Your React apps are invisible",
         desc: "Search engines can't read JavaScript-generated content. Your site appears empty to Google.",
+        code: `<html>\n  <body>\n    <div id="root"></div>\n    <!-- EMPTY -->\n  </body>\n</html>`,
       },
       solution: {
         label: "The solution",
         title: "Automatic prerendering",
         desc: "We generate a static HTML version of your pages, readable by all crawlers.",
         steps: [
-          "Sign up in 30 seconds",
-          "Simple DNS configuration",
-          "Automatic verification",
-          "Your site is indexable",
+          { num: "01", text: "Sign up in 30 seconds" },
+          { num: "02", text: "Simple DNS configuration" },
+          { num: "03", text: "Automatic verification" },
+          { num: "04", text: "Your site is indexable" },
         ],
       },
       features: {
         label: "Features",
-        title: "Everything you need",
+        title: "Cutting-edge technology",
         items: [
-          { title: "Ultra-fast", desc: "HTML generated in under 50ms" },
-          { title: "Multi-site", desc: "Manage all your projects" },
-          { title: "Analytics", desc: "Track crawls in real-time" },
-          { title: "SSL included", desc: "Free certificates" },
-          { title: "Global edge", desc: "Distributed servers" },
-          { title: "AI-ready", desc: "Compatible with ChatGPT, Claude" },
+          { icon: Zap, title: "Ultra-fast", desc: "HTML generated in under 50ms" },
+          { icon: Globe, title: "Multi-site", desc: "Manage all your projects" },
+          { icon: BarChart3, title: "Analytics", desc: "Track crawls in real-time" },
+          { icon: Shield, title: "SSL included", desc: "Free certificates" },
+          { icon: Server, title: "Global edge", desc: "Distributed servers" },
+          { icon: Bot, title: "AI-ready", desc: "Compatible with ChatGPT, Claude" },
         ],
       },
       testimonials: {
         label: "Testimonials",
-        title: "They use SEO Lovable",
+        title: "Trusted by developers",
         items: [
-          { name: "Marc D.", role: "Founder", text: "My traffic tripled in 2 months." },
-          { name: "Sophie L.", role: "Product Manager", text: "Simple and effective solution." },
-          { name: "Thomas R.", role: "Developer", text: "Best solution on the market." },
+          { name: "Marc D.", role: "Founder", text: "My traffic tripled in 2 months.", avatar: "M" },
+          { name: "Sophie L.", role: "Product Manager", text: "Simple and effective solution.", avatar: "S" },
+          { name: "Thomas R.", role: "Developer", text: "Best solution on the market.", avatar: "T" },
         ],
       },
       pricing: {
         label: "Pricing",
-        title: "Simple pricing",
+        title: "Choose your plan",
         plans: [
           { name: "Starter", price: "7", period: "/mo", features: ["1 site", "10k pages/month", "Email support"], popular: false },
           { name: "Pro", price: "15", period: "/mo", features: ["5 sites", "Unlimited pages", "Analytics", "Priority support"], popular: true },
           { name: "Business", price: "39", period: "/mo", features: ["Unlimited sites", "SEO reports", "24/7 support", "API"], popular: false },
         ],
-        cta: "Choose",
-        popular: "Recommended",
+        cta: "CHOOSE",
+        popular: "POPULAR",
       },
       cta: {
-        title: "Ready to start?",
+        title: "Ready to dominate the SERPs?",
         desc: "14-day free trial. No credit card required.",
-        button: "Get started now",
+        button: "START NOW",
       },
     },
   };
@@ -148,276 +154,202 @@ const Index = () => {
   const t = content[lang];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       <Header />
 
       <main>
-        {/* Hero */}
-        <section className="relative overflow-hidden pt-32 md:pt-40">
-          {/* Modern matte background: subtle grid + animated glows */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-50" />
-            <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_25%_15%,hsl(var(--primary)/0.18),transparent_60%)] animate-breathe" />
-            <div className="absolute inset-0 bg-[radial-gradient(700px_400px_at_80%_25%,hsl(var(--primary)/0.12),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,hsl(var(--background)),hsl(var(--background))_40%,transparent)]" />
-          </div>
+        {/* Hero Section */}
+        <section className="relative min-h-screen flex items-center pt-20">
+          {/* Animated background */}
+          <div className="absolute inset-0 gradient-bg" />
+          <div className="absolute inset-0 cyber-grid" />
+          
+          {/* Floating orbs */}
+          <div className="orb orb-cyan w-[500px] h-[500px] -top-20 -left-40 animate-float" />
+          <div className="orb orb-purple w-[400px] h-[400px] top-1/2 -right-32 animate-float-delayed" />
+          <div className="orb orb-pink w-[300px] h-[300px] bottom-20 left-1/4 animate-float" />
 
-          <div className="container mx-auto px-4 pb-20 md:pb-28">
-            <div className="grid items-start gap-12 md:grid-cols-12 md:gap-16">
-              <div className="md:col-span-7">
-                <AnimatedSection>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 backdrop-blur">
-                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground font-mono">
-                      SEO • PRERENDER • AI CRAWLERS
-                    </span>
-                  </div>
-                  <h1 className="mt-6 text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.04em] text-foreground font-display leading-[1.1]">
-                    {t.hero.title}{" "}
-                    <span className="text-primary text-glow">{t.hero.titleHighlight}</span>
-                  </h1>
-                </AnimatedSection>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-5xl mx-auto text-center">
+              <AnimatedSection>
+                {/* Badge */}
+                <div className="inline-flex items-center gap-3 rounded-full border border-primary/30 bg-primary/10 backdrop-blur px-5 py-2 mb-8">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                  </span>
+                  <span className="text-xs tracking-[0.3em] text-primary font-mono font-medium">
+                    {t.hero.badge}
+                  </span>
+                </div>
 
-                <AnimatedSection delay={120}>
-                  <p className="mt-7 max-w-lg text-lg md:text-xl leading-relaxed text-muted-foreground">
-                    {t.hero.subtitle}
-                  </p>
-                </AnimatedSection>
+                {/* Main title */}
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-[-0.04em] font-display leading-[0.9]">
+                  <span className="text-foreground">{t.hero.title}</span>
+                  <br />
+                  <span className="gradient-text-animated">{t.hero.titleHighlight}</span>
+                </h1>
+              </AnimatedSection>
 
-                <AnimatedSection delay={220}>
-                  <div className="mt-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-                    <Link to="/auth?mode=signup">
-                      <Button size="lg" className="h-14 px-10 text-base font-semibold">
-                        {t.hero.cta}
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
-                    <div className="text-sm text-muted-foreground font-mono">
-                      <span className="text-foreground font-medium">14 jours</span> • Sans carte
-                    </div>
-                  </div>
-                </AnimatedSection>
+              <AnimatedSection delay={150}>
+                <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                  {t.hero.subtitle}
+                </p>
+              </AnimatedSection>
 
-                <AnimatedSection delay={350}>
-                  <div className="mt-16 grid max-w-lg grid-cols-3 gap-5">
-                    {t.stats.map((stat, i) => (
-                      <div
-                        key={i}
-                        className="group rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur card-hover"
-                      >
-                        <div className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-display">
-                          {stat.value}
-                        </div>
-                        <div className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono">
-                          {stat.label}
-                        </div>
+              <AnimatedSection delay={300}>
+                <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link to="/auth?mode=signup">
+                    <Button size="lg" className="min-w-[200px]">
+                      {t.hero.cta}
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="lg" className="min-w-[200px]">
+                    {t.hero.secondary}
+                  </Button>
+                </div>
+              </AnimatedSection>
+
+              {/* Stats */}
+              <AnimatedSection delay={450}>
+                <div className="mt-20 grid grid-cols-3 gap-6 max-w-2xl mx-auto">
+                  {t.stats.map((stat, i) => (
+                    <div key={i} className="text-center">
+                      <div className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-foreground">
+                        {stat.value}
+                        <span className="text-primary neon-text">{stat.unit}</span>
                       </div>
-                    ))}
-                  </div>
-                </AnimatedSection>
-              </div>
-
-              <div className="md:col-span-5">
-                <AnimatedSection animation="scale" delay={250}>
-                  <div className="rounded-2xl border border-border/60 bg-card/50 p-7 backdrop-blur glass gradient-border">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs tracking-[0.25em] uppercase text-primary font-mono">Preview</p>
-                      <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary font-mono">
-                        Googlebot
-                      </span>
+                      <div className="mt-2 text-xs tracking-[0.25em] uppercase text-muted-foreground font-mono">
+                        {stat.label}
+                      </div>
                     </div>
-
-                    <div className="mt-6 rounded-xl border border-border/50 bg-background/40 p-5">
-                      <pre className="text-[11px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
-                        <code>{`<html>\n  <body>\n    <h1>${t.hero.title} ${t.hero.titleHighlight}</h1>\n    <p>${t.hero.subtitle}</p>\n  </body>\n</html>`}</code>
-                      </pre>
-                    </div>
-
-                    <div className="mt-7 space-y-4">
-                      {[
-                        "HTML prêt à indexer pour Google, Bing et les crawlers IA.",
-                        "Zéro refacto de votre app — vous gardez votre stack."
-                      ].map((text, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-primary">
-                            <Check className="h-3 w-3" />
-                          </div>
-                          <p className="text-sm leading-relaxed text-muted-foreground">
-                            {text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </AnimatedSection>
-              </div>
+                  ))}
+                </div>
+              </AnimatedSection>
             </div>
           </div>
 
-          <div className="container mx-auto px-4">
-            <div className="border-t border-border/50" />
-          </div>
+          {/* Bottom gradient fade */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
         </section>
 
-        {/* Problem */}
-        <section className="relative border-t border-border/50 bg-background overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-30" />
-            <div className="absolute inset-0 bg-[radial-gradient(700px_400px_at_90%_20%,hsl(0_70%_50%/0.08),transparent_55%)]" />
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:py-32">
-            <div className="grid gap-12 md:grid-cols-12 md:gap-16">
-              <div className="md:col-span-5">
+        {/* Problem Section */}
+        <section className="relative py-32 tech-line">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_50%,hsl(0_70%_50%/0.1),transparent)]" />
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="grid gap-16 lg:grid-cols-2 items-center">
+              <div>
                 <AnimatedSection>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-xs text-destructive font-mono">
-                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                  <span className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs tracking-[0.2em] text-red-400 font-mono uppercase mb-6">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                     {t.problem.label}
                   </span>
-                  <h2 className="mt-5 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] font-display text-foreground">
                     {t.problem.title}
                   </h2>
-                  <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+                  <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
                     {t.problem.desc}
                   </p>
                 </AnimatedSection>
               </div>
 
-              <div className="md:col-span-7">
-                <AnimatedSection delay={150} animation="blur">
-                  <div className="rounded-2xl border border-destructive/20 bg-card/40 p-7 backdrop-blur glass">
-                    <p className="text-xs tracking-[0.25em] uppercase text-destructive/80 font-mono">Ce que Google voit</p>
-                    <div className="mt-5 rounded-xl border border-border/50 bg-background/30 p-5">
-                      <pre className="text-[11px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
-                        <code>{`<html>\n  <body>\n    <div id=\"root\"></div>\n    <!-- aucun contenu -->\n  </body>\n</html>`}</code>
-                      </pre>
+              <AnimatedSection delay={200} animation="scale">
+                <div className="relative">
+                  <div className="code-block relative p-6 overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-red-500/10 to-transparent" />
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                      <span className="ml-4 text-xs text-red-400 font-mono">// WHAT GOOGLE SEES</span>
                     </div>
+                    <pre className="text-sm leading-relaxed text-muted-foreground font-mono overflow-x-auto">
+                      <code>{t.problem.code}</code>
+                    </pre>
                   </div>
-                </AnimatedSection>
-              </div>
+                </div>
+              </AnimatedSection>
             </div>
           </div>
         </section>
 
-        {/* Solution */}
-        <section className="relative border-t border-border/50 bg-card overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(800px_500px_at_15%_35%,hsl(var(--primary)/0.12),transparent_55%)] animate-breathe" />
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:py-32">
-            <div className="grid gap-12 md:grid-cols-12 md:gap-16">
-              <div className="md:col-span-5">
-                <AnimatedSection>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary font-mono">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    {t.solution.label}
-                  </span>
-                  <h2 className="mt-5 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
-                    {t.solution.title}
-                  </h2>
-                  <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-                    {t.solution.desc}
-                  </p>
-                </AnimatedSection>
-              </div>
-
-              <div className="md:col-span-7">
-                <StaggeredList className="space-y-4" staggerDelay={100} animation="fade-up">
+        {/* Solution Section */}
+        <section className="relative py-32 tech-line">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_20%_50%,hsl(var(--primary)/0.1),transparent)]" />
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="grid gap-16 lg:grid-cols-2 items-center">
+              <div className="order-2 lg:order-1">
+                <StaggeredList className="space-y-4" staggerDelay={120} animation="fade-up">
                   {t.solution.steps.map((step, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-5 rounded-xl border border-border/50 bg-background/30 p-5 backdrop-blur glass card-hover"
+                      className="group relative flex items-center gap-6 p-5 rounded-xl glass-strong hover-lift cursor-pointer"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary font-mono font-semibold">
-                        {i + 1}
+                      <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center font-display font-bold text-primary text-lg">
+                        {step.num}
                       </div>
-                      <span className="text-foreground font-medium">{step}</span>
+                      <span className="text-foreground font-medium text-lg">{step.text}</span>
+                      <div className="absolute right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowRight className="w-5 h-5 text-primary" />
+                      </div>
                     </div>
                   ))}
                 </StaggeredList>
               </div>
+
+              <div className="order-1 lg:order-2">
+                <AnimatedSection>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs tracking-[0.2em] text-primary font-mono uppercase mb-6">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {t.solution.label}
+                  </span>
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] font-display text-foreground">
+                    {t.solution.title}
+                  </h2>
+                  <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
+                    {t.solution.desc}
+                  </p>
+                </AnimatedSection>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section className="relative border-t border-border/50 bg-background overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-25" />
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:py-32">
+        {/* Features Section */}
+        <section className="relative py-32">
+          <div className="absolute inset-0 cyber-grid opacity-50" />
+          
+          <div className="container mx-auto px-4 relative z-10">
             <AnimatedSection>
-              <div className="max-w-2xl mx-auto text-center mb-14">
-                <p className="text-xs tracking-[0.3em] uppercase text-primary font-mono">
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs tracking-[0.2em] text-primary font-mono uppercase mb-6">
                   {t.features.label}
-                </p>
-                <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
-                  {t.features.title}
+                </span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] font-display">
+                  <span className="gradient-text">{t.features.title}</span>
                 </h2>
               </div>
             </AnimatedSection>
 
-            <StaggeredList
-              className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto"
-              staggerDelay={80}
-              animation="fade-up"
-            >
+            <StaggeredList className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" staggerDelay={100} animation="fade-up">
               {t.features.items.map((feature, i) => (
                 <div
                   key={i}
-                  className="group rounded-2xl border border-border/50 bg-card/40 p-7 backdrop-blur glass card-hover"
+                  className="group relative p-8 rounded-2xl glass gradient-border hover-lift overflow-hidden"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-5">
-                    <Star className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold tracking-tight text-foreground font-display">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {feature.desc}
-                  </p>
-                </div>
-              ))}
-            </StaggeredList>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="relative border-t border-border/70 bg-card">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(760px_520px_at_75%_25%,hsl(var(--primary)/0.09),transparent_60%)]" />
-          </div>
-
-          <div className="container mx-auto px-4 py-20 md:py-28">
-            <AnimatedSection>
-              <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
-                  {t.testimonials.label}
-                </p>
-                <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
-                  {t.testimonials.title}
-                </h2>
-              </div>
-            </AnimatedSection>
-
-            <StaggeredList className="mt-10 grid gap-4 md:grid-cols-3" staggerDelay={90} animation="fade-up">
-              {t.testimonials.items.map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-border/70 bg-background/22 p-6 backdrop-blur supports-[backdrop-filter]:bg-background/20"
-                >
-                  <div className="flex items-center gap-1 text-primary">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="mt-5 text-sm leading-relaxed text-foreground">“{item.text}”</p>
-                  <div className="mt-6">
-                    <p className="text-sm font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-mono">
-                      {item.role}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center mb-6 group-hover:neon-glow transition-shadow duration-300">
+                      <feature.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground font-display mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {feature.desc}
                     </p>
                   </div>
                 </div>
@@ -426,71 +358,46 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Pricing */}
-        <section className="relative border-t border-border/70 bg-background overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-30" />
-            <div className="absolute inset-0 bg-[radial-gradient(800px_500px_at_50%_20%,hsl(var(--primary)/0.12),transparent_60%)]" />
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:py-32">
+        {/* Testimonials Section */}
+        <section className="relative py-32 tech-line">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,hsl(var(--accent)/0.08),transparent)]" />
+          
+          <div className="container mx-auto px-4 relative z-10">
             <AnimatedSection>
-              <div className="max-w-3xl mx-auto text-center mb-14">
-                <p className="text-xs tracking-[0.3em] uppercase text-primary font-mono">
-                  {t.pricing.label}
-                </p>
-                <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
-                  {t.pricing.title}
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs tracking-[0.2em] text-accent font-mono uppercase mb-6">
+                  {t.testimonials.label}
+                </span>
+                <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.03em] font-display text-foreground">
+                  {t.testimonials.title}
                 </h2>
               </div>
             </AnimatedSection>
 
-            <StaggeredList className="mt-10 grid gap-6 md:grid-cols-3 max-w-5xl mx-auto" staggerDelay={120} animation="fade-up">
-              {t.pricing.plans.map((plan, i) => (
+            <StaggeredList className="grid gap-6 md:grid-cols-3" staggerDelay={120} animation="fade-up">
+              {t.testimonials.items.map((item, i) => (
                 <div
                   key={i}
-                  className={cn(
-                    "relative rounded-2xl p-8 card-hover glass",
-                    plan.popular 
-                      ? "border-2 border-primary/50 gradient-border glow" 
-                      : "border border-border/60"
-                  )}
+                  className="relative p-8 rounded-2xl glass hover-lift"
                 >
-                  {plan.popular && (
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-lg">
-                      {t.pricing.popular}
-                    </span>
-                  )}
-
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-foreground font-display">{plan.name}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">Pour lancer rapidement.</p>
-                  </div>
-
-                  <div className="mt-8 flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold tracking-tight text-foreground font-display">
-                      {plan.price}€
-                    </span>
-                    <span className="text-sm text-muted-foreground font-mono">{plan.period}</span>
-                  </div>
-
-                  <ul className="mt-8 space-y-4">
-                    {plan.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-primary">
-                          <Check className="h-3 w-3" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">{f}</span>
-                      </li>
+                  <div className="flex items-center gap-1 text-primary mb-6">
+                    {[...Array(5)].map((_, j) => (
+                      <svg key={j} className="w-5 h-5 fill-primary" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
                     ))}
-                  </ul>
-
-                  <div className="mt-10">
-                    <Link to="/auth?mode=signup">
-                      <Button className="w-full" variant={plan.popular ? "default" : "outline"} size="lg">
-                        {t.pricing.cta}
-                      </Button>
-                    </Link>
+                  </div>
+                  <p className="text-lg text-foreground leading-relaxed mb-8 italic">
+                    "{item.text}"
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-display font-bold text-background text-lg">
+                      {item.avatar}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{item.name}</p>
+                      <p className="text-sm text-muted-foreground font-mono">{item.role}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -498,34 +405,101 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="relative border-t border-border/70 bg-card overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(600px_400px_at_50%_50%,hsl(var(--primary)/0.15),transparent_60%)] animate-breathe" />
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:py-32">
-            <div className="max-w-2xl mx-auto text-center">
-              <AnimatedSection>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display text-glow">
-                  {t.cta.title}
+        {/* Pricing Section */}
+        <section className="relative py-32">
+          <div className="absolute inset-0 gradient-bg opacity-50" />
+          <div className="absolute inset-0 cyber-grid opacity-30" />
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <AnimatedSection>
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs tracking-[0.2em] text-primary font-mono uppercase mb-6">
+                  {t.pricing.label}
+                </span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] font-display">
+                  <span className="gradient-text">{t.pricing.title}</span>
                 </h2>
-                <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-                  {t.cta.desc}
-                </p>
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link to="/auth?mode=signup">
-                    <Button size="lg" className="h-14 px-10 text-base font-semibold animate-pulse-glow">
-                      {t.cta.button}
-                      <ArrowRight className="w-5 h-5 ml-2" />
+              </div>
+            </AnimatedSection>
+
+            <StaggeredList className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto" staggerDelay={150} animation="fade-up">
+              {t.pricing.plans.map((plan, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "relative p-8 rounded-2xl overflow-hidden hover-lift",
+                    plan.popular 
+                      ? "glass-strong neon-border" 
+                      : "glass"
+                  )}
+                >
+                  {plan.popular && (
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary animate-shimmer" />
+                  )}
+                  
+                  {plan.popular && (
+                    <span className="absolute top-4 right-4 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground font-display">
+                      {t.pricing.popular}
+                    </span>
+                  )}
+
+                  <div className="mb-8">
+                    <h3 className="text-xl font-bold text-foreground font-display mb-2">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-5xl font-bold font-display text-foreground">{plan.price}</span>
+                      <span className="text-2xl font-bold text-primary">€</span>
+                      <span className="text-muted-foreground font-mono">{plan.period}</span>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-4 mb-8">
+                    {plan.features.map((f, j) => (
+                      <li key={j} className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Check className="w-3 h-3 text-primary" />
+                        </div>
+                        <span className="text-muted-foreground">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link to="/auth?mode=signup" className="block">
+                    <Button 
+                      className="w-full" 
+                      variant={plan.popular ? "default" : "outline"}
+                      size="lg"
+                    >
+                      {t.pricing.cta}
                     </Button>
                   </Link>
-                  <span className="text-sm text-muted-foreground font-mono">
-                    14 jours gratuits • Sans CB
-                  </span>
                 </div>
-              </AnimatedSection>
-            </div>
+              ))}
+            </StaggeredList>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="relative py-32 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,hsl(var(--primary)/0.2),transparent)]" />
+          <div className="orb orb-cyan w-[600px] h-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse opacity-30" />
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <AnimatedSection>
+              <div className="text-center max-w-3xl mx-auto">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] font-display text-foreground neon-text mb-6">
+                  {t.cta.title}
+                </h2>
+                <p className="text-xl text-muted-foreground mb-10">
+                  {t.cta.desc}
+                </p>
+                <Link to="/auth?mode=signup">
+                  <Button size="lg" className="h-16 px-12 text-lg">
+                    {t.cta.button}
+                    <ArrowRight className="w-6 h-6 ml-3" />
+                  </Button>
+                </Link>
+              </div>
+            </AnimatedSection>
           </div>
         </section>
       </main>
