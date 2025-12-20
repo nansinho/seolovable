@@ -12,11 +12,18 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
-// Plans configuration
+// Plans configuration - must match database constraint: free, starter, pro, business
 const PRODUCT_TO_PLAN: Record<string, { planType: string; sitesLimit: number }> = {
   "prod_TdhuLMAF5eXcjT": { planType: "starter", sitesLimit: 1 },
   "prod_Tdhvh9CaIxk6w0": { planType: "pro", sitesLimit: 5 },
   "prod_TdhvfNh0QiimbU": { planType: "business", sitesLimit: 999 }
+};
+
+// Fallback function to determine plan type from valid values
+const getValidPlanType = (productId: string): { planType: string; sitesLimit: number } => {
+  const plan = PRODUCT_TO_PLAN[productId];
+  if (plan) return plan;
+  return { planType: "starter", sitesLimit: 1 };
 };
 
 serve(async (req) => {
@@ -73,7 +80,7 @@ serve(async (req) => {
           if (users && users.length > 0) {
             const userId = users[0].id;
             const productId = subscription.items.data[0].price.product as string;
-            const planInfo = PRODUCT_TO_PLAN[productId] || { planType: "starter", sitesLimit: 1 };
+            const planInfo = getValidPlanType(productId);
 
             const { error } = await supabase
               .from("user_plans")
@@ -114,7 +121,7 @@ serve(async (req) => {
         if (users && users.length > 0) {
           const userId = users[0].id;
           const productId = subscription.items.data[0].price.product as string;
-          const planInfo = PRODUCT_TO_PLAN[productId] || { planType: "starter", sitesLimit: 1 };
+          const planInfo = getValidPlanType(productId);
 
           await supabase
             .from("user_plans")

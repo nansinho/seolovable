@@ -12,11 +12,19 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Plans configuration
+// Plans configuration - must match database constraint
 const PRODUCT_TO_PLAN: Record<string, { planType: string; sitesLimit: number }> = {
   "prod_TdhuLMAF5eXcjT": { planType: "starter", sitesLimit: 1 },
   "prod_Tdhvh9CaIxk6w0": { planType: "pro", sitesLimit: 5 },
   "prod_TdhvfNh0QiimbU": { planType: "business", sitesLimit: 999 }
+};
+
+// Fallback function to determine plan type from valid values
+const getValidPlanType = (productId: string): { planType: string; sitesLimit: number } => {
+  const plan = PRODUCT_TO_PLAN[productId];
+  if (plan) return plan;
+  // Default to starter if product not found
+  return { planType: "starter", sitesLimit: 1 };
 };
 
 serve(async (req) => {
@@ -84,7 +92,7 @@ serve(async (req) => {
 
     const subscription = subscriptions.data[0];
     const productId = subscription.items.data[0].price.product as string;
-    const planInfo = PRODUCT_TO_PLAN[productId] || { planType: "unknown", sitesLimit: 1 };
+    const planInfo = getValidPlanType(productId);
     const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
     logStep("Active subscription found", { 
