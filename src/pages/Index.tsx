@@ -402,13 +402,14 @@ const Index = () => {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 relative z-10">
             <AnimatedSection>
-              <div className="max-w-2xl mb-16">
-                <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
                   {t.features.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
                   {t.features.title} <span className="font-mono text-accent animate-pulse-subtle">{t.features.titleAccent}</span>
                 </h2>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
               </div>
             </AnimatedSection>
 
@@ -437,13 +438,14 @@ const Index = () => {
         <section className="py-32 border-t border-border bg-card/30">
           <div className="container mx-auto px-4">
             <AnimatedSection>
-              <div className="max-w-2xl mb-16">
-                <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
                   {t.testimonials.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
                   {t.testimonials.title} <span className="font-mono text-accent">{t.testimonials.titleAccent}</span>
                 </h2>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
               </div>
             </AnimatedSection>
 
@@ -475,17 +477,18 @@ const Index = () => {
         <section className="py-32 border-t border-border">
           <div className="container mx-auto px-4">
             <AnimatedSection>
-              <div className="max-w-2xl mb-16">
-                <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
                   {t.pricing.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
                   {t.pricing.title} <span className="font-mono text-accent">{t.pricing.titleAccent}</span>
                 </h2>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
               </div>
             </AnimatedSection>
 
-            <StaggeredList className="grid md:grid-cols-3 gap-8 max-w-5xl" staggerDelay={120} animation="fade-up">
+            <StaggeredList className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto" staggerDelay={120} animation="fade-up">
               {t.pricing.plans.map((plan, i) => (
                 <div
                   key={i}
@@ -556,18 +559,19 @@ const Index = () => {
         <section className="py-32 border-t border-border bg-card/30">
           <div className="container mx-auto px-4">
             <AnimatedSection>
-              <div className="max-w-2xl mb-16">
-                <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
                   {t.faq.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
                   {t.faq.title} <span className="font-mono text-accent">{t.faq.titleAccent}</span>
                 </h2>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
               </div>
             </AnimatedSection>
 
             <AnimatedSection delay={100}>
-              <div className="max-w-3xl">
+              <div className="max-w-3xl mx-auto">
                 <Accordion type="single" collapsible className="space-y-4">
                   {t.faq.items.map((item, i) => (
                     <AccordionItem 
@@ -596,7 +600,7 @@ const Index = () => {
         <section className="py-32 border-t border-border">
           <div className="container mx-auto px-4">
             <AnimatedSection>
-              <div className="max-w-2xl">
+              <div className="text-center max-w-3xl mx-auto">
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.02em] leading-tight">
                   <span className="text-foreground">{t.cta.title}</span>{" "}
                   <span className="font-mono text-accent">{t.cta.titleAccent}</span>
