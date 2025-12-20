@@ -18,8 +18,10 @@ import {
   Search,
   Menu,
   X,
-  Trash2
+  Trash2,
+  Infinity
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -52,6 +54,11 @@ interface DailyStats {
   ai_crawls: number;
 }
 
+interface UserPlan {
+  plan_type: string;
+  sites_limit: number;
+}
+
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Globe2, label: "Sites", href: "/dashboard/sites" },
@@ -75,6 +82,7 @@ const Dashboard = () => {
     ai_crawls: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
 
   const fetchSites = useCallback(async () => {
     const { data: sitesData } = await supabase
@@ -127,6 +135,17 @@ const Dashboard = () => {
       
       // Fetch sites
       await fetchSites();
+
+      // Fetch user plan
+      const { data: planData } = await supabase
+        .from("user_plans")
+        .select("plan_type, sites_limit")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (planData) {
+        setUserPlan(planData);
+      }
 
       // Fetch bot activity (last 10)
       const { data: activityData } = await supabase
@@ -255,6 +274,7 @@ const Dashboard = () => {
           open={addSiteOpen} 
           onOpenChange={setAddSiteOpen} 
           onSiteAdded={fetchSites}
+          currentSitesCount={sites.length}
         />
 
         <DeleteSiteDialog
@@ -267,6 +287,42 @@ const Dashboard = () => {
 
         {/* Content */}
         <main className="flex-1 p-4 lg:p-8 space-y-8 overflow-auto">
+          {/* Plan Quota Indicator */}
+          <div className="p-4 lg:p-6 rounded-lg border border-primary/30 bg-card">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Globe2 className="w-5 h-5 text-primary" />
+                <h3 className="font-code font-bold text-foreground">Quota de sites</h3>
+              </div>
+              <span className="text-xs font-code px-2 py-1 rounded bg-primary/20 text-primary">
+                Plan {userPlan.plan_type}
+              </span>
+            </div>
+            {userPlan.sites_limit === -1 ? (
+              <div className="flex items-center gap-2">
+                <Infinity className="w-5 h-5 text-primary" />
+                <span className="text-sm font-code text-muted-foreground">
+                  Sites illimités • {sites.length} site(s) créé(s)
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-code text-muted-foreground">
+                    {sites.length} / {userPlan.sites_limit} sites utilisés
+                  </span>
+                  <span className="text-sm font-code text-primary">
+                    {userPlan.sites_limit - sites.length} restant(s)
+                  </span>
+                </div>
+                <Progress 
+                  value={(sites.length / userPlan.sites_limit) * 100} 
+                  className="h-2"
+                />
+              </>
+            )}
+          </div>
+
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
