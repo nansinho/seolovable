@@ -148,6 +148,7 @@ export type Database = {
           name: string
           pages_rendered: number
           status: string
+          txt_record_token: string | null
           updated_at: string
           url: string | null
           user_id: string
@@ -163,6 +164,7 @@ export type Database = {
           name: string
           pages_rendered?: number
           status?: string
+          txt_record_token?: string | null
           updated_at?: string
           url?: string | null
           user_id: string
@@ -178,6 +180,7 @@ export type Database = {
           name?: string
           pages_rendered?: number
           status?: string
+          txt_record_token?: string | null
           updated_at?: string
           url?: string | null
           user_id?: string

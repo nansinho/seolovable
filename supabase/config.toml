@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.test-prerender]
 verify_jwt = false
+
+[functions.check-dns]
+verify_jwt = false
+
+[functions.log-crawl]
+verify_jwt = false

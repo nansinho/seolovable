@@ -52,11 +52,21 @@ interface UserPlan {
   sites_limit: number;
 }
 
+// Generate a unique verification token
+function generateVerificationToken(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "seolovable-verify-";
+  for (let i = 0; i < 16; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
 export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCount }: AddSiteModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
-  const [newSiteData, setNewSiteData] = useState<{ cname: string; url: string } | null>(null);
+  const [newSiteData, setNewSiteData] = useState<{ txtToken: string; txtRecordName: string; domain: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const form = useForm<SiteFormData>({
@@ -126,14 +136,22 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         return;
       }
 
-      // Generate CNAME target based on site URL
-      let cnameTarget = "";
+      // Generate TXT verification token
+      const txtToken = generateVerificationToken();
+      
+      // Extract domain from URL
+      let domain = "";
       try {
         const urlObj = new URL(data.url);
-        cnameTarget = `${urlObj.hostname.replace(/\./g, "-")}.prerender.seolovable.fr`;
+        domain = urlObj.hostname;
       } catch {
-        cnameTarget = `site-${Date.now()}.prerender.seolovable.fr`;
+        domain = "example.com";
       }
+
+      const txtRecordName = `_seolovable.${domain}`;
+
+      // Also generate CNAME for backwards compatibility (prerender routing)
+      const cnameTarget = `${domain.replace(/\./g, "-")}.prerender.seolovable.fr`;
 
       const { error } = await supabase.from("sites").insert({
         name: data.name,
@@ -141,6 +159,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         user_id: session.user.id,
         status: "pending",
         cname_target: cnameTarget,
+        txt_record_token: txtToken,
         dns_verified: false,
       });
 
@@ -150,8 +169,8 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         return;
       }
 
-      // Show CNAME instructions
-      setNewSiteData({ cname: cnameTarget, url: data.url });
+      // Show TXT record instructions
+      setNewSiteData({ txtToken, txtRecordName, domain });
       toast.success("Site ajouté avec succès");
       form.reset();
       onSiteAdded();
@@ -164,10 +183,10 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
   };
 
   const handleCopy = async () => {
-    if (newSiteData?.cname) {
-      await navigator.clipboard.writeText(newSiteData.cname);
+    if (newSiteData?.txtToken) {
+      await navigator.clipboard.writeText(newSiteData.txtToken);
       setCopied(true);
-      toast.success("CNAME copié !");
+      toast.success("Token copié !");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -201,16 +220,20 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
               <p className="text-sm font-mono text-muted-foreground mb-3">
-                Ajoutez cet enregistrement CNAME dans votre zone DNS :
+                Ajoutez cet enregistrement TXT dans votre zone DNS :
               </p>
-              <div className="p-3 rounded bg-background border border-border font-mono text-sm space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Type :</span>
-                  <code className="text-primary">CNAME</code>
+              <div className="p-3 rounded bg-background border border-border font-mono text-sm space-y-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground text-xs">Type :</span>
+                  <code className="text-primary font-semibold">TXT</code>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Valeur :</span>
-                  <code className="text-primary select-all break-all">{newSiteData.cname}</code>
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground text-xs">Nom / Host :</span>
+                  <code className="text-primary select-all break-all">{newSiteData.txtRecordName}</code>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground text-xs">Valeur :</span>
+                  <code className="text-primary select-all break-all">{newSiteData.txtToken}</code>
                 </div>
               </div>
               <Button
@@ -227,10 +250,18 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                 ) : (
                   <>
                     <Copy className="w-4 h-4 mr-2" />
-                    Copier le CNAME
+                    Copier le token
                   </>
                 )}
               </Button>
+            </div>
+            <div className="p-3 rounded bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground font-code">
+                <strong>Exemple chez votre registrar :</strong><br />
+                Nom: <code className="text-primary">_seolovable</code><br />
+                Type: <code className="text-primary">TXT</code><br />
+                Valeur: <code className="text-primary">{newSiteData.txtToken}</code>
+              </p>
             </div>
             <p className="text-xs text-muted-foreground">
               Après avoir configuré le DNS, le statut sera automatiquement vérifié. 

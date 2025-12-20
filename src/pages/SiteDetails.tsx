@@ -15,8 +15,6 @@ import {
   TrendingUp,
   Calendar,
   FileText,
-  RefreshCw,
-  Loader2,
   Copy,
   Play,
 } from "lucide-react";
@@ -35,6 +33,7 @@ interface Site {
   last_crawl: string | null;
   created_at: string;
   cname_target: string | null;
+  txt_record_token: string | null;
   dns_verified: boolean | null;
   dns_verified_at: string | null;
 }
@@ -60,6 +59,17 @@ const SiteDetails = () => {
 
   const { checkIfBlocked } = useBlockedUserCheck();
 
+  // Extract domain from URL
+  const getDomain = (url: string | null): string => {
+    if (!url) return "";
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname;
+    } catch {
+      return "";
+    }
+  };
+
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -77,10 +87,10 @@ const SiteDetails = () => {
         return;
       }
 
-      // Fetch site with new DNS columns
+      // Fetch site with DNS columns including txt_record_token
       const { data: siteData, error: siteError } = await supabase
         .from("sites")
-        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, dns_verified, dns_verified_at")
+        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at")
         .eq("id", id)
         .maybeSingle();
 
@@ -154,11 +164,11 @@ const SiteDetails = () => {
     }
   };
 
-  const handleCopyCname = async () => {
-    if (site?.cname_target) {
-      await navigator.clipboard.writeText(site.cname_target);
+  const handleCopyToken = async () => {
+    if (site?.txt_record_token) {
+      await navigator.clipboard.writeText(site.txt_record_token);
       setCopied(true);
-      toast.success("CNAME copié !");
+      toast.success("Token copié !");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -177,6 +187,7 @@ const SiteDetails = () => {
   const totalPages = botActivity.reduce((sum, a) => sum + a.pages_crawled, 0);
   const googleCrawls = botActivity.filter((a) => a.bot_type === "search").length;
   const aiCrawls = botActivity.filter((a) => a.bot_type === "ai").length;
+  const domain = getDomain(site.url);
 
   return (
     <div className="min-h-screen bg-background">
@@ -283,17 +294,19 @@ const SiteDetails = () => {
             <h3 className="text-sm font-semibold font-code text-foreground mb-3">Configuration DNS</h3>
             <DnsStatusBadge
               dnsVerified={site.dns_verified}
+              txtRecordToken={site.txt_record_token}
               cnameTarget={site.cname_target}
               status={site.status}
               onVerify={handleVerifyDns}
               isVerifying={verifyingDns}
+              domain={domain}
             />
-            {site.cname_target && (
+            {site.txt_record_token && (
               <div className="mt-3 flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleCopyCname}
+                  onClick={handleCopyToken}
                   className="font-mono text-xs"
                 >
                   {copied ? (
@@ -301,7 +314,7 @@ const SiteDetails = () => {
                   ) : (
                     <Copy className="w-3 h-3 mr-1" />
                   )}
-                  {copied ? "Copié" : "Copier CNAME"}
+                  {copied ? "Copié" : "Copier Token"}
                 </Button>
               </div>
             )}

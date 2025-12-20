@@ -7,6 +7,21 @@ const corsHeaders = {
 
 const PRERENDER_URL = "http://prerender.seolovable.cloud:3000";
 
+// Decode HTML entities
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
+    .replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,17 +68,17 @@ serve(async (req) => {
 
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     if (titleMatch) {
-      title = titleMatch[1].trim();
+      title = decodeHtmlEntities(titleMatch[1].trim());
     }
 
     const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
     if (!descMatch) {
       const descMatch2 = html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["']/i);
       if (descMatch2) {
-        description = descMatch2[1].trim();
+        description = decodeHtmlEntities(descMatch2[1].trim());
       }
     } else {
-      description = descMatch[1].trim();
+      description = decodeHtmlEntities(descMatch[1].trim());
     }
 
     // Calculate size

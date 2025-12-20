@@ -42,7 +42,7 @@ serve(async (req) => {
     // Get site details
     const { data: site, error: siteError } = await supabaseClient
       .from("sites")
-      .select("id, url, cname_target, user_id, dns_verified")
+      .select("id, url, cname_target, txt_record_token, user_id, dns_verified")
       .eq("id", siteId)
       .single();
 
@@ -56,14 +56,14 @@ serve(async (req) => {
       throw new Error("Not authorized to check this site");
     }
 
-    // If no CNAME target set, cannot verify
-    if (!site.cname_target) {
-      logStep("No CNAME target configured");
+    // If no TXT token set, cannot verify
+    if (!site.txt_record_token) {
+      logStep("No TXT token configured");
       return new Response(
         JSON.stringify({
           success: false,
           verified: false,
-          message: "Aucun CNAME configuré pour ce site",
+          message: "Aucun token TXT configuré pour ce site",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -77,15 +77,17 @@ serve(async (req) => {
     } catch {
       throw new Error("Invalid site URL");
     }
-    logStep("Checking DNS for domain", { domain, expectedCname: site.cname_target });
+    
+    const txtRecordName = `_seolovable.${domain}`;
+    logStep("Checking TXT record", { txtRecordName, expectedToken: site.txt_record_token });
 
-    // Try to resolve CNAME using DNS over HTTPS (Cloudflare)
+    // Try to resolve TXT record using DNS over HTTPS (Cloudflare)
     let verified = false;
     let message = "";
 
     try {
       const dnsResponse = await fetch(
-        `https://cloudflare-dns.com/dns-query?name=${domain}&type=CNAME`,
+        `https://cloudflare-dns.com/dns-query?name=${txtRecordName}&type=TXT`,
         {
           headers: { Accept: "application/dns-json" },
         }
@@ -95,29 +97,29 @@ serve(async (req) => {
       logStep("DNS response received", dnsData);
 
       if (dnsData.Answer && dnsData.Answer.length > 0) {
-        // Check if any CNAME record matches our target
-        const cnameRecords = dnsData.Answer.filter(
-          (record: { type: number }) => record.type === 5
+        // Check if any TXT record matches our token
+        const txtRecords = dnsData.Answer.filter(
+          (record: { type: number }) => record.type === 16 // TXT record type
         );
         
-        for (const record of cnameRecords) {
-          const recordData = record.data.replace(/\.$/, ""); // Remove trailing dot
-          const targetWithoutDot = site.cname_target.replace(/\.$/, "");
+        for (const record of txtRecords) {
+          // TXT record data is often quoted
+          const recordData = record.data.replace(/^"|"$/g, "").trim();
           
-          if (recordData.toLowerCase() === targetWithoutDot.toLowerCase()) {
+          if (recordData === site.txt_record_token) {
             verified = true;
-            message = "CNAME vérifié avec succès";
+            message = "TXT record vérifié avec succès";
             break;
           }
         }
 
-        if (!verified && cnameRecords.length > 0) {
-          message = `CNAME trouvé mais ne correspond pas. Attendu: ${site.cname_target}`;
+        if (!verified && txtRecords.length > 0) {
+          message = `TXT record trouvé mais ne correspond pas. Attendu: ${site.txt_record_token}`;
         }
       }
 
       if (!verified && !message) {
-        message = "Aucun enregistrement CNAME trouvé pour ce domaine";
+        message = `Aucun enregistrement TXT trouvé pour _seolovable.${domain}`;
       }
     } catch (dnsError) {
       logStep("DNS lookup error", { error: String(dnsError) });
@@ -148,7 +150,8 @@ serve(async (req) => {
         verified,
         message,
         domain,
-        cname_target: site.cname_target,
+        txt_record_name: txtRecordName,
+        txt_record_token: site.txt_record_token,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
