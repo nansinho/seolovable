@@ -244,7 +244,7 @@ const Index = () => {
 
       <main>
         {/* Hero */}
-        <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
+        <section className="relative min-h-[calc(100vh-80px)] flex items-center justify-center py-16 overflow-hidden">
           <Particles count={60} />
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
