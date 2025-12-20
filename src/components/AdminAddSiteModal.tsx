@@ -92,7 +92,7 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
         return;
       }
 
-      // Grant unlimited plan if checked
+      // Grant business plan (highest tier with 999 sites) if checked
       if (data.grantUnlimited) {
         const { data: session } = await supabase.auth.getSession();
         
@@ -100,8 +100,8 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
           .from("user_plans")
           .upsert({
             user_id: data.user_id,
-            plan_type: "unlimited",
-            sites_limit: -1, // -1 means unlimited
+            plan_type: "business", // Use valid plan type (business = 999 sites)
+            sites_limit: 999,
             created_by: session.session?.user.id,
           }, {
             onConflict: "user_id",
@@ -111,7 +111,7 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
           console.error("Error granting plan:", planError);
           toast.error("Site ajouté mais erreur lors de l'attribution du plan");
         } else {
-          toast.success("Site ajouté avec plan illimité");
+          toast.success("Site ajouté avec plan Business");
         }
       } else {
         toast.success("Site ajouté avec succès");

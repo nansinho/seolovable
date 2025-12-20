@@ -235,7 +235,14 @@ const AdminDashboard = () => {
   };
 
   const handleChangePlan = async (userId: string, planType: string) => {
-    const sitesLimit = planType === "unlimited" ? -1 : planType === "pro" ? 10 : 1;
+    // Map plan types to sites_limit (business = 999 sites as "unlimited" equivalent)
+    const planLimits: Record<string, number> = {
+      free: 1,
+      starter: 1,
+      pro: 5,
+      business: 999,
+    };
+    const sitesLimit = planLimits[planType] ?? 1;
     
     const { error } = await supabase
       .from("user_plans")
@@ -514,16 +521,19 @@ const AdminDashboard = () => {
                               <SelectItem value="free" className="font-code text-xs">
                                 Free
                               </SelectItem>
+                              <SelectItem value="starter" className="font-code text-xs">
+                                Starter
+                              </SelectItem>
                               <SelectItem value="pro" className="font-code text-xs">
                                 <span className="flex items-center gap-1">
                                   <Sparkles className="w-3 h-3 text-primary" />
                                   Pro
                                 </span>
                               </SelectItem>
-                              <SelectItem value="unlimited" className="font-code text-xs">
+                              <SelectItem value="business" className="font-code text-xs">
                                 <span className="flex items-center gap-1">
                                   <Infinity className="w-3 h-3 text-accent" />
-                                  Illimité
+                                  Business
                                 </span>
                               </SelectItem>
                             </SelectContent>
