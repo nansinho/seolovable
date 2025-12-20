@@ -229,6 +229,27 @@
   animation: shimmer 2s infinite;
 }
 
+@keyframes particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-100px) translateX(20px);
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.1;
+  }
+}
+
+.animate-particle {
+  animation: particle linear infinite;
+}
+
 .animate-glow-pulse {
   animation: glow-pulse 2s ease-in-out infinite;
 }
