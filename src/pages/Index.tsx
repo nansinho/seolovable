@@ -315,15 +315,25 @@ const Index = () => {
               {/* Logos Section */}
               <AnimatedSection delay={550}>
                 <div className="mt-16 pt-12 border-t border-border">
-                  <p className="text-sm text-muted-foreground text-center mb-8 font-mono">
+                  <p className="text-sm text-muted-foreground text-center mb-10 font-mono">
                     {lang === "fr" ? "Compatible avec les crawlers IA leaders" : "Compatible with leading AI crawlers"}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-12 md:gap-20">
-                    <img src="/logos/openai.svg" alt="OpenAI" className="h-16 md:h-20 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
-                    <img src="/logos/google.svg" alt="Google" className="h-16 md:h-20 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
-                    <img src="/logos/claude.svg" alt="Claude" className="h-16 md:h-20 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
-                    <img src="/logos/gemini.svg" alt="Gemini" className="h-16 md:h-20 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
-                    <img src="/logos/grok.svg" alt="Grok" className="h-16 md:h-20 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 md:gap-6 items-center justify-items-center max-w-5xl mx-auto">
+                    <div className="flex items-center justify-center h-12 w-full">
+                      <img src="/logos/openai.svg" alt="OpenAI" className="max-h-10 max-w-[140px] w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="flex items-center justify-center h-12 w-full">
+                      <img src="/logos/google.svg" alt="Google" className="max-h-8 max-w-[120px] w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="flex items-center justify-center h-12 w-full">
+                      <img src="/logos/claude.svg" alt="Claude" className="max-h-10 max-w-[140px] w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="flex items-center justify-center h-12 w-full">
+                      <img src="/logos/gemini.svg" alt="Gemini" className="max-h-10 max-w-[140px] w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="flex items-center justify-center h-12 w-full col-span-2 sm:col-span-1">
+                      <img src="/logos/grok.svg" alt="Grok" className="max-h-10 max-w-[140px] w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    </div>
                   </div>
                 </div>
               </AnimatedSection>
