@@ -227,11 +227,18 @@ const Dashboard = () => {
       
       // Fetch invoices and subscription info
       try {
-        const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke("get-invoices");
-        if (!invoiceError && invoiceData) {
-          setInvoices(invoiceData.invoices || []);
-          setSubscription(invoiceData.subscription || null);
-          setUpcomingInvoice(invoiceData.upcomingInvoice || null);
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession?.access_token) {
+          const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke("get-invoices", {
+            headers: {
+              Authorization: `Bearer ${currentSession.access_token}`,
+            },
+          });
+          if (!invoiceError && invoiceData) {
+            setInvoices(invoiceData.invoices || []);
+            setSubscription(invoiceData.subscription || null);
+            setUpcomingInvoice(invoiceData.upcomingInvoice || null);
+          }
         }
       } catch (e) {
         console.error("Error fetching invoices:", e);
