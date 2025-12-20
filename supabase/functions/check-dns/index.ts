@@ -27,15 +27,6 @@ serve(async (req) => {
       throw new Error("Missing backend configuration");
     }
 
-    // Use ANON client for auth validation; service-role for DB operations
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false },
-    });
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: { persistSession: false },
-    });
-
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
     logStep("Auth header received", {
       hasAuthHeader: !!authHeader,
@@ -48,7 +39,19 @@ serve(async (req) => {
     logStep("Token parsed", { tokenLength: token.length });
     if (!token) throw new Error("Empty token");
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+    // Create auth client WITH the user's token in global headers
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    });
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
