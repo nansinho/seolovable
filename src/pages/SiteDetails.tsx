@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 interface Site {
   id: string;
@@ -45,6 +46,8 @@ const SiteDetails = () => {
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  const { checkIfBlocked } = useBlockedUserCheck();
+
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -52,6 +55,10 @@ const SiteDetails = () => {
         navigate("/auth");
         return;
       }
+
+      // Check if user is blocked
+      const isBlocked = await checkIfBlocked(session.user.id);
+      if (isBlocked) return;
 
       if (!id) {
         navigate("/dashboard");
@@ -87,7 +94,7 @@ const SiteDetails = () => {
     };
 
     checkAuthAndFetchData();
-  }, [id, navigate]);
+  }, [id, navigate, checkIfBlocked]);
 
   const handleStatusChange = async (checked: boolean) => {
     if (!site) return;

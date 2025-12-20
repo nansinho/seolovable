@@ -17,6 +17,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const Settings = () => {
     crawlAlerts: true,
   });
 
+  const { checkIfBlocked } = useBlockedUserCheck();
+
   useEffect(() => {
     const checkAuthAndLoadData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -42,6 +45,10 @@ const Settings = () => {
         navigate("/auth");
         return;
       }
+
+      // Check if user is blocked
+      const isBlocked = await checkIfBlocked(session.user.id);
+      if (isBlocked) return;
 
       setUser(session.user);
       setFormData({
@@ -53,7 +60,7 @@ const Settings = () => {
     };
 
     checkAuthAndLoadData();
-  }, [navigate]);
+  }, [navigate, checkIfBlocked]);
 
   const handleSaveProfile = async () => {
     if (!user) return;

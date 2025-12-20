@@ -7,6 +7,7 @@ import { Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -109,23 +110,31 @@ const Auth = () => {
   };
 
   const t = content[lang];
+  const { checkIfBlocked } = useBlockedUserCheck();
 
   // Check for existing session on mount
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        navigate("/dashboard");
+        // Check if user is blocked before allowing access
+        const isBlocked = await checkIfBlocked(session.user.id);
+        if (!isBlocked) {
+          navigate("/dashboard");
+        }
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        navigate("/dashboard");
+        const isBlocked = await checkIfBlocked(session.user.id);
+        if (!isBlocked) {
+          navigate("/dashboard");
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, checkIfBlocked]);
 
   useEffect(() => {
     setIsLogin(searchParams.get("mode") !== "signup");
