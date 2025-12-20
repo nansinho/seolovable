@@ -363,37 +363,142 @@ const Index = () => {
         <section className="py-32 border-t border-border bg-card/30 relative">
           <Particles count={20} className="opacity-50" />
           <div className="container mx-auto px-4 relative z-10">
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
-              <div className="lg:sticky lg:top-32">
-                <AnimatedSection>
-                  <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
-                    {t.solution.eyebrow}
-                  </p>
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
-                    {t.solution.title} <span className="font-mono text-accent animate-pulse-subtle">{t.solution.titleAccent}</span>
-                  </h2>
-                  <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                    {t.solution.desc}
-                  </p>
-                </AnimatedSection>
+            {/* Header centré */}
+            <AnimatedSection>
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
+                  {t.solution.eyebrow}
+                </p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
+                  {t.solution.title} <span className="font-mono text-accent animate-pulse-subtle">{t.solution.titleAccent}</span>
+                </h2>
+                <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                  {t.solution.desc}
+                </p>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
               </div>
+            </AnimatedSection>
 
-              <div>
-                <StaggeredList className="space-y-4" staggerDelay={100} animation="fade-up">
+            {/* Before / After Code Comparison */}
+            <AnimatedSection delay={150}>
+              <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
+                {/* AVANT - Sans prerendering */}
+                <div className="relative">
+                  <div className="absolute -top-3 left-6 z-10">
+                    <span className="bg-red-500/20 text-red-400 text-xs font-mono font-medium px-3 py-1 rounded-full border border-red-500/30">
+                      {lang === "fr" ? "❌ AVANT" : "❌ BEFORE"}
+                    </span>
+                  </div>
+                  <div className="bg-card border border-red-500/20 rounded-xl p-6 font-mono text-sm h-full">
+                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+                      <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                      <span className="ml-4 text-muted-foreground text-xs">
+                        {lang === "fr" ? "Ce que Google voit" : "What Google sees"}
+                      </span>
+                    </div>
+                    <pre className="text-muted-foreground leading-relaxed overflow-x-auto text-xs md:text-sm">
+{`<html>
+  <head>
+    <title>Mon App React</title>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Rien ici ! -->
+      <!-- Le contenu est généré -->
+      <!-- par JavaScript -->
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>`}
+                    </pre>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2 text-red-400 text-xs">
+                        <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                        {lang === "fr" ? "Contenu invisible pour les bots" : "Content invisible to bots"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* APRÈS - Avec prerendering */}
+                <div className="relative">
+                  <div className="absolute -top-3 left-6 z-10">
+                    <span className="bg-accent/20 text-accent text-xs font-mono font-medium px-3 py-1 rounded-full border border-accent/30">
+                      {lang === "fr" ? "✓ APRÈS" : "✓ AFTER"}
+                    </span>
+                  </div>
+                  <div className="bg-card border border-accent/20 rounded-xl p-6 font-mono text-sm h-full border-glow">
+                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+                      <div className="w-3 h-3 rounded-full bg-red-500" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <span className="ml-4 text-muted-foreground text-xs">
+                        {lang === "fr" ? "Avec SEO Lovable" : "With SEO Lovable"}
+                      </span>
+                    </div>
+                    <pre className="text-muted-foreground leading-relaxed overflow-x-auto text-xs md:text-sm">
+{`<html>
+  <head>
+    <title>Mon App React</title>
+    <meta name="description" content="...">
+  </head>
+  <body>
+    <header>Navigation...</header>
+    <main>
+      <h1>Bienvenue</h1>
+      <p>Tout le contenu visible!</p>
+      <article>...</article>
+    </main>
+    <footer>...</footer>
+  </body>
+</html>`}
+                    </pre>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2 text-accent text-xs">
+                        <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                        {lang === "fr" ? "100% indexable par Google & IA" : "100% indexable by Google & AI"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* Arrow + Result */}
+            <AnimatedSection delay={250}>
+              <div className="text-center mb-16">
+                <div className="inline-flex items-center gap-4 bg-accent/10 border border-accent/20 rounded-full px-6 py-3">
+                  <span className="text-2xl">🚀</span>
+                  <span className="text-foreground font-medium">
+                    {lang === "fr" ? "Résultat : Votre site est visible partout" : "Result: Your site is visible everywhere"}
+                  </span>
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* Steps - Comment ça marche */}
+            <AnimatedSection delay={350}>
+              <div className="max-w-4xl mx-auto">
+                <h3 className="text-center text-xl font-medium text-foreground mb-8">
+                  {lang === "fr" ? "Configuration en 4 étapes" : "4-step setup"}
+                </h3>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {t.solution.steps.map((step, i) => (
                     <div
                       key={i}
-                      className="group flex items-center gap-6 p-6 bg-background border border-border rounded-xl hover-lift border-glow transition-all duration-500"
+                      className="group flex flex-col items-center text-center p-6 bg-background border border-border rounded-xl hover-lift border-glow transition-all duration-500"
                     >
-                      <span className="flex-shrink-0 w-12 h-12 rounded-full border border-accent/30 bg-accent/10 flex items-center justify-center text-sm font-mono text-accent group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
-                        {String(i + 1).padStart(2, '0')}
+                      <span className="w-12 h-12 rounded-full border border-accent/30 bg-accent/10 flex items-center justify-center text-sm font-mono text-accent group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300 mb-4">
+                        {String(i + 1).padStart(2, "0")}
                       </span>
-                      <span className="text-foreground font-medium">{step}</span>
+                      <span className="text-foreground font-medium text-sm">{step}</span>
                     </div>
                   ))}
-                </StaggeredList>
+                </div>
               </div>
-            </div>
+            </AnimatedSection>
           </div>
         </section>
 
