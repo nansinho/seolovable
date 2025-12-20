@@ -26,9 +26,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Infinity } from "lucide-react";
 
 const siteSchema = z.object({
   name: z
@@ -43,6 +44,7 @@ const siteSchema = z.object({
     .url("L'URL doit être valide (ex: https://example.com)")
     .max(255, "L'URL doit faire moins de 255 caractères"),
   user_id: z.string().min(1, "L'utilisateur est requis"),
+  grantUnlimited: z.boolean().default(false),
 });
 
 type SiteFormData = z.infer<typeof siteSchema>;
@@ -68,6 +70,7 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
       name: "",
       url: "",
       user_id: "",
+      grantUnlimited: true,
     },
   });
 
@@ -75,20 +78,45 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("sites").insert({
+      // Add site
+      const { error: siteError } = await supabase.from("sites").insert({
         name: data.name,
         url: data.url,
         user_id: data.user_id,
-        status: "pending",
+        status: "active",
       });
 
-      if (error) {
-        console.error("Error adding site:", error);
+      if (siteError) {
+        console.error("Error adding site:", siteError);
         toast.error("Erreur lors de l'ajout du site");
         return;
       }
 
-      toast.success("Site ajouté avec succès");
+      // Grant unlimited plan if checked
+      if (data.grantUnlimited) {
+        const { data: session } = await supabase.auth.getSession();
+        
+        const { error: planError } = await supabase
+          .from("user_plans")
+          .upsert({
+            user_id: data.user_id,
+            plan_type: "unlimited",
+            sites_limit: -1, // -1 means unlimited
+            created_by: session.session?.user.id,
+          }, {
+            onConflict: "user_id",
+          });
+
+        if (planError) {
+          console.error("Error granting plan:", planError);
+          toast.error("Site ajouté mais erreur lors de l'attribution du plan");
+        } else {
+          toast.success("Site ajouté avec plan illimité");
+        }
+      } else {
+        toast.success("Site ajouté avec succès");
+      }
+
       form.reset();
       onOpenChange(false);
       onSiteAdded();
@@ -104,7 +132,7 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-code text-destructive">Ajouter un site (Admin)</DialogTitle>
+          <DialogTitle className="font-code text-accent">Ajouter un site (Admin)</DialogTitle>
           <DialogDescription>
             Créez un site pour n'importe quel utilisateur.
           </DialogDescription>
@@ -173,6 +201,31 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="grantUnlimited"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-accent/30 bg-accent/5 p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="font-code flex items-center gap-2">
+                      <Infinity className="w-4 h-4 text-accent" />
+                      Attribuer le plan illimité
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      L'utilisateur pourra ajouter des sites sans limite et sans payer
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
@@ -185,7 +238,7 @@ export function AdminAddSiteModal({ open, onOpenChange, onSiteAdded, users }: Ad
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="font-code bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="font-code glow-green"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Ajouter

@@ -314,13 +314,13 @@ const AdminDashboard = () => {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-destructive/20 border border-destructive flex items-center justify-center">
-              <Shield className="w-4 h-4 text-destructive" />
+            <div className="w-8 h-8 rounded bg-accent/20 border border-accent flex items-center justify-center">
+              <Shield className="w-4 h-4 text-accent" />
             </div>
-            <span className="font-code font-bold text-destructive">Admin Suprême</span>
+            <span className="font-code font-bold text-accent">Admin</span>
           </div>
         </div>
-        <Badge variant="destructive" className="font-code">
+        <Badge className="font-code bg-accent text-accent-foreground">
           <Crown className="w-3 h-3 mr-1" />
           ADMIN
         </Badge>
@@ -330,21 +330,21 @@ const AdminDashboard = () => {
       <main className="p-4 lg:p-8 max-w-7xl mx-auto space-y-8">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 lg:p-6 rounded-lg border border-destructive/30 bg-card">
+          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
             <p className="text-xs text-muted-foreground font-code mb-2">Utilisateurs</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-destructive">{stats.totalUsers}</p>
+            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalUsers}</p>
           </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-destructive/30 bg-card">
+          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
             <p className="text-xs text-muted-foreground font-code mb-2">Sites totaux</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-destructive">{stats.totalSites}</p>
+            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalSites}</p>
           </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-destructive/30 bg-card">
+          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
             <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-destructive">{stats.totalPages.toLocaleString()}</p>
+            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalPages.toLocaleString()}</p>
           </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-destructive/30 bg-card">
+          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
             <p className="text-xs text-muted-foreground font-code mb-2">Total crawls</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-destructive">{stats.totalCrawls.toLocaleString()}</p>
+            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalCrawls.toLocaleString()}</p>
           </div>
         </div>
 
@@ -382,7 +382,7 @@ const AdminDashboard = () => {
           {activeTab === "sites" && (
             <Button
               onClick={() => setAddSiteModalOpen(true)}
-              className="font-code bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="font-code glow-green"
             >
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un site
@@ -422,7 +422,7 @@ const AdminDashboard = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {isUserAdmin(user.id) && (
-                            <Badge variant="destructive" className="text-xs">
+                            <Badge className="text-xs bg-accent text-accent-foreground">
                               <Crown className="w-3 h-3 mr-1" />
                               Admin
                             </Badge>
@@ -453,7 +453,7 @@ const AdminDashboard = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handlePromoteToAdmin(user.id)}
-                              className="text-primary hover:text-primary"
+                              className="text-accent hover:text-accent"
                               title="Promouvoir admin"
                             >
                               <Crown className="w-4 h-4" />
