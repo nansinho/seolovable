@@ -118,6 +118,7 @@ const Dashboard = () => {
     google_crawls: 0,
     ai_crawls: 0,
   });
+  const [hasStatsData, setHasStatsData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
   
@@ -214,8 +215,10 @@ const Dashboard = () => {
           google_crawls: statsData.google_crawls,
           ai_crawls: statsData.ai_crawls,
         });
+        setHasStatsData(true);
+      } else {
+        setHasStatsData(false);
       }
-      // If no stats for today, keep default values (all zeros)
 
       setLoading(false);
       
@@ -399,30 +402,40 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
-              <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
-                {stats.total_pages_rendered.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-2">Bots aujourd'hui</p>
-              <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
-                {stats.total_bots}
-              </p>
-            </div>
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-2">Google crawls</p>
-              <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
-                {stats.google_crawls}
-              </p>
-            </div>
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-2">AI crawls</p>
-              <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
-                {stats.ai_crawls}
-              </p>
+          <div className="space-y-3">
+            {!hasStatsData && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+                <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-code text-muted-foreground">
+                  Aucune donnée disponible pour aujourd'hui
+                </span>
+              </div>
+            )}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
+                <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
+                  {stats.total_pages_rendered.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">Bots aujourd'hui</p>
+                <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
+                  {stats.total_bots}
+                </p>
+              </div>
+              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">Google crawls</p>
+                <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
+                  {stats.google_crawls}
+                </p>
+              </div>
+              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">AI crawls</p>
+                <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
+                  {stats.ai_crawls}
+                </p>
+              </div>
             </div>
           </div>
 
