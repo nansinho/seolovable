@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Particles from "@/components/Particles";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import TypeWriter from "@/components/TypeWriter";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
@@ -22,16 +24,16 @@ const Index = () => {
       hero: {
         eyebrow: "Prerendering pour React",
         title: "Rendez vos apps",
-        titleAccent: "visibles",
+        titleAccentWords: ["visibles", "indexables", "performantes"],
         titleEnd: "sur Google",
         subtitle: "Service de prerendering qui rend vos sites React indexables par les moteurs de recherche et les crawlers IA.",
         cta: "Commencer",
         secondary: "En savoir plus",
       },
       stats: [
-        { value: "12", suffix: "ms", label: "Temps de réponse moyen" },
-        { value: "100", suffix: "%", label: "Contenu indexable" },
-        { value: "5", suffix: "min", label: "Configuration initiale" },
+        { value: 12, suffix: "ms", label: "Temps de réponse moyen" },
+        { value: 100, suffix: "%", label: "Contenu indexable" },
+        { value: 5, suffix: "min", label: "Configuration initiale" },
       ],
       problem: {
         eyebrow: "Le problème",
@@ -129,16 +131,16 @@ const Index = () => {
       hero: {
         eyebrow: "Prerendering for React",
         title: "Make your apps",
-        titleAccent: "visible",
+        titleAccentWords: ["visible", "indexable", "performant"],
         titleEnd: "on Google",
         subtitle: "Prerendering service that makes your React sites indexable by search engines and AI crawlers.",
         cta: "Get started",
         secondary: "Learn more",
       },
       stats: [
-        { value: "12", suffix: "ms", label: "Average response time" },
-        { value: "100", suffix: "%", label: "Indexable content" },
-        { value: "5", suffix: "min", label: "Initial setup" },
+        { value: 12, suffix: "ms", label: "Average response time" },
+        { value: 100, suffix: "%", label: "Indexable content" },
+        { value: 5, suffix: "min", label: "Initial setup" },
       ],
       problem: {
         eyebrow: "The problem",
@@ -256,7 +258,13 @@ const Index = () => {
                 <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-medium tracking-[-0.03em] leading-[0.95]">
                   <span className="text-foreground">{t.hero.title}</span>
                   <br />
-                  <span className="font-mono text-accent animate-pulse-subtle">{t.hero.titleAccent}</span>
+                  <TypeWriter 
+                    words={t.hero.titleAccentWords} 
+                    className="font-mono text-accent"
+                    typingSpeed={80}
+                    deletingSpeed={40}
+                    delayBetweenWords={2500}
+                  />
                   {" "}
                   <span className="text-foreground">{t.hero.titleEnd}</span>
                 </h1>
@@ -292,7 +300,7 @@ const Index = () => {
                     {t.stats.map((stat, i) => (
                       <div key={i} className="group" style={{ animationDelay: `${i * 100}ms` }}>
                         <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent group-hover:scale-110">
-                          {stat.value}
+                          <AnimatedCounter value={stat.value} duration={2000 + i * 300} />
                           <span className="text-muted-foreground text-2xl md:text-3xl group-hover:text-accent/70 transition-colors">{stat.suffix}</span>
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground font-mono">
