@@ -44,7 +44,7 @@ export const Header = () => {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2" role="navigation" aria-label="Navigation principale">
+          <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2" role="navigation" aria-label="Navigation principale">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -62,7 +62,7 @@ export const Header = () => {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
             <Link to="/auth">
               <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border h-9 px-6">
@@ -77,7 +77,7 @@ export const Header = () => {
           </div>
 
           <button
-            className="md:hidden p-2 z-50 relative"
+            className="lg:hidden p-2 z-50 relative"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
@@ -96,7 +96,7 @@ export const Header = () => {
       <div
         id="mobile-menu"
         className={cn(
-          "fixed inset-0 bg-background/98 backdrop-blur-xl z-40 md:hidden transition-all duration-300 ease-in-out",
+          "fixed inset-0 bg-background/98 backdrop-blur-xl z-40 lg:hidden transition-all duration-300 ease-in-out",
           isMenuOpen 
             ? "opacity-100 pointer-events-auto" 
             : "opacity-0 pointer-events-none"
