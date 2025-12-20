@@ -14,6 +14,8 @@ import {
   Crown,
   UserCheck,
   UserX,
+  Infinity,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -35,6 +37,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AdminAddSiteModal } from "@/components/AdminAddSiteModal";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
@@ -66,6 +75,12 @@ interface BlockedUser {
   reason: string | null;
 }
 
+interface UserPlan {
+  user_id: string;
+  plan_type: string;
+  sites_limit: number;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -76,6 +91,7 @@ const AdminDashboard = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+  const [userPlans, setUserPlans] = useState<UserPlan[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
@@ -126,6 +142,13 @@ const AdminDashboard = () => {
       .select("*");
 
     if (blockedData) setBlockedUsers(blockedData);
+
+    // Fetch user plans
+    const { data: plansData } = await supabase
+      .from("user_plans")
+      .select("user_id, plan_type, sites_limit");
+
+    if (plansData) setUserPlans(plansData);
 
     // Calculate stats
     const totalSites = sitesData?.length || 0;
@@ -205,6 +228,38 @@ const AdminDashboard = () => {
 
   const isUserBlocked = (userId: string) => {
     return blockedUsers.some(b => b.user_id === userId);
+  };
+
+  const getUserPlan = (userId: string): UserPlan | undefined => {
+    return userPlans.find(p => p.user_id === userId);
+  };
+
+  const handleChangePlan = async (userId: string, planType: string) => {
+    const sitesLimit = planType === "unlimited" ? -1 : planType === "pro" ? 10 : 1;
+    
+    const { error } = await supabase
+      .from("user_plans")
+      .upsert({
+        user_id: userId,
+        plan_type: planType,
+        sites_limit: sitesLimit,
+        created_by: currentUserId,
+      }, {
+        onConflict: "user_id",
+      });
+
+    if (error) {
+      toast.error("Erreur lors de la modification du plan");
+    } else {
+      toast.success(`Plan modifié en ${planType}`);
+      setUserPlans(prev => {
+        const existing = prev.find(p => p.user_id === userId);
+        if (existing) {
+          return prev.map(p => p.user_id === userId ? { ...p, plan_type: planType, sites_limit: sitesLimit } : p);
+        }
+        return [...prev, { user_id: userId, plan_type: planType, sites_limit: sitesLimit }];
+      });
+    }
   };
 
   const handlePromoteToAdmin = async (userId: string) => {
@@ -398,6 +453,7 @@ const AdminDashboard = () => {
                 <TableRow>
                   <TableHead className="font-code">Email</TableHead>
                   <TableHead className="font-code">Statut</TableHead>
+                  <TableHead className="font-code">Plan</TableHead>
                   <TableHead className="font-code">Sites</TableHead>
                   <TableHead className="font-code">Inscrit le</TableHead>
                   <TableHead className="font-code text-right">Actions</TableHead>
@@ -406,7 +462,7 @@ const AdminDashboard = () => {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground font-code py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground font-code py-8">
                       Aucun utilisateur trouvé
                     </TableCell>
                   </TableRow>
@@ -439,6 +495,33 @@ const AdminDashboard = () => {
                             </Badge>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={getUserPlan(user.id)?.plan_type || "free"}
+                          onValueChange={(value) => handleChangePlan(user.id, value)}
+                        >
+                          <SelectTrigger className="w-32 h-8 font-code text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="free" className="font-code text-xs">
+                              Free
+                            </SelectItem>
+                            <SelectItem value="pro" className="font-code text-xs">
+                              <span className="flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-primary" />
+                                Pro
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="unlimited" className="font-code text-xs">
+                              <span className="flex items-center gap-1">
+                                <Infinity className="w-3 h-3 text-accent" />
+                                Illimité
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="font-code">
                         {getSiteCount(user.id)}
