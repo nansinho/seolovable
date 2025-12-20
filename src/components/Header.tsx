@@ -47,12 +47,12 @@ export const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <Link to="/auth">
-              <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border min-w-[140px]">
+              <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border h-9 px-6">
                 {t("nav.login")}
               </Button>
             </Link>
             <Link to="/auth?mode=signup">
-              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider min-w-[140px]">
+              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-9 px-6">
                 {t("nav.trial")}
               </Button>
             </Link>
