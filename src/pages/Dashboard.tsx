@@ -17,12 +17,14 @@ import {
   Bot,
   Search,
   Menu,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddSiteModal } from "@/components/AddSiteModal";
+import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
 
 interface Site {
   id: string;
@@ -59,6 +61,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
   const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
   const [stats, setStats] = useState<DailyStats>({
@@ -77,6 +82,32 @@ const Dashboard = () => {
     
     if (sitesData) setSites(sitesData);
   }, []);
+
+  const handleDeleteClick = (site: Site) => {
+    setSiteToDelete(site);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!siteToDelete) return;
+    
+    setIsDeleting(true);
+    const { error } = await supabase
+      .from("sites")
+      .delete()
+      .eq("id", siteToDelete.id);
+
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+    } else {
+      toast.success("Site supprimé");
+      fetchSites();
+    }
+    
+    setIsDeleting(false);
+    setDeleteDialogOpen(false);
+    setSiteToDelete(null);
+  };
 
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
@@ -218,6 +249,14 @@ const Dashboard = () => {
           onSiteAdded={fetchSites}
         />
 
+        <DeleteSiteDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          siteName={siteToDelete?.name || ""}
+          onConfirm={handleDeleteConfirm}
+          isDeleting={isDeleting}
+        />
+
         {/* Content */}
         <main className="flex-1 p-4 lg:p-8 space-y-8 overflow-auto">
           {/* Stats Grid */}
@@ -276,7 +315,24 @@ const Dashboard = () => {
                             {site.name}
                           </span>
                         </div>
-                        <ExternalLink className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary" />
+                        <div className="flex items-center gap-2">
+                          {site.url && (
+                            <a
+                              href={site.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleDeleteClick(site)}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between">
