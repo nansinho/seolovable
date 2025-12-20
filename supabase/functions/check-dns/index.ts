@@ -103,7 +103,7 @@ serve(async (req) => {
       );
     }
 
-    // Extract domain from URL
+    // Extraire le domaine depuis l'URL
     let domain = "";
     try {
       const urlObj = new URL(site.url);
@@ -112,46 +112,48 @@ serve(async (req) => {
       throw new Error("Invalid site URL");
     }
 
-    const txtRecordName = `_seolovable.${domain}`;
-    logStep("Checking TXT record", { txtRecordName, expectedToken: site.txt_record_token });
+    // Certains registrars attendent _seolovable (et ajoutent automatiquement le domaine),
+    // d'autres demandent _seolovable.<domaine>. On teste les deux.
+    const candidates = [`_seolovable.${domain}`, `_seolovable`];
+    logStep("Checking TXT record", { candidates, expectedToken: site.txt_record_token });
 
-    // Try to resolve TXT record using DNS over HTTPS (Cloudflare)
     let verified = false;
     let message = "";
+    let matchedName: string | null = null;
 
     try {
-      const dnsResponse = await fetch(
-        `https://cloudflare-dns.com/dns-query?name=${txtRecordName}&type=TXT`,
-        {
-          headers: { Accept: "application/dns-json" },
-        }
-      );
+      for (const name of candidates) {
+        const dnsResponse = await fetch(
+          `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=TXT`,
+          { headers: { Accept: "application/dns-json" } }
+        );
 
-      const dnsData = await dnsResponse.json();
-      logStep("DNS response received", dnsData);
+        const dnsData = await dnsResponse.json();
+        logStep("DNS response received", { name, status: dnsData?.Status, answers: dnsData?.Answer?.length ?? 0 });
 
-      if (dnsData.Answer && dnsData.Answer.length > 0) {
-        // Check if any TXT record matches our token
-        const txtRecords = dnsData.Answer.filter((record: { type: number }) => record.type === 16);
+        if (dnsData.Answer && dnsData.Answer.length > 0) {
+          const txtRecords = dnsData.Answer.filter((record: { type: number }) => record.type === 16);
 
-        for (const record of txtRecords) {
-          // TXT record data is often quoted
-          const recordData = String(record.data).replace(/^"|"$/g, "").trim();
-
-          if (recordData === site.txt_record_token) {
-            verified = true;
-            message = "TXT record vérifié avec succès";
-            break;
+          for (const record of txtRecords) {
+            const recordData = String(record.data).replace(/^"|"$/g, "").trim();
+            if (recordData === site.txt_record_token) {
+              verified = true;
+              matchedName = name;
+              message = "TXT record vérifié avec succès";
+              break;
+            }
           }
-        }
 
-        if (!verified && txtRecords.length > 0) {
-          message = `TXT record trouvé mais ne correspond pas. Attendu: ${site.txt_record_token}`;
+          if (verified) break;
+
+          if (!verified && txtRecords.length > 0 && !message) {
+            message = `TXT record trouvé mais ne correspond pas. Attendu: ${site.txt_record_token}`;
+          }
         }
       }
 
       if (!verified && !message) {
-        message = `Aucun enregistrement TXT trouvé pour _seolovable.${domain}`;
+        message = `Aucun enregistrement TXT trouvé pour _seolovable (ou _seolovable.${domain})`;
       }
     } catch (dnsError) {
       logStep("DNS lookup error", { error: String(dnsError) });
@@ -182,7 +184,8 @@ serve(async (req) => {
         verified,
         message,
         domain,
-        txt_record_name: txtRecordName,
+        txt_record_name: matchedName ?? candidates[0],
+        tried: candidates,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
