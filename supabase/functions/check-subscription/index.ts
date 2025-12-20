@@ -93,7 +93,14 @@ serve(async (req) => {
     const subscription = subscriptions.data[0];
     const productId = subscription.items.data[0].price.product as string;
     const planInfo = getValidPlanType(productId);
-    const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    
+    // Safely handle subscription end date
+    let subscriptionEnd: string | null = null;
+    if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
+      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    } else {
+      logStep("Warning: current_period_end is invalid", { value: subscription.current_period_end });
+    }
 
     logStep("Active subscription found", { 
       subscriptionId: subscription.id,
