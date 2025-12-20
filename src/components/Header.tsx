@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -20,6 +20,7 @@ import { toast } from "sonner";
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
@@ -57,6 +58,23 @@ export const Header = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check admin status
+        if (session?.user) {
+          setTimeout(() => {
+            supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", session.user.id)
+              .eq("role", "admin")
+              .maybeSingle()
+              .then(({ data }) => {
+                setIsAdmin(!!data);
+              });
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
       }
     );
 
@@ -64,6 +82,19 @@ export const Header = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Check admin status
+      if (session?.user) {
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin")
+          .maybeSingle()
+          .then(({ data }) => {
+            setIsAdmin(!!data);
+          });
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -155,6 +186,17 @@ export const Header = () => {
                       Paramètres
                     </Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer text-destructive focus:text-destructive">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Admin Suprême
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
