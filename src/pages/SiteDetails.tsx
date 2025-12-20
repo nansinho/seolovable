@@ -24,6 +24,7 @@ import {
   Copy,
   Play,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -43,6 +44,7 @@ interface Site {
   txt_record_token: string | null;
   dns_verified: boolean | null;
   dns_verified_at: string | null;
+  detected_txt_name?: string | null;
 }
 
 interface BotActivity {
@@ -61,7 +63,9 @@ const SiteDetails = () => {
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [verifyingDns, setVerifyingDns] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedTxtName, setCopiedTxtName] = useState(false);
   const [prerenderTestOpen, setPrerenderTestOpen] = useState(false);
 
   const { checkIfBlocked } = useBlockedUserCheck();
@@ -194,7 +198,13 @@ const SiteDetails = () => {
       }
 
       if (data.verified) {
-        setSite({ ...site, dns_verified: true, dns_verified_at: new Date().toISOString(), status: "active" });
+        setSite({ 
+          ...site, 
+          dns_verified: true, 
+          dns_verified_at: new Date().toISOString(), 
+          status: "active",
+          detected_txt_name: data.txt_record_name || null,
+        });
         toast.success("DNS vérifié avec succès !");
       } else {
         toast.error(data.message || "Le DNS n'est pas encore configuré");
@@ -213,6 +223,49 @@ const SiteDetails = () => {
       setCopied(true);
       toast.success("Token copié !");
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCopyTxtName = async () => {
+    if (site?.detected_txt_name) {
+      await navigator.clipboard.writeText(site.detected_txt_name);
+      setCopiedTxtName(true);
+      toast.success("Nom TXT copié !");
+      setTimeout(() => setCopiedTxtName(false), 2000);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!id) return;
+    setRefreshing(true);
+    try {
+      const { data: siteData, error: siteError } = await supabase
+        .from("sites")
+        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (siteError || !siteData) {
+        toast.error("Erreur lors du rafraîchissement");
+        return;
+      }
+
+      setSite((prev) => ({ ...siteData, detected_txt_name: prev?.detected_txt_name } as Site));
+
+      const { data: activityData } = await supabase
+        .from("bot_activity")
+        .select("*")
+        .eq("site_id", id)
+        .order("crawled_at", { ascending: false })
+        .limit(50);
+
+      if (activityData) setBotActivity(activityData);
+
+      toast.success("Données rafraîchies !");
+    } catch {
+      toast.error("Erreur lors du rafraîchissement");
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -280,7 +333,17 @@ const SiteDetails = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="font-code"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Rafraîchissement..." : "Rafraîchir"}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -376,9 +439,30 @@ const SiteDetails = () => {
               </div>
             )}
             {site.dns_verified && site.dns_verified_at && (
-              <p className="text-xs text-muted-foreground font-code mt-2">
-                Vérifié le {new Date(site.dns_verified_at).toLocaleString("fr-FR")}
-              </p>
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-muted-foreground font-code">
+                  Vérifié le {new Date(site.dns_verified_at).toLocaleString("fr-FR")}
+                </p>
+                {site.detected_txt_name && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground font-code">
+                      Enregistrement détecté : <code className="text-primary">{site.detected_txt_name}</code>
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyTxtName}
+                      className="h-6 px-2"
+                    >
+                      {copiedTxtName ? (
+                        <CheckCircle className="w-3 h-3 text-primary" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
