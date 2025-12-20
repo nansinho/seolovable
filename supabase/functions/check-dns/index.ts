@@ -52,7 +52,17 @@ serve(async (req) => {
     });
 
     const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      logStep("AUTH ERROR", { message: userError.message });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Authentication error: ${userError.message}`,
+          hint: "Veuillez vous déconnecter puis vous reconnecter, puis réessayer.",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });

@@ -157,13 +157,19 @@ const SiteDetails = () => {
     
     setVerifyingDns(true);
     try {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      if (!currentSession?.access_token) throw new Error("Session manquante");
+      // Rafraîchir la session pour éviter un access_token référant à une session expirée côté backend
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn("refreshSession error:", refreshError);
+      }
+
+      const session = refreshed?.session ?? (await supabase.auth.getSession()).data.session;
+      if (!session?.access_token) throw new Error("Session manquante");
 
       const { data, error } = await supabase.functions.invoke("check-dns", {
         body: { siteId: site.id },
         headers: {
-          Authorization: `Bearer ${currentSession.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
