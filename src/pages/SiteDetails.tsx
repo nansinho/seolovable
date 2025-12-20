@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Terminal,
   ArrowLeft,
   Globe2,
   ExternalLink,
@@ -32,6 +31,7 @@ import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { DnsStatusBadge } from "@/components/DnsStatusBadge";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 import { SimulateCrawlModal } from "@/components/SimulateCrawlModal";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 interface Site {
   id: string;
@@ -59,6 +59,7 @@ interface BotActivity {
 const SiteDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [site, setSite] = useState<Site | null>(null);
   const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,7 +275,7 @@ const SiteDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-primary font-code">Chargement...</div>
+        <div className="text-foreground font-code">Chargement...</div>
       </div>
     );
   }
@@ -288,45 +289,37 @@ const SiteDetails = () => {
   const domain = getDomain(site.url);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
+
       <PrerenderTestModal
         open={prerenderTestOpen}
         onOpenChange={setPrerenderTestOpen}
         defaultUrl={site?.url || ""}
       />
 
-      {/* Header */}
-      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-primary/20 border border-primary flex items-center justify-center">
-              <Terminal className="w-4 h-4 text-primary" />
-            </div>
-            <span className="font-code font-bold text-primary">SEO Lovable</span>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="p-4 lg:p-8 max-w-6xl mx-auto space-y-8">
-        {/* Site Header */}
-        <div className="p-6 rounded-lg border border-border bg-card">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-primary/20 border border-primary flex items-center justify-center">
-                <Globe2 className="w-6 h-6 text-primary" />
-              </div>
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
               <div>
-                <h1 className="text-2xl font-bold font-code text-primary">{site.name}</h1>
+                <h1 className="text-2xl font-bold font-code text-foreground">{site.name}</h1>
                 {site.url && (
                   <a
                     href={site.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                    className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-1"
                   >
                     {site.url}
                     <ExternalLink className="w-3 h-3" />
@@ -334,7 +327,6 @@ const SiteDetails = () => {
                 )}
               </div>
             </div>
-
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="ghost"
@@ -344,7 +336,7 @@ const SiteDetails = () => {
                 disabled={refreshing}
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-                {refreshing ? "Rafraîchissement..." : "Rafraîchir"}
+                Rafraîchir
               </Button>
               <Button
                 variant="outline"
@@ -364,18 +356,27 @@ const SiteDetails = () => {
                 <Bot className="w-4 h-4 mr-2" />
                 Simuler Crawl
               </Button>
-              
-              <div className="flex items-center gap-2">
-                {site.status === "active" ? (
-                  <CheckCircle className="w-5 h-5 text-primary" />
-                ) : site.status === "pending" ? (
-                  <Clock className="w-5 h-5 text-yellow-500" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                )}
-                <span className="font-code text-sm">
-                  {site.status === "active" ? "Actif" : site.status === "pending" ? "En attente" : "Erreur"}
-                </span>
+            </div>
+          </div>
+          {/* Site Info Card */}
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-center">
+                  <Globe2 className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {site.status === "active" ? (
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  ) : site.status === "pending" ? (
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                  )}
+                  <span className="font-code text-sm text-foreground">
+                    {site.status === "active" ? "Actif" : site.status === "pending" ? "En attente" : "Erreur"}
+                  </span>
+                </div>
               </div>
 
               <TooltipProvider>
@@ -401,28 +402,28 @@ const SiteDetails = () => {
                 </Tooltip>
               </TooltipProvider>
             </div>
-          </div>
 
-          <div className="mt-4 pt-4 border-t border-border flex flex-wrap gap-6 text-sm text-muted-foreground font-code">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Créé le {new Date(site.created_at).toLocaleDateString("fr-FR")}
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              {site.pages_rendered.toLocaleString()} pages rendues
-            </div>
-            {site.last_crawl && (
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground font-code">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Dernier crawl: {new Date(site.last_crawl).toLocaleString("fr-FR")}
+                <Calendar className="w-4 h-4" />
+                Créé le {new Date(site.created_at).toLocaleDateString("fr-FR")}
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                {site.pages_rendered.toLocaleString()} pages rendues
+              </div>
+              {site.last_crawl && (
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Dernier crawl: {new Date(site.last_crawl).toLocaleString("fr-FR")}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* DNS Status Section */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <h3 className="text-sm font-semibold font-code text-foreground mb-3">Configuration DNS</h3>
+          {/* DNS Configuration Card */}
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+            <h3 className="text-base font-semibold font-code text-foreground mb-4">Configuration DNS</h3>
             <DnsStatusBadge
               dnsVerified={site.dns_verified}
               txtRecordToken={site.txt_record_token}
@@ -438,10 +439,10 @@ const SiteDetails = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleCopyToken}
-                  className="font-mono text-xs"
+                  className="font-code text-xs"
                 >
                   {copied ? (
-                    <CheckCircle className="w-3 h-3 mr-1 text-primary" />
+                    <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
                   ) : (
                     <Copy className="w-3 h-3 mr-1" />
                   )}
@@ -450,14 +451,14 @@ const SiteDetails = () => {
               </div>
             )}
             {site.dns_verified && site.dns_verified_at && (
-              <div className="mt-2 space-y-1">
+              <div className="mt-3 space-y-1">
                 <p className="text-xs text-muted-foreground font-code">
                   Vérifié le {new Date(site.dns_verified_at).toLocaleString("fr-FR")}
                 </p>
                 {site.detected_txt_name && (
                   <div className="flex items-center gap-2">
                     <p className="text-xs text-muted-foreground font-code">
-                      Enregistrement détecté : <code className="text-primary">{site.detected_txt_name}</code>
+                      Enregistrement détecté : <code className="text-accent">{site.detected_txt_name}</code>
                     </p>
                     <Button
                       variant="ghost"
@@ -466,7 +467,7 @@ const SiteDetails = () => {
                       className="h-6 px-2"
                     >
                       {copiedTxtName ? (
-                        <CheckCircle className="w-3 h-3 text-primary" />
+                        <CheckCircle className="w-3 h-3 text-green-500" />
                       ) : (
                         <Copy className="w-3 h-3" />
                       )}
@@ -476,84 +477,75 @@ const SiteDetails = () => {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Total crawls</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-primary">{totalCrawls}</p>
-          </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Pages crawlées</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">{totalPages.toLocaleString()}</p>
-          </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Google crawls</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-primary">{googleCrawls}</p>
-          </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">AI crawls</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">{aiCrawls}</p>
-          </div>
-        </div>
-
-        {/* Crawl History */}
-        <div className="p-4 lg:p-6 rounded-lg border border-border bg-card terminal-window">
-          <div className="terminal-header !bg-transparent !p-0 mb-4">
-            <div className="flex items-center gap-2">
-              <div className="terminal-dot red" />
-              <div className="terminal-dot yellow" />
-              <div className="terminal-dot green" />
-              <span className="ml-2 text-xs text-muted-foreground font-code">
-                crawl-history.log
-              </span>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Total crawls</p>
+              <p className="text-2xl font-semibold font-code text-foreground">{totalCrawls}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Pages crawlées</p>
+              <p className="text-2xl font-semibold font-code text-foreground">{totalPages.toLocaleString()}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Google crawls</p>
+              <p className="text-2xl font-semibold font-code text-foreground">{googleCrawls}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">AI crawls</p>
+              <p className="text-2xl font-semibold font-code text-foreground">{aiCrawls}</p>
             </div>
           </div>
 
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {botActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground font-code text-center py-8">
-                Aucune activité de bot détectée pour ce site.
-              </p>
-            ) : (
-              botActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                >
-                  <div className="flex items-center gap-3">
-                    {activity.bot_type === "search" ? (
-                      <Search className="w-4 h-4 text-primary" />
-                    ) : (
-                      <Bot className="w-4 h-4 text-primary" />
-                    )}
-                    <span className="font-code text-sm text-foreground">{activity.bot_name}</span>
-                    <span className="text-xs text-muted-foreground font-code px-2 py-0.5 rounded bg-muted">
-                      {activity.bot_type === "search" ? "Moteur de recherche" : "IA"}
-                    </span>
+          {/* Crawl History */}
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold font-code text-foreground">Historique des crawls</h2>
+              <span className="text-xs text-muted-foreground font-code">
+                {botActivity.length} activités
+              </span>
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {botActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground font-code text-center py-8">
+                  Aucune activité de bot détectée pour ce site.
+                </p>
+              ) : (
+                botActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      {activity.bot_type === "search" ? (
+                        <Search className="w-4 h-4 text-accent" />
+                      ) : (
+                        <Bot className="w-4 h-4 text-accent" />
+                      )}
+                      <span className="font-code text-sm text-foreground">{activity.bot_name}</span>
+                      <span className="text-xs text-muted-foreground font-code px-2 py-0.5 rounded bg-muted">
+                        {activity.bot_type === "search" ? "Moteur de recherche" : "IA"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs text-muted-foreground font-code">
+                        {activity.pages_crawled} pages
+                      </span>
+                      <span className="text-xs text-muted-foreground font-code">
+                        {new Date(activity.crawled_at).toLocaleString("fr-FR")}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-muted-foreground font-code">
-                      {activity.pages_crawled} pages
-                    </span>
-                    <span className="text-xs text-muted-foreground font-code">
-                      {new Date(activity.crawled_at).toLocaleString("fr-FR")}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </main>
 
       {/* Modals */}
-      <PrerenderTestModal
-        open={prerenderTestOpen}
-        onOpenChange={setPrerenderTestOpen}
-        defaultUrl={site?.url || ""}
-      />
       <SimulateCrawlModal
         open={simulateCrawlOpen}
         onOpenChange={setSimulateCrawlOpen}
