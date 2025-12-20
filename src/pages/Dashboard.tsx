@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,46 +20,32 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Mock data
-const mockSites = [
-  {
-    id: "1",
-    name: "mon-portfolio.lovable.app",
-    status: "active",
-    pagesRendered: 1250,
-    lastCrawl: "Il y a 2 heures",
-  },
-  {
-    id: "2",
-    name: "saas-landing.lovable.app",
-    status: "active",
-    pagesRendered: 3420,
-    lastCrawl: "Il y a 30 min",
-  },
-  {
-    id: "3",
-    name: "blog-tech.lovable.app",
-    status: "pending",
-    pagesRendered: 0,
-    lastCrawl: "En attente",
-  },
-];
+interface Site {
+  id: string;
+  name: string;
+  url: string | null;
+  status: string;
+  pages_rendered: number;
+  last_crawl: string | null;
+}
 
-const mockStats = {
-  totalPages: 4670,
-  botsToday: 156,
-  googleCrawls: 89,
-  aiCrawls: 67,
-};
+interface BotActivity {
+  id: string;
+  bot_name: string;
+  bot_type: string;
+  pages_crawled: number;
+  crawled_at: string;
+}
 
-const mockBotActivity = [
-  { bot: "Googlebot", time: "14:32", pages: 12, icon: Search },
-  { bot: "ChatGPT", time: "14:28", pages: 5, icon: Bot },
-  { bot: "Claude", time: "14:15", pages: 8, icon: Bot },
-  { bot: "Bingbot", time: "13:55", pages: 15, icon: Search },
-  { bot: "Perplexity", time: "13:42", pages: 3, icon: Bot },
-];
+interface DailyStats {
+  total_pages_rendered: number;
+  total_bots: number;
+  google_crawls: number;
+  ai_crawls: number;
+}
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -71,8 +57,71 @@ const navItems = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sites, setSites] = useState<Site[]>([]);
+  const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
+  const [stats, setStats] = useState<DailyStats>({
+    total_pages_rendered: 0,
+    total_bots: 0,
+    google_crawls: 0,
+    ai_crawls: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
+  useEffect(() => {
+    const checkAuthAndFetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+      
+      // Fetch sites
+      const { data: sitesData } = await supabase
+        .from("sites")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (sitesData) setSites(sitesData);
+
+      // Fetch bot activity (last 10)
+      const { data: activityData } = await supabase
+        .from("bot_activity")
+        .select("*")
+        .order("crawled_at", { ascending: false })
+        .limit(10);
+      
+      if (activityData) setBotActivity(activityData);
+
+      // Fetch today's stats
+      const today = new Date().toISOString().split("T")[0];
+      const { data: statsData } = await supabase
+        .from("daily_stats")
+        .select("*")
+        .eq("date", today)
+        .single();
+      
+      if (statsData) {
+        setStats({
+          total_pages_rendered: statsData.total_pages_rendered,
+          total_bots: statsData.total_bots,
+          google_crawls: statsData.google_crawls,
+          ai_crawls: statsData.ai_crawls,
+        });
+      }
+
+      setLoading(false);
+    };
+
+    checkAuthAndFetchData();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Erreur lors de la déconnexion");
+      return;
+    }
+    toast.success("Déconnexion réussie");
     navigate("/");
   };
 
@@ -164,25 +213,25 @@ const Dashboard = () => {
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
               <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
-                {mockStats.totalPages.toLocaleString()}
+                {stats.total_pages_rendered.toLocaleString()}
               </p>
             </div>
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <p className="text-xs text-muted-foreground font-code mb-2">Bots aujourd'hui</p>
               <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
-                {mockStats.botsToday}
+                {stats.total_bots}
               </p>
             </div>
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <p className="text-xs text-muted-foreground font-code mb-2">Google crawls</p>
               <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
-                {mockStats.googleCrawls}
+                {stats.google_crawls}
               </p>
             </div>
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <p className="text-xs text-muted-foreground font-code mb-2">AI crawls</p>
               <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
-                {mockStats.aiCrawls}
+                {stats.ai_crawls}
               </p>
             </div>
           </div>
@@ -193,49 +242,55 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold font-code text-primary">Mes sites</h2>
                 <span className="text-xs text-muted-foreground font-code">
-                  {mockSites.length} sites
+                  {sites.length} sites
                 </span>
               </div>
 
               <div className="space-y-4">
-                {mockSites.map((site) => (
-                  <div
-                    key={site.id}
-                    className="p-4 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Globe2 className="w-4 h-4 text-primary" />
-                        <span className="font-code text-sm text-foreground">
-                          {site.name}
-                        </span>
+                {sites.length === 0 ? (
+                  <p className="text-sm text-muted-foreground font-code text-center py-8">
+                    Aucun site ajouté. Cliquez sur "Ajouter un site" pour commencer.
+                  </p>
+                ) : (
+                  sites.map((site) => (
+                    <div
+                      key={site.id}
+                      className="p-4 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Globe2 className="w-4 h-4 text-primary" />
+                          <span className="font-code text-sm text-foreground">
+                            {site.name}
+                          </span>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary" />
                       </div>
-                      <ExternalLink className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary" />
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {site.status === "active" ? (
-                          <CheckCircle className="w-4 h-4 text-primary" />
-                        ) : site.status === "pending" ? (
-                          <Clock className="w-4 h-4 text-yellow-500" />
-                        ) : (
-                          <AlertTriangle className="w-4 h-4 text-destructive" />
-                        )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {site.status === "active" ? (
+                            <CheckCircle className="w-4 h-4 text-primary" />
+                          ) : site.status === "pending" ? (
+                            <Clock className="w-4 h-4 text-yellow-500" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4 text-destructive" />
+                          )}
+                          <span className="text-xs text-muted-foreground font-code">
+                            {site.status === "active"
+                              ? "Actif"
+                              : site.status === "pending"
+                              ? "En attente"
+                              : "Erreur"}
+                          </span>
+                        </div>
                         <span className="text-xs text-muted-foreground font-code">
-                          {site.status === "active"
-                            ? "Actif"
-                            : site.status === "pending"
-                            ? "En attente"
-                            : "Erreur"}
+                          {site.pages_rendered.toLocaleString()} pages • {site.last_crawl ? new Date(site.last_crawl).toLocaleString("fr-FR") : "Jamais"}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground font-code">
-                        {site.pagesRendered.toLocaleString()} pages • {site.lastCrawl}
-                      </span>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -253,27 +308,37 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-3">
-                {mockBotActivity.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <activity.icon className="w-4 h-4 text-primary" />
-                      <span className="font-code text-sm text-foreground">
-                        {activity.bot}
-                      </span>
+                {botActivity.length === 0 ? (
+                  <p className="text-sm text-muted-foreground font-code text-center py-8">
+                    Aucune activité de bot détectée.
+                  </p>
+                ) : (
+                  botActivity.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        {activity.bot_type === "search" ? (
+                          <Search className="w-4 h-4 text-primary" />
+                        ) : (
+                          <Bot className="w-4 h-4 text-primary" />
+                        )}
+                        <span className="font-code text-sm text-foreground">
+                          {activity.bot_name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs text-muted-foreground font-code">
+                          {activity.pages_crawled} pages
+                        </span>
+                        <span className="text-xs text-muted-foreground font-code">
+                          {new Date(activity.crawled_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-muted-foreground font-code">
-                        {activity.pages} pages
-                      </span>
-                      <span className="text-xs text-muted-foreground font-code">
-                        {activity.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-primary">

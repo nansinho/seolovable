@@ -14,7 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bot_activity: {
+        Row: {
+          bot_name: string
+          bot_type: string
+          crawled_at: string
+          id: string
+          pages_crawled: number
+          site_id: string | null
+          user_id: string
+        }
+        Insert: {
+          bot_name: string
+          bot_type: string
+          crawled_at?: string
+          id?: string
+          pages_crawled?: number
+          site_id?: string | null
+          user_id: string
+        }
+        Update: {
+          bot_name?: string
+          bot_type?: string
+          crawled_at?: string
+          id?: string
+          pages_crawled?: number
+          site_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_activity_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_stats: {
+        Row: {
+          ai_crawls: number
+          created_at: string
+          date: string
+          google_crawls: number
+          id: string
+          total_bots: number
+          total_pages_rendered: number
+          user_id: string
+        }
+        Insert: {
+          ai_crawls?: number
+          created_at?: string
+          date?: string
+          google_crawls?: number
+          id?: string
+          total_bots?: number
+          total_pages_rendered?: number
+          user_id: string
+        }
+        Update: {
+          ai_crawls?: number
+          created_at?: string
+          date?: string
+          google_crawls?: number
+          id?: string
+          total_bots?: number
+          total_pages_rendered?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sites: {
+        Row: {
+          created_at: string
+          id: string
+          last_crawl: string | null
+          name: string
+          pages_rendered: number
+          status: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_crawl?: string | null
+          name: string
+          pages_rendered?: number
+          status?: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_crawl?: string | null
+          name?: string
+          pages_rendered?: number
+          status?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
