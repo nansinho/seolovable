@@ -102,6 +102,7 @@ export const translations: Translations = {
   "footer.legal": { fr: "Légal", en: "Legal" },
   "footer.privacy": { fr: "Confidentialité", en: "Privacy" },
   "footer.terms": { fr: "CGV", en: "Terms" },
+  "footer.legalNotice": { fr: "Mentions légales", en: "Legal Notice" },
 };
 
 interface I18nContextType {

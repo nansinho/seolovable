@@ -39,22 +39,16 @@ export const Footer = () => {
               {t("footer.legal")}
             </h4>
             <nav className="flex flex-col gap-3">
-              <Link to="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors link-hover">
+              <Link to="/confidentialite" className="text-sm text-muted-foreground hover:text-foreground transition-colors link-hover">
                 {t("footer.privacy")}
               </Link>
-              <Link to="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors link-hover">
+              <Link to="/cgv" className="text-sm text-muted-foreground hover:text-foreground transition-colors link-hover">
                 {t("footer.terms")}
               </Link>
+              <Link to="/mentions-legales" className="text-sm text-muted-foreground hover:text-foreground transition-colors link-hover">
+                {t("footer.legalNotice")}
+              </Link>
             </nav>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-4">
-              Contact
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              contact@seo-lovable.com
-            </p>
           </div>
         </div>
 
