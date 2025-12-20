@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Loader2, Crown, Zap, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
-import { AnimatedSection, StaggeredList } from "@/hooks/useScrollAnimation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -217,26 +216,24 @@ const Upgrade = () => {
           {/* Header */}
           <section className="relative overflow-hidden pb-20">
             <Particles count={30} />
-            <AnimatedSection>
-              <div className="text-center relative z-10">
-                <p className="text-sm text-accent tracking-widest mb-6 font-mono uppercase animate-fade-up">
-                  {t.eyebrow}
-                </p>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[0.95] mb-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
-                  <span className="text-foreground">{t.title}</span>{" "}
-                  <span className="font-mono text-accent animate-pulse-subtle">{t.titleAccent}</span>
-                </h1>
-                <p className="text-xl text-muted-foreground max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
-                  {t.subtitle}
-                </p>
-                <div className="mt-8 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto animate-fade-up" style={{ animationDelay: "300ms" }} />
-              </div>
-            </AnimatedSection>
+            <div className="text-center relative z-10">
+              <p className="text-sm text-accent tracking-widest mb-6 font-mono uppercase animate-fade-up">
+                {t.eyebrow}
+              </p>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[0.95] mb-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
+                <span className="text-foreground">{t.title}</span>{" "}
+                <span className="font-mono text-accent animate-pulse-subtle">{t.titleAccent}</span>
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
+                {t.subtitle}
+              </p>
+              <div className="mt-8 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto animate-fade-up" style={{ animationDelay: "300ms" }} />
+            </div>
           </section>
 
           {/* Pricing Cards */}
           <section className="py-20 border-t border-border">
-            <StaggeredList className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto" staggerDelay={120} animation="fade-up">
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {t.plans.map((plan, index) => {
                 const planConfig = PLANS[plan.id as keyof typeof PLANS];
                 const Icon = planConfig?.icon || Zap;
@@ -352,7 +349,7 @@ const Upgrade = () => {
                   </div>
                 );
               })}
-            </StaggeredList>
+            </div>
           </section>
         </div>
       </main>
