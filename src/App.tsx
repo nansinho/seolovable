@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import SiteDetails from "./pages/SiteDetails";
 import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
 import MentionsLegales from "./pages/MentionsLegales";
 import Confidentialite from "./pages/Confidentialite";
 import CGV from "./pages/CGV";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/sites/:id" element={<SiteDetails />} />
             <Route path="/dashboard/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
