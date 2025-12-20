@@ -2,17 +2,23 @@
 <html lang="fr" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <meta name="description" content="SEO Lovable - Prerender pour tous les sites Lovable. Rendez votre contenu indexable par Google, ChatGPT, Claude et Perplexity en 5 minutes." />
     <meta name="keywords" content="SEO, Lovable, prerender, indexation, Google, React, Vite" />
     <meta name="author" content="SEO Lovable" />
     <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
     
     <!-- Open Graph -->
     <meta property="og:title" content="SEO Lovable - Boostez votre SEO en 5 minutes" />
     <meta property="og:description" content="Prerender pour tous les sites Lovable. Rendez votre contenu indexable par Google, ChatGPT, Claude et Perplexity." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="SEO Lovable" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -23,12 +29,32 @@
     <link rel="canonical" href="https://seo-lovable.com" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     
-    <!-- Fonts -->
+    <!-- Fonts avec preload -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SEO Lovable",
+      "applicationCategory": "WebApplication",
+      "operatingSystem": "Web",
+      "description": "Prerender pour tous les sites Lovable. Rendez votre contenu indexable par Google, ChatGPT, Claude et Perplexity en 5 minutes.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      }
+    }
+    </script>
   </head>
   <body>
+    <noscript>
+      <p>Cette application nécessite JavaScript pour fonctionner correctement.</p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
