@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Particles from "@/components/Particles";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
@@ -28,12 +29,14 @@ const Index = () => {
       ],
       problem: {
         eyebrow: "Le problème",
-        title: "Les moteurs de recherche ne voient pas votre contenu",
+        title: "Les moteurs de recherche ne voient pas votre",
+        titleAccent: "contenu",
         desc: "Les applications React génèrent leur contenu via JavaScript. Les crawlers ne peuvent pas l'interpréter — votre site apparaît vide.",
       },
       solution: {
         eyebrow: "Notre solution",
-        title: "Prerendering automatique et instantané",
+        title: "Prerendering automatique et",
+        titleAccent: "instantané",
         desc: "Nous interceptons les requêtes des crawlers et leur servons une version HTML statique, parfaitement lisible.",
         steps: [
           "Inscription rapide",
@@ -44,7 +47,8 @@ const Index = () => {
       },
       features: {
         eyebrow: "Fonctionnalités",
-        title: "Tout ce dont vous avez besoin",
+        title: "Tout ce dont vous avez",
+        titleAccent: "besoin",
         items: [
           { title: "Performance", desc: "HTML généré en moins de 50ms pour chaque page." },
           { title: "Multi-projets", desc: "Gérez tous vos sites depuis un seul dashboard." },
@@ -56,7 +60,8 @@ const Index = () => {
       },
       testimonials: {
         eyebrow: "Témoignages",
-        title: "Ce qu'ils en disent",
+        title: "Ce qu'ils en",
+        titleAccent: "disent",
         items: [
           { name: "Marc Dubois", role: "Fondateur, TechStart", text: "Notre trafic organique a triplé en deux mois. L'intégration a pris 10 minutes." },
           { name: "Sophie Laurent", role: "Head of Product", text: "Enfin une solution qui fonctionne. Simple, efficace, sans prise de tête." },
@@ -65,7 +70,8 @@ const Index = () => {
       },
       pricing: {
         eyebrow: "Tarification",
-        title: "Simple et transparent",
+        title: "Simple et",
+        titleAccent: "transparent",
         plans: [
           { 
             name: "Starter", 
@@ -96,7 +102,8 @@ const Index = () => {
         popular: "Populaire",
       },
       cta: {
-        title: "Prêt à améliorer votre SEO ?",
+        title: "Prêt à améliorer votre",
+        titleAccent: "SEO",
         desc: "Essai gratuit de 14 jours. Aucune carte bancaire requise.",
         button: "Démarrer gratuitement",
       },
@@ -118,12 +125,14 @@ const Index = () => {
       ],
       problem: {
         eyebrow: "The problem",
-        title: "Search engines can't see your content",
+        title: "Search engines can't see your",
+        titleAccent: "content",
         desc: "React applications generate content via JavaScript. Crawlers can't interpret it — your site appears empty.",
       },
       solution: {
         eyebrow: "Our solution",
-        title: "Automatic and instant prerendering",
+        title: "Automatic and instant",
+        titleAccent: "prerendering",
         desc: "We intercept crawler requests and serve them a static HTML version, perfectly readable.",
         steps: [
           "Quick signup",
@@ -134,7 +143,8 @@ const Index = () => {
       },
       features: {
         eyebrow: "Features",
-        title: "Everything you need",
+        title: "Everything you",
+        titleAccent: "need",
         items: [
           { title: "Performance", desc: "HTML generated in under 50ms for each page." },
           { title: "Multi-project", desc: "Manage all your sites from one dashboard." },
@@ -146,7 +156,8 @@ const Index = () => {
       },
       testimonials: {
         eyebrow: "Testimonials",
-        title: "What they say",
+        title: "What they",
+        titleAccent: "say",
         items: [
           { name: "Marc Dubois", role: "Founder, TechStart", text: "Our organic traffic tripled in two months. Integration took 10 minutes." },
           { name: "Sophie Laurent", role: "Head of Product", text: "Finally a solution that works. Simple, effective, no hassle." },
@@ -155,7 +166,8 @@ const Index = () => {
       },
       pricing: {
         eyebrow: "Pricing",
-        title: "Simple and transparent",
+        title: "Simple and",
+        titleAccent: "transparent",
         plans: [
           { 
             name: "Starter", 
@@ -186,7 +198,8 @@ const Index = () => {
         popular: "Popular",
       },
       cta: {
-        title: "Ready to improve your SEO?",
+        title: "Ready to improve your",
+        titleAccent: "SEO",
         desc: "14-day free trial. No credit card required.",
         button: "Start for free",
       },
@@ -201,8 +214,9 @@ const Index = () => {
 
       <main>
         {/* Hero */}
-        <section className="relative min-h-screen flex items-center pt-20 pb-32">
-          <div className="container mx-auto px-4">
+        <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
+          <Particles count={40} />
+          <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl">
               <AnimatedSection>
                 <p className="text-sm text-muted-foreground tracking-wide mb-6 font-mono">
@@ -275,7 +289,7 @@ const Index = () => {
                     {t.problem.eyebrow}
                   </p>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
-                    {t.problem.title}
+                    {t.problem.title} <span className="font-mono text-accent">{t.problem.titleAccent}</span>
                   </h2>
                   <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
                     {t.problem.desc}
@@ -318,7 +332,7 @@ const Index = () => {
                     {t.solution.eyebrow}
                   </p>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
-                    {t.solution.title}
+                    {t.solution.title} <span className="font-mono text-accent">{t.solution.titleAccent}</span>
                   </h2>
                   <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
                     {t.solution.desc}
@@ -354,7 +368,7 @@ const Index = () => {
                   {t.features.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
-                  {t.features.title}
+                  {t.features.title} <span className="font-mono text-accent">{t.features.titleAccent}</span>
                 </h2>
               </div>
             </AnimatedSection>
@@ -387,22 +401,27 @@ const Index = () => {
                   {t.testimonials.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
-                  {t.testimonials.title}
+                  {t.testimonials.title} <span className="font-mono text-accent">{t.testimonials.titleAccent}</span>
                 </h2>
               </div>
             </AnimatedSection>
 
             <StaggeredList className="grid md:grid-cols-3 gap-8" staggerDelay={100} animation="fade-up">
               {t.testimonials.items.map((item, i) => (
-                <div key={i} className="relative">
-                  <span className="quote-mark absolute -top-4 -left-2">"</span>
+                <div key={i} className="group relative p-8 bg-card border border-border rounded-xl hover-lift border-glow transition-all duration-500">
+                  <span className="quote-mark absolute top-4 left-6">"</span>
                   <blockquote className="pt-8">
                     <p className="text-foreground text-lg leading-relaxed mb-8">
                       {item.text}
                     </p>
-                    <footer>
-                      <p className="font-medium text-foreground">{item.name}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{item.role}</p>
+                    <footer className="flex items-center gap-4 pt-6 border-t border-border">
+                      <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center font-mono text-accent text-sm">
+                        {item.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground font-mono">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">{item.role}</p>
+                      </div>
                     </footer>
                   </blockquote>
                 </div>
@@ -420,7 +439,7 @@ const Index = () => {
                   {t.pricing.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
-                  {t.pricing.title}
+                  {t.pricing.title} <span className="font-mono text-accent">{t.pricing.titleAccent}</span>
                 </h2>
               </div>
             </AnimatedSection>
@@ -498,8 +517,9 @@ const Index = () => {
             <AnimatedSection>
               <div className="max-w-2xl">
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-[-0.02em] leading-tight">
-                  <span className="text-foreground">{t.cta.title.split('?')[0]}</span>
-                  <span className="font-serif italic text-accent-gradient">?</span>
+                  <span className="text-foreground">{t.cta.title}</span>{" "}
+                  <span className="font-mono text-accent">{t.cta.titleAccent}</span>
+                  <span className="text-accent">?</span>
                 </h2>
                 <p className="mt-6 text-lg text-muted-foreground">
                   {t.cta.desc}
