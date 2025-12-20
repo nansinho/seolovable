@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   Trash2,
-  Infinity
+  Infinity,
+  ArrowUpRight
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -294,9 +295,19 @@ const Dashboard = () => {
                 <Globe2 className="w-5 h-5 text-primary" />
                 <h3 className="font-code font-bold text-foreground">Quota de sites</h3>
               </div>
-              <span className="text-xs font-code px-2 py-1 rounded bg-primary/20 text-primary">
-                Plan {userPlan.plan_type}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-code px-2 py-1 rounded bg-primary/20 text-primary">
+                  Plan {userPlan.plan_type}
+                </span>
+                {userPlan.plan_type === "free" && (
+                  <Link to="/upgrade">
+                    <Button size="sm" variant="outline" className="font-code text-xs gap-1 glow-green">
+                      Passer au supérieur
+                      <ArrowUpRight className="w-3 h-3" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
             {userPlan.sites_limit === -1 ? (
               <div className="flex items-center gap-2">
