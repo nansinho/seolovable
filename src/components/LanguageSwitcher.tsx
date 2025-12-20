@@ -10,20 +10,23 @@ export const LanguageSwitcher = () => {
   ];
 
   return (
-    <div className="flex items-center gap-1 bg-muted rounded-md p-0.5">
-      {languages.map((l) => (
-        <button
-          key={l.code}
-          onClick={() => setLang(l.code)}
-          className={cn(
-            "px-2 py-1 text-xs font-mono rounded transition-all",
-            lang === l.code
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {l.label}
-        </button>
+    <div className="flex items-center gap-1">
+      {languages.map((l, i) => (
+        <>
+          <button
+            key={l.code}
+            onClick={() => setLang(l.code)}
+            className={cn(
+              "text-sm transition-colors",
+              lang === l.code
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {l.label}
+          </button>
+          {i === 0 && <span className="text-muted-foreground/50">/</span>}
+        </>
       ))}
     </div>
   );
