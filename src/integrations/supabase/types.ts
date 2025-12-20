@@ -179,6 +179,10 @@ export type Database = {
           id: string
           plan_type: string
           sites_limit: number
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
           updated_at: string
           user_id: string
         }
@@ -188,6 +192,10 @@ export type Database = {
           id?: string
           plan_type?: string
           sites_limit?: number
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -197,6 +205,10 @@ export type Database = {
           id?: string
           plan_type?: string
           sites_limit?: number
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           user_id?: string
         }
