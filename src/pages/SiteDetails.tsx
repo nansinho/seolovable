@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { DnsStatusBadge } from "@/components/DnsStatusBadge";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
+import { SimulateCrawlModal } from "@/components/SimulateCrawlModal";
 
 interface Site {
   id: string;
@@ -67,6 +68,7 @@ const SiteDetails = () => {
   const [copied, setCopied] = useState(false);
   const [copiedTxtName, setCopiedTxtName] = useState(false);
   const [prerenderTestOpen, setPrerenderTestOpen] = useState(false);
+  const [simulateCrawlOpen, setSimulateCrawlOpen] = useState(false);
 
   const { checkIfBlocked } = useBlockedUserCheck();
 
@@ -353,6 +355,15 @@ const SiteDetails = () => {
                 <Play className="w-4 h-4 mr-2" />
                 Test Prerender
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-code"
+                onClick={() => setSimulateCrawlOpen(true)}
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                Simuler Crawl
+              </Button>
               
               <div className="flex items-center gap-2">
                 {site.status === "active" ? (
@@ -536,6 +547,20 @@ const SiteDetails = () => {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      <PrerenderTestModal
+        open={prerenderTestOpen}
+        onOpenChange={setPrerenderTestOpen}
+        defaultUrl={site?.url || ""}
+      />
+      <SimulateCrawlModal
+        open={simulateCrawlOpen}
+        onOpenChange={setSimulateCrawlOpen}
+        siteId={site?.id || ""}
+        siteName={site?.name || ""}
+        onSuccess={handleRefresh}
+      />
     </div>
   );
 };
