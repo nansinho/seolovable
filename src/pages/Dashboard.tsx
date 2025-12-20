@@ -299,11 +299,18 @@ const Dashboard = () => {
                 <span className="text-xs font-code px-2 py-1 rounded bg-primary/20 text-primary">
                   Plan {userPlan.plan_type}
                 </span>
-                {userPlan.plan_type === "free" && (
+                {userPlan.plan_type === "free" ? (
                   <Link to="/upgrade">
                     <Button size="sm" variant="outline" className="font-code text-xs gap-1 glow-green">
                       Passer au supérieur
                       <ArrowUpRight className="w-3 h-3" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/upgrade">
+                    <Button size="sm" variant="outline" className="font-code text-xs gap-1">
+                      <Settings className="w-3 h-3" />
+                      Gérer mon abonnement
                     </Button>
                   </Link>
                 )}
