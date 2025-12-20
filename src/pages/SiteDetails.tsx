@@ -157,14 +157,24 @@ const SiteDetails = () => {
     
     setVerifyingDns(true);
     try {
-      // Rafraîchir la session pour éviter un access_token référant à une session expirée côté backend
+      // Forcer un refresh de la session pour garantir un token valide
       const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      
       if (refreshError) {
         console.warn("refreshSession error:", refreshError);
+        // Si le refresh échoue, forcer une reconnexion
+        toast.error("Session expirée. Veuillez vous reconnecter.");
+        await supabase.auth.signOut();
+        navigate("/auth");
+        return;
       }
 
-      const session = refreshed?.session ?? (await supabase.auth.getSession()).data.session;
-      if (!session?.access_token) throw new Error("Session manquante");
+      const session = refreshed?.session;
+      if (!session?.access_token) {
+        toast.error("Session expirée. Veuillez vous reconnecter.");
+        navigate("/auth");
+        return;
+      }
 
       const { data, error } = await supabase.functions.invoke("check-dns", {
         body: { siteId: site.id },
@@ -175,6 +185,14 @@ const SiteDetails = () => {
 
       if (error) throw error;
 
+      // Gérer les erreurs d'auth retournées par la fonction
+      if (data?.error?.includes("Authentication")) {
+        toast.error("Session expirée. Veuillez vous reconnecter.");
+        await supabase.auth.signOut();
+        navigate("/auth");
+        return;
+      }
+
       if (data.verified) {
         setSite({ ...site, dns_verified: true, dns_verified_at: new Date().toISOString(), status: "active" });
         toast.success("DNS vérifié avec succès !");
@@ -183,7 +201,7 @@ const SiteDetails = () => {
       }
     } catch (error) {
       console.error("DNS verification error:", error);
-      toast.error("Erreur lors de la vérification DNS");
+      toast.error("Erreur lors de la vérification DNS. Réessayez.");
     } finally {
       setVerifyingDns(false);
     }
