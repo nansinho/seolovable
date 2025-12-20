@@ -138,7 +138,11 @@ export type Database = {
       }
       sites: {
         Row: {
+          cname_target: string | null
+          coolify_service_id: string | null
           created_at: string
+          dns_verified: boolean | null
+          dns_verified_at: string | null
           id: string
           last_crawl: string | null
           name: string
@@ -149,7 +153,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cname_target?: string | null
+          coolify_service_id?: string | null
           created_at?: string
+          dns_verified?: boolean | null
+          dns_verified_at?: string | null
           id?: string
           last_crawl?: string | null
           name: string
@@ -160,7 +168,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cname_target?: string | null
+          coolify_service_id?: string | null
           created_at?: string
+          dns_verified?: boolean | null
+          dns_verified_at?: string | null
           id?: string
           last_crawl?: string | null
           name?: string
