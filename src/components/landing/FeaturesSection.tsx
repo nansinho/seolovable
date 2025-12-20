@@ -1,63 +1,55 @@
-import { Zap, Globe2, BarChart3, Shield, Sparkles, Clock } from "lucide-react";
+import { Zap, Globe2, BarChart3, Shield, Clock, Bot } from "lucide-react";
 
 const features = [
   {
     icon: Zap,
-    title: "Prerender à la volée",
-    description: "Cache intelligent qui génère le HTML à la demande pour chaque page",
-    gradient: "from-primary to-orange",
+    title: "On-demand prerender",
+    description: "Smart cache that generates HTML on the fly for each page",
   },
   {
     icon: Globe2,
-    title: "Support multi-sites",
-    description: "Gérez tous vos projets Lovable depuis un seul dashboard",
-    gradient: "from-secondary to-turquoise",
+    title: "Multi-site support",
+    description: "Manage all your Lovable projects from one dashboard",
   },
   {
     icon: BarChart3,
-    title: "Stats bots en temps réel",
-    description: "Visualisez les crawls de Google, Bing, ChatGPT, Claude et Perplexity",
-    gradient: "from-turquoise to-blue-electric",
+    title: "Real-time bot stats",
+    description: "Track crawls from Google, Bing, ChatGPT, Claude",
   },
   {
     icon: Shield,
-    title: "SSL gratuit & RGPD safe",
-    description: "Certificat SSL automatique, aucune donnée personnelle stockée",
-    gradient: "from-green-500 to-emerald-500",
+    title: "Free SSL & GDPR safe",
+    description: "Auto SSL certificate, no personal data stored",
   },
   {
     icon: Clock,
-    title: "Setup en 5 minutes",
-    description: "Configuration ultra-rapide sans toucher à votre code source",
-    gradient: "from-violet-500 to-purple-500",
+    title: "5-minute setup",
+    description: "Ultra-fast configuration without touching your code",
   },
   {
-    icon: Sparkles,
-    title: "Intégration AI (Premium)",
-    description: "Claude analyse et optimise automatiquement votre contenu SEO",
-    gradient: "from-primary to-secondary",
+    icon: Bot,
+    title: "AI Integration",
+    description: "AI analyzes and optimizes your SEO content",
   },
 ];
 
 export const FeaturesSection = () => {
   return (
-    <section className="py-28 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-card to-background" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-secondary/10 rounded-full blur-[150px]" />
+    <section className="py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-card" />
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 
-            className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-6 opacity-0 animate-fade-in"
+            className="text-3xl md:text-4xl font-mono font-bold text-foreground mb-4 opacity-0 animate-fade-in"
           >
-            Tout ce dont vous avez <span className="gradient-text">besoin</span>
+            Everything you need
           </h2>
           <p 
-            className="text-lg text-muted-foreground max-w-2xl mx-auto opacity-0 animate-fade-in"
+            className="text-muted-foreground font-mono max-w-xl mx-auto opacity-0 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Des fonctionnalités puissantes pour un SEO parfait sur Lovable
+            Powerful features for perfect Lovable SEO
           </p>
         </div>
 
@@ -65,16 +57,16 @@ export const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="p-8 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 card-hover group opacity-0 animate-fade-in-up"
+              className="p-6 rounded-lg bg-background border border-border card-hover opacity-0 animate-fade-in-up"
               style={{ animationDelay: `${0.2 + index * 0.1}s` }}
             >
-              <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
-                <feature.icon className="w-7 h-7 text-white" />
+              <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
+                <feature.icon className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-xl font-display font-bold text-foreground mb-3">
+              <h3 className="text-lg font-mono font-semibold text-foreground mb-2">
                 {feature.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground font-mono leading-relaxed">
                 {feature.description}
               </p>
             </div>
