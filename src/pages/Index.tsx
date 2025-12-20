@@ -338,6 +338,9 @@ const Index = () => {
                   <img src="/logos/openai.svg" alt="OpenAI" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="flex items-center justify-center h-14 w-full">
+                  <img src="/logos/google.svg" alt="Google" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                </div>
+                <div className="flex items-center justify-center h-14 w-full">
                   <img src="/logos/claude.svg" alt="Claude" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="flex items-center justify-center h-14 w-full">
