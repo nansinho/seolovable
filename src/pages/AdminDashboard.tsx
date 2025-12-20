@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { AdminAddSiteModal } from "@/components/AdminAddSiteModal";
+import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 interface AdminUser {
   id: string;
@@ -138,6 +139,7 @@ const AdminDashboard = () => {
       totalCrawls: crawlCount || 0,
     });
   };
+  const { checkIfBlocked } = useBlockedUserCheck();
 
   useEffect(() => {
     const checkAdminAndFetch = async () => {
@@ -146,6 +148,10 @@ const AdminDashboard = () => {
         navigate("/auth");
         return;
       }
+
+      // Check if user is blocked first
+      const isBlocked = await checkIfBlocked(session.user.id);
+      if (isBlocked) return;
 
       setCurrentUserId(session.user.id);
 
@@ -169,7 +175,7 @@ const AdminDashboard = () => {
     };
 
     checkAdminAndFetch();
-  }, [navigate]);
+  }, [navigate, checkIfBlocked]);
 
   const handleDeleteSite = async () => {
     if (!siteToDelete) return;

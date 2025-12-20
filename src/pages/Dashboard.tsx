@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { AddSiteModal } from "@/components/AddSiteModal";
 import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
 import { CrawlsChart } from "@/components/CrawlsChart";
+import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 interface Site {
   id: string;
@@ -110,6 +111,8 @@ const Dashboard = () => {
     setSiteToDelete(null);
   };
 
+  const { checkIfBlocked } = useBlockedUserCheck();
+
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -117,6 +120,10 @@ const Dashboard = () => {
         navigate("/auth");
         return;
       }
+      
+      // Check if user is blocked
+      const isBlocked = await checkIfBlocked(session.user.id);
+      if (isBlocked) return;
       
       // Fetch sites
       await fetchSites();
@@ -151,7 +158,7 @@ const Dashboard = () => {
     };
 
     checkAuthAndFetchData();
-  }, [navigate, fetchSites]);
+  }, [navigate, fetchSites, checkIfBlocked]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
