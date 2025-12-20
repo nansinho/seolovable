@@ -96,25 +96,28 @@ export const Header = () => {
       <div
         id="mobile-menu"
         className={cn(
-          "fixed inset-0 bg-background/98 backdrop-blur-xl z-40 lg:hidden transition-all duration-300 ease-in-out",
+          "fixed inset-0 z-40 lg:hidden transition-all duration-300 ease-in-out",
           isMenuOpen 
             ? "opacity-100 pointer-events-auto" 
             : "opacity-0 pointer-events-none"
         )}
         aria-hidden={!isMenuOpen}
       >
-        <div className="flex flex-col items-center justify-center min-h-screen px-6 py-20">
-          <nav className="flex flex-col items-center gap-2 w-full max-w-sm" role="navigation" aria-label="Navigation mobile">
+        {/* Fond opaque complet */}
+        <div className="absolute inset-0 bg-background" />
+        
+        <div className="relative flex flex-col items-center justify-center min-h-screen px-6 py-20">
+          <nav className="flex flex-col items-center gap-3 w-full max-w-sm" role="navigation" aria-label="Navigation mobile">
             {navLinks.map((link, index) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={() => setIsMenuOpen(false)}
                 className={cn(
-                  "text-xl font-mono uppercase tracking-wider py-4 px-6 rounded-xl transition-all duration-300 w-full text-center",
+                  "text-2xl font-mono uppercase tracking-wider py-5 px-8 rounded-xl transition-all duration-300 w-full text-center",
                   location.pathname === link.href
                     ? "text-foreground bg-card border border-border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                    : "text-foreground/80 hover:text-foreground hover:bg-card/50"
                 )}
                 style={{ animationDelay: `${index * 50}ms` }}
                 aria-current={location.pathname === link.href ? "page" : undefined}
@@ -123,20 +126,20 @@ export const Header = () => {
               </Link>
             ))}
             
-            <div className="w-full h-px bg-border my-6" role="separator" />
+            <div className="w-full h-px bg-border my-8" role="separator" />
             
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               <LanguageSwitcher />
             </div>
             
-            <div className="flex flex-col gap-3 w-full">
+            <div className="flex flex-col gap-4 w-full">
               <Link to="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
-                <Button variant="outline" className="w-full font-mono uppercase tracking-wider border-border h-12 text-base">
+                <Button variant="outline" className="w-full font-mono uppercase tracking-wider border-border h-14 text-lg">
                   {t("nav.login")}
                 </Button>
               </Link>
               <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)} className="w-full">
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-12 text-base">
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
                   {t("nav.trial")}
                 </Button>
               </Link>

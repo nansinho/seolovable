@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Particles from "@/components/Particles";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import TypeWriter from "@/components/TypeWriter";
+import IntegrationLogos from "@/components/IntegrationLogos";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
@@ -313,6 +314,17 @@ const Index = () => {
               </AnimatedSection>
 
             </div>
+          </div>
+        </section>
+
+        {/* Integration Section */}
+        <section className="py-16 border-t border-border relative">
+          <div className="container mx-auto px-4">
+            <AnimatedSection>
+              <div className="text-center">
+                <IntegrationLogos lang={lang} />
+              </div>
+            </AnimatedSection>
           </div>
         </section>
 
