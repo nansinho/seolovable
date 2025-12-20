@@ -67,14 +67,29 @@ serve(async (req) => {
     let subscriptionData = null;
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
+
+      const toIso = (unixSeconds: unknown, label: string) => {
+        try {
+          if (typeof unixSeconds !== "number" || !Number.isFinite(unixSeconds)) return null;
+          return new Date(unixSeconds * 1000).toISOString();
+        } catch (e) {
+          logStep("Error parsing subscription date", {
+            label,
+            subscriptionId: subscription.id,
+            value: unixSeconds,
+          });
+          return null;
+        }
+      };
+
       subscriptionData = {
         id: subscription.id,
         status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        currentPeriodStart: toIso(subscription.current_period_start, "current_period_start") || new Date().toISOString(),
+        currentPeriodEnd: toIso(subscription.current_period_end, "current_period_end") || new Date().toISOString(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        cancelAt: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-        createdAt: new Date(subscription.created * 1000).toISOString(),
+        cancelAt: toIso(subscription.cancel_at, "cancel_at"),
+        createdAt: toIso(subscription.created, "created") || new Date().toISOString(),
         priceId: subscription.items.data[0]?.price.id,
         productId: subscription.items.data[0]?.price.product,
       };
