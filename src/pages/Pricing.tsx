@@ -3,10 +3,34 @@ import Footer from "@/components/Footer";
 import Particles from "@/components/Particles";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Zap, Crown, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { AnimatedSection, StaggeredList } from "@/hooks/useScrollAnimation";
+
+const PLAN_COLORS = {
+  starter: {
+    icon: Zap,
+    bgLight: "bg-blue-500/10",
+    text: "text-blue-400",
+    border: "border-blue-500/30",
+    button: "bg-blue-500 hover:bg-blue-600 text-white",
+  },
+  pro: {
+    icon: Crown,
+    bgLight: "bg-accent/10",
+    text: "text-accent",
+    border: "border-accent/30",
+    button: "bg-accent hover:bg-accent/90 text-accent-foreground",
+  },
+  business: {
+    icon: Building2,
+    bgLight: "bg-purple-500/10",
+    text: "text-purple-400",
+    border: "border-purple-500/30",
+    button: "bg-purple-500 hover:bg-purple-600 text-white",
+  },
+};
 
 const Pricing = () => {
   const { lang } = useI18n();
@@ -23,27 +47,30 @@ const Pricing = () => {
       noCard: "Sans carte bancaire",
       plans: [
         {
+          id: "starter",
           name: "Starter",
-          price: "7",
+          price: "29",
           period: "/mois",
-          desc: "Pour les projets personnels",
-          features: ["1 site", "10k pages/mois", "Support email"],
+          desc: "Idéal pour démarrer",
+          features: ["1 site web", "10 000 pages/mois", "Support par email", "Rapports basiques", "SSL inclus"],
           popular: false,
         },
         {
+          id: "pro",
           name: "Pro",
-          price: "15",
+          price: "59",
           period: "/mois",
-          desc: "Pour les équipes en croissance",
-          features: ["5 sites", "Pages illimitées", "Analytics avancés", "Support prioritaire"],
+          desc: "Pour les équipes ambitieuses",
+          features: ["5 sites web", "Pages illimitées", "Analytics avancés", "Support prioritaire", "Accès API", "Webhooks"],
           popular: true,
         },
         {
+          id: "business",
           name: "Business",
-          price: "39",
+          price: "99",
           period: "/mois",
-          desc: "Pour les entreprises",
-          features: ["Sites illimités", "Rapports SEO", "Support 24/7", "Accès API"],
+          desc: "Solution entreprise",
+          features: ["Sites illimités", "Rapports SEO détaillés", "Support 24/7", "API complète", "Manager dédié", "SLA 99.9%"],
           popular: false,
         },
       ],
@@ -59,27 +86,30 @@ const Pricing = () => {
       noCard: "No credit card required",
       plans: [
         {
+          id: "starter",
           name: "Starter",
-          price: "7",
+          price: "29",
           period: "/mo",
-          desc: "For personal projects",
-          features: ["1 site", "10k pages/month", "Email support"],
+          desc: "Perfect to get started",
+          features: ["1 website", "10,000 pages/month", "Email support", "Basic reports", "SSL included"],
           popular: false,
         },
         {
+          id: "pro",
           name: "Pro",
-          price: "15",
+          price: "59",
           period: "/mo",
-          desc: "For growing teams",
-          features: ["5 sites", "Unlimited pages", "Advanced analytics", "Priority support"],
+          desc: "For ambitious teams",
+          features: ["5 websites", "Unlimited pages", "Advanced analytics", "Priority support", "API access", "Webhooks"],
           popular: true,
         },
         {
+          id: "business",
           name: "Business",
-          price: "39",
+          price: "99",
           period: "/mo",
-          desc: "For enterprises",
-          features: ["Unlimited sites", "SEO reports", "24/7 support", "API access"],
+          desc: "Enterprise solution",
+          features: ["Unlimited sites", "Detailed SEO reports", "24/7 support", "Full API", "Dedicated manager", "99.9% SLA"],
           popular: false,
         },
       ],
@@ -114,71 +144,77 @@ const Pricing = () => {
           </section>
 
           {/* Pricing Cards */}
-          <section className="py-20 border-t border-border">
-            <StaggeredList className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto" staggerDelay={120} animation="fade-up">
-              {t.plans.map((plan, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    "relative p-8 rounded-xl border transition-all duration-500",
-                    plan.popular 
-                      ? "bg-foreground text-background border-foreground animate-glow-pulse" 
-                      : "bg-card border-border hover-lift border-glow"
-                  )}
-                >
-                  {plan.popular && (
-                    <span className="absolute -top-3 left-6 bg-accent text-accent-foreground text-xs font-mono font-medium px-3 py-1 rounded-full">
-                      {t.popular}
-                    </span>
-                  )}
+          <section className="py-12">
+            <StaggeredList className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto" staggerDelay={120} animation="fade-up">
+              {t.plans.map((plan, index) => {
+                const colors = PLAN_COLORS[plan.id as keyof typeof PLAN_COLORS];
+                const Icon = colors?.icon || Zap;
+                
+                return (
+                  <div
+                    key={index}
+                    className={cn(
+                      "relative p-6 lg:p-8 rounded-2xl border transition-all duration-300",
+                      plan.popular 
+                        ? "bg-card border-accent shadow-lg shadow-accent/10 scale-105" 
+                        : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30"
+                    )}
+                  >
+                    {plan.popular && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg">
+                        {t.popular}
+                      </span>
+                    )}
 
-                  <div className="mb-8">
-                    <h3 className="text-lg font-medium mb-2 font-mono">{plan.name}</h3>
-                    <p className={cn(
-                      "text-sm mb-6",
-                      plan.popular ? "text-background/60" : "text-muted-foreground"
-                    )}>
-                      {plan.desc}
-                    </p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="number-display text-5xl font-mono font-medium">{plan.price}</span>
-                      <span className={cn(
-                        "text-2xl font-mono",
-                        plan.popular ? "text-background/60" : "text-muted-foreground"
-                      )}>€</span>
-                      <span className={cn(
-                        "text-sm ml-1 font-mono",
-                        plan.popular ? "text-background/60" : "text-muted-foreground"
-                      )}>{plan.period}</span>
+                    <div className="mb-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center",
+                          colors?.bgLight
+                        )}>
+                          <Icon className={cn("w-5 h-5", colors?.text)} />
+                        </div>
+                        <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{plan.desc}</p>
                     </div>
+
+                    <div className="mb-8">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-5xl font-bold tracking-tight text-foreground">{plan.price}</span>
+                        <span className="text-xl text-muted-foreground">€</span>
+                        <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
+                      </div>
+                    </div>
+
+                    <ul className="space-y-3 mb-8">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <div className={cn(
+                            "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                            colors?.bgLight
+                          )}>
+                            <Check className={cn("w-3 h-3", colors?.text)} />
+                          </div>
+                          <span className="text-sm text-muted-foreground">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link to="/auth?mode=signup" className="block">
+                      <Button 
+                        className={cn(
+                          "w-full h-12 font-semibold group",
+                          colors?.button
+                        )}
+                      >
+                        {t.cta}
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
                   </div>
-
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Check className={cn(
-                          "w-4 h-4 mt-0.5 flex-shrink-0",
-                          plan.popular ? "text-background/80" : "text-accent"
-                        )} />
-                        <span className={cn(
-                          "text-sm",
-                          plan.popular ? "text-background/80" : "text-muted-foreground"
-                        )}>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link to="/auth?mode=signup" className="block">
-                    <Button 
-                      className="w-full group" 
-                      variant={plan.popular ? "secondary" : "outline"}
-                    >
-                      {t.cta}
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-              ))}
+                );
+              })}
             </StaggeredList>
           </section>
 
