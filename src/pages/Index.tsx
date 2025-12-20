@@ -7,6 +7,12 @@ import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { AnimatedSection, StaggeredList } from "@/hooks/useScrollAnimation";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const Index = () => {
   const { lang } = useI18n();
@@ -107,6 +113,17 @@ const Index = () => {
         desc: "Essai gratuit de 14 jours. Aucune carte bancaire requise.",
         button: "Démarrer gratuitement",
       },
+      faq: {
+        eyebrow: "FAQ",
+        title: "Questions",
+        titleAccent: "fréquentes",
+        items: [
+          { q: "Qu'est-ce que le prerendering ?", a: "Le prerendering génère une version HTML statique de vos pages React, permettant aux moteurs de recherche de lire votre contenu." },
+          { q: "Combien de temps prend la configuration ?", a: "Moins de 5 minutes. Vous ajoutez un CNAME, on s'occupe du reste automatiquement." },
+          { q: "Est-ce compatible avec tous les frameworks ?", a: "Oui, nous supportons React, Vue, Angular et tous les frameworks JavaScript modernes." },
+          { q: "Puis-je annuler à tout moment ?", a: "Absolument. Aucun engagement, vous pouvez annuler votre abonnement quand vous le souhaitez." },
+        ],
+      },
     },
     en: {
       hero: {
@@ -202,6 +219,17 @@ const Index = () => {
         titleAccent: "SEO",
         desc: "14-day free trial. No credit card required.",
         button: "Start for free",
+      },
+      faq: {
+        eyebrow: "FAQ",
+        title: "Frequently asked",
+        titleAccent: "questions",
+        items: [
+          { q: "What is prerendering?", a: "Prerendering generates a static HTML version of your React pages, allowing search engines to read your content." },
+          { q: "How long does the setup take?", a: "Less than 5 minutes. You add a CNAME, we handle the rest automatically." },
+          { q: "Is it compatible with all frameworks?", a: "Yes, we support React, Vue, Angular and all modern JavaScript frameworks." },
+          { q: "Can I cancel anytime?", a: "Absolutely. No commitment, you can cancel your subscription whenever you want." },
+        ],
       },
     },
   };
@@ -508,6 +536,46 @@ const Index = () => {
                 </div>
               ))}
             </StaggeredList>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-32 border-t border-border bg-card/30">
+          <div className="container mx-auto px-4">
+            <AnimatedSection>
+              <div className="max-w-2xl mb-16">
+                <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+                  {t.faq.eyebrow}
+                </p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
+                  {t.faq.title} <span className="font-mono text-accent">{t.faq.titleAccent}</span>
+                </h2>
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={100}>
+              <div className="max-w-3xl">
+                <Accordion type="single" collapsible className="space-y-4">
+                  {t.faq.items.map((item, i) => (
+                    <AccordionItem 
+                      key={i} 
+                      value={`item-${i}`}
+                      className="bg-background border border-border rounded-xl px-6 data-[state=open]:border-accent/30 transition-colors"
+                    >
+                      <AccordionTrigger className="text-left font-medium text-foreground hover:no-underline py-6">
+                        <span className="flex items-center gap-4">
+                          <span className="text-accent font-mono text-sm">{String(i + 1).padStart(2, '0')}</span>
+                          {item.q}
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground pb-6 pl-10">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </AnimatedSection>
           </div>
         </section>
 
