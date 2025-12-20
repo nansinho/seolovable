@@ -144,8 +144,14 @@ const SiteDetails = () => {
     
     setVerifyingDns(true);
     try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession?.access_token) throw new Error("Session manquante");
+
       const { data, error } = await supabase.functions.invoke("check-dns", {
         body: { siteId: site.id },
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
       });
 
       if (error) throw error;
