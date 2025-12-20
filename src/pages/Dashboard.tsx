@@ -205,7 +205,7 @@ const Dashboard = () => {
         .from("daily_stats")
         .select("*")
         .eq("date", today)
-        .single();
+        .maybeSingle();
       
       if (statsData) {
         setStats({
@@ -215,6 +215,7 @@ const Dashboard = () => {
           ai_crawls: statsData.ai_crawls,
         });
       }
+      // If no stats for today, keep default values (all zeros)
 
       setLoading(false);
       
