@@ -90,6 +90,21 @@ const AdminDashboard = () => {
   });
 
   const fetchData = async () => {
+    // Fetch all profiles (users with real emails)
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, created_at")
+      .order("created_at", { ascending: false });
+
+    if (profilesData) {
+      const userList: AdminUser[] = profilesData.map(p => ({
+        id: p.id,
+        email: p.email,
+        created_at: p.created_at,
+      }));
+      setUsers(userList);
+    }
+
     // Fetch all sites
     const { data: sitesData } = await supabase
       .from("sites")
@@ -112,18 +127,6 @@ const AdminDashboard = () => {
 
     if (blockedData) setBlockedUsers(blockedData);
 
-    // Get unique user IDs from sites
-    const userIds = [...new Set(sitesData?.map(s => s.user_id) || [])];
-    
-    // Create user list from sites data (since we can't query auth.users directly)
-    // We'll use emails from user_roles or create placeholder
-    const userList: AdminUser[] = userIds.map(id => ({
-      id,
-      email: `Utilisateur ${id.substring(0, 8)}...`,
-      created_at: new Date().toISOString(),
-    }));
-    setUsers(userList);
-
     // Calculate stats
     const totalSites = sitesData?.length || 0;
     const totalPages = sitesData?.reduce((sum, s) => sum + s.pages_rendered, 0) || 0;
@@ -133,7 +136,7 @@ const AdminDashboard = () => {
       .select("*", { count: "exact", head: true });
 
     setStats({
-      totalUsers: userIds.length,
+      totalUsers: profilesData?.length || 0,
       totalSites,
       totalPages,
       totalCrawls: crawlCount || 0,
@@ -393,16 +396,17 @@ const AdminDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="font-code">ID</TableHead>
+                  <TableHead className="font-code">Email</TableHead>
                   <TableHead className="font-code">Statut</TableHead>
                   <TableHead className="font-code">Sites</TableHead>
+                  <TableHead className="font-code">Inscrit le</TableHead>
                   <TableHead className="font-code text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground font-code py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground font-code py-8">
                       Aucun utilisateur trouvé
                     </TableCell>
                   </TableRow>
@@ -412,7 +416,7 @@ const AdminDashboard = () => {
                       <TableCell className="font-code font-medium">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-xs">{user.id}</span>
+                          <span>{user.email}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -438,6 +442,9 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="font-code">
                         {getSiteCount(user.id)}
+                      </TableCell>
+                      <TableCell className="font-code text-muted-foreground">
+                        {new Date(user.created_at).toLocaleDateString("fr-FR")}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
