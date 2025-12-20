@@ -318,22 +318,12 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground text-center mb-8 font-mono">
                     {lang === "fr" ? "Compatible avec les crawlers IA leaders" : "Compatible with leading AI crawlers"}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-accent/30 transition-all duration-300 hover:scale-105">
-                      <img src="/logos/openai.svg" alt="OpenAI" className="h-8 md:h-10" />
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-accent/30 transition-all duration-300 hover:scale-105">
-                      <img src="/logos/google.svg" alt="Google" className="h-8 md:h-10" />
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-accent/30 transition-all duration-300 hover:scale-105">
-                      <img src="/logos/claude.svg" alt="Claude" className="h-8 md:h-10" />
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-accent/30 transition-all duration-300 hover:scale-105">
-                      <img src="/logos/gemini.svg" alt="Gemini" className="h-8 md:h-10" />
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-accent/30 transition-all duration-300 hover:scale-105">
-                      <img src="/logos/grok.svg" alt="Grok" className="h-8 md:h-10" />
-                    </div>
+                  <div className="flex flex-wrap items-center justify-center gap-10 md:gap-14">
+                    <img src="/logos/openai.svg" alt="OpenAI" className="h-8 md:h-10 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    <img src="/logos/google.svg" alt="Google" className="h-8 md:h-10 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    <img src="/logos/claude.svg" alt="Claude" className="h-8 md:h-10 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    <img src="/logos/gemini.svg" alt="Gemini" className="h-8 md:h-10 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
+                    <img src="/logos/grok.svg" alt="Grok" className="h-8 md:h-10 brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300" />
                   </div>
                 </div>
               </AnimatedSection>
