@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Copy, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const siteSchema = z.object({
@@ -56,6 +56,8 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newSiteData, setNewSiteData] = useState<{ cname: string; url: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
@@ -124,11 +126,22 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         return;
       }
 
+      // Generate CNAME target based on site URL
+      let cnameTarget = "";
+      try {
+        const urlObj = new URL(data.url);
+        cnameTarget = `${urlObj.hostname.replace(/\./g, "-")}.prerender.seolovable.fr`;
+      } catch {
+        cnameTarget = `site-${Date.now()}.prerender.seolovable.fr`;
+      }
+
       const { error } = await supabase.from("sites").insert({
         name: data.name,
         url: data.url,
         user_id: session.user.id,
         status: "pending",
+        cname_target: cnameTarget,
+        dns_verified: false,
       });
 
       if (error) {
@@ -137,9 +150,10 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         return;
       }
 
+      // Show CNAME instructions
+      setNewSiteData({ cname: cnameTarget, url: data.url });
       toast.success("Site ajouté avec succès");
       form.reset();
-      onOpenChange(false);
       onSiteAdded();
     } catch (error) {
       console.error("Error:", error);
@@ -149,19 +163,82 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
     }
   };
 
+  const handleCopy = async () => {
+    if (newSiteData?.cname) {
+      await navigator.clipboard.writeText(newSiteData.cname);
+      setCopied(true);
+      toast.success("CNAME copié !");
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleClose = () => {
+    setNewSiteData(null);
+    setCopied(false);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-code text-primary">Ajouter un site</DialogTitle>
+          <DialogTitle className="font-code text-primary">
+            {newSiteData ? "Configuration DNS" : "Ajouter un site"}
+          </DialogTitle>
           <DialogDescription>
-            Ajoutez un nouveau site à surveiller pour le SEO dynamique.
+            {newSiteData 
+              ? "Configurez votre DNS pour activer le prerendering"
+              : "Ajoutez un nouveau site à surveiller pour le SEO dynamique."
+            }
           </DialogDescription>
         </DialogHeader>
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : newSiteData ? (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+              <p className="text-sm font-mono text-muted-foreground mb-3">
+                Ajoutez cet enregistrement CNAME dans votre zone DNS :
+              </p>
+              <div className="p-3 rounded bg-background border border-border font-mono text-sm space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">Type :</span>
+                  <code className="text-primary">CNAME</code>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">Valeur :</span>
+                  <code className="text-primary select-all break-all">{newSiteData.cname}</code>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopy}
+                className="mt-3 font-mono w-full"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2 text-primary" />
+                    Copié !
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copier le CNAME
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Après avoir configuré le DNS, le statut sera automatiquement vérifié. 
+              La propagation DNS peut prendre jusqu'à 48h.
+            </p>
+            <Button onClick={handleClose} className="w-full font-code">
+              Compris, fermer
+            </Button>
           </div>
         ) : !canAddSite ? (
           <Alert variant="destructive">
@@ -222,7 +299,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  onClick={handleClose}
                   className="font-code"
                 >
                   Annuler

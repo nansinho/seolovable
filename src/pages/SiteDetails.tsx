@@ -15,10 +15,14 @@ import {
   TrendingUp,
   Calendar,
   FileText,
+  RefreshCw,
+  Loader2,
+  Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
+import { DnsStatusBadge } from "@/components/DnsStatusBadge";
 
 interface Site {
   id: string;
@@ -28,6 +32,9 @@ interface Site {
   pages_rendered: number;
   last_crawl: string | null;
   created_at: string;
+  cname_target: string | null;
+  dns_verified: boolean | null;
+  dns_verified_at: string | null;
 }
 
 interface BotActivity {
@@ -45,6 +52,8 @@ const SiteDetails = () => {
   const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [verifyingDns, setVerifyingDns] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { checkIfBlocked } = useBlockedUserCheck();
 
@@ -65,10 +74,10 @@ const SiteDetails = () => {
         return;
       }
 
-      // Fetch site
+      // Fetch site with new DNS columns
       const { data: siteData, error: siteError } = await supabase
         .from("sites")
-        .select("*")
+        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, dns_verified, dns_verified_at")
         .eq("id", id)
         .maybeSingle();
 
@@ -78,7 +87,7 @@ const SiteDetails = () => {
         return;
       }
 
-      setSite(siteData);
+      setSite(siteData as Site);
 
       // Fetch bot activity for this site
       const { data: activityData } = await supabase
@@ -115,6 +124,40 @@ const SiteDetails = () => {
     }
 
     setUpdatingStatus(false);
+  };
+
+  const handleVerifyDns = async () => {
+    if (!site) return;
+    
+    setVerifyingDns(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-dns", {
+        body: { siteId: site.id },
+      });
+
+      if (error) throw error;
+
+      if (data.verified) {
+        setSite({ ...site, dns_verified: true, dns_verified_at: new Date().toISOString(), status: "active" });
+        toast.success("DNS vérifié avec succès !");
+      } else {
+        toast.error(data.message || "Le DNS n'est pas encore configuré");
+      }
+    } catch (error) {
+      console.error("DNS verification error:", error);
+      toast.error("Erreur lors de la vérification DNS");
+    } finally {
+      setVerifyingDns(false);
+    }
+  };
+
+  const handleCopyCname = async () => {
+    if (site?.cname_target) {
+      await navigator.clipboard.writeText(site.cname_target);
+      setCopied(true);
+      toast.success("CNAME copié !");
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (loading) {
@@ -213,6 +256,40 @@ const SiteDetails = () => {
                 <TrendingUp className="w-4 h-4" />
                 Dernier crawl: {new Date(site.last_crawl).toLocaleString("fr-FR")}
               </div>
+            )}
+          </div>
+
+          {/* DNS Status Section */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <h3 className="text-sm font-semibold font-code text-foreground mb-3">Configuration DNS</h3>
+            <DnsStatusBadge
+              dnsVerified={site.dns_verified}
+              cnameTarget={site.cname_target}
+              status={site.status}
+              onVerify={handleVerifyDns}
+              isVerifying={verifyingDns}
+            />
+            {site.cname_target && (
+              <div className="mt-3 flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopyCname}
+                  className="font-mono text-xs"
+                >
+                  {copied ? (
+                    <CheckCircle className="w-3 h-3 mr-1 text-primary" />
+                  ) : (
+                    <Copy className="w-3 h-3 mr-1" />
+                  )}
+                  {copied ? "Copié" : "Copier CNAME"}
+                </Button>
+              </div>
+            )}
+            {site.dns_verified && site.dns_verified_at && (
+              <p className="text-xs text-muted-foreground font-code mt-2">
+                Vérifié le {new Date(site.dns_verified_at).toLocaleString("fr-FR")}
+              </p>
             )}
           </div>
         </div>

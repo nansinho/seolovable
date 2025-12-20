@@ -1,0 +1,102 @@
+import { CheckCircle, Clock, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+interface DnsStatusBadgeProps {
+  dnsVerified: boolean | null;
+  cnameTarget: string | null;
+  status: string;
+  onVerify?: () => void;
+  isVerifying?: boolean;
+  showVerifyButton?: boolean;
+}
+
+export const DnsStatusBadge = ({
+  dnsVerified,
+  cnameTarget,
+  status,
+  onVerify,
+  isVerifying = false,
+  showVerifyButton = true,
+}: DnsStatusBadgeProps) => {
+  // Determine DNS status
+  const getDnsStatus = () => {
+    if (dnsVerified === true) {
+      return {
+        label: "DNS vérifié",
+        icon: CheckCircle,
+        className: "bg-primary/20 text-primary border-primary/30",
+      };
+    }
+    if (status === "pending" && cnameTarget) {
+      return {
+        label: "En attente de vérification DNS",
+        icon: Clock,
+        className: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
+      };
+    }
+    if (status === "error") {
+      return {
+        label: "Erreur DNS",
+        icon: AlertTriangle,
+        className: "bg-destructive/20 text-destructive border-destructive/30",
+      };
+    }
+    return {
+      label: "Configuration DNS requise",
+      icon: Clock,
+      className: "bg-muted text-muted-foreground border-border",
+    };
+  };
+
+  const dnsStatus = getDnsStatus();
+  const Icon = dnsStatus.icon;
+
+  return (
+    <div className="space-y-3">
+      <div className={cn(
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono",
+        dnsStatus.className
+      )}>
+        <Icon className="w-3.5 h-3.5" />
+        {dnsStatus.label}
+      </div>
+
+      {cnameTarget && !dnsVerified && (
+        <div className="p-4 rounded-lg bg-muted/50 border border-border space-y-3">
+          <p className="text-sm font-mono text-muted-foreground">
+            Configurez votre DNS avec l'enregistrement CNAME suivant :
+          </p>
+          <div className="p-3 rounded bg-background border border-border font-mono text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">CNAME :</span>
+              <code className="text-primary select-all">{cnameTarget}</code>
+            </div>
+          </div>
+          
+          {showVerifyButton && onVerify && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onVerify}
+              disabled={isVerifying}
+              className="font-mono"
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                  Vérification...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                  Vérifier DNS
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
