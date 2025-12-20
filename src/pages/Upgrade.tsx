@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowRight, Loader2, Crown, Zap, Building2, Sparkles } from "lucide-react";
+import { Check, ArrowRight, ArrowDown, Loader2, Crown, Zap, Building2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,25 +16,24 @@ const PLANS = {
     priceId: "price_1SgQV2KVQwNIgFQrudfBCa40",
     icon: Zap,
     sitesLimit: 1,
-    color: "blue",
+    order: 1,
   },
   pro: {
     id: "pro",
     priceId: "price_1SgQVRKVQwNIgFQrBW5LjlIh",
     icon: Crown,
     sitesLimit: 5,
-    color: "accent",
+    order: 2,
   },
   business: {
     id: "business",
     priceId: "price_1SgQVdKVQwNIgFQr8BjyVsph",
     icon: Building2,
     sitesLimit: 999,
-    color: "purple",
+    order: 3,
   }
 };
 
-// Color configurations for each plan
 const PLAN_COLORS = {
   starter: {
     bg: "bg-blue-500",
@@ -44,7 +43,7 @@ const PLAN_COLORS = {
     text: "text-blue-400",
     shadow: "shadow-blue-500/20",
     badge: "bg-blue-500 text-white",
-    gradient: "from-blue-500 to-cyan-400",
+    button: "bg-blue-500 hover:bg-blue-600 text-white",
   },
   pro: {
     bg: "bg-accent",
@@ -54,7 +53,7 @@ const PLAN_COLORS = {
     text: "text-accent",
     shadow: "shadow-accent/20",
     badge: "bg-accent text-accent-foreground",
-    gradient: "from-accent to-yellow-400",
+    button: "bg-accent hover:bg-accent/90 text-accent-foreground",
   },
   business: {
     bg: "bg-purple-500",
@@ -64,7 +63,7 @@ const PLAN_COLORS = {
     text: "text-purple-400",
     shadow: "shadow-purple-500/20",
     badge: "bg-purple-500 text-white",
-    gradient: "from-purple-500 to-pink-400",
+    button: "bg-purple-500 hover:bg-purple-600 text-white",
   },
 };
 
@@ -87,7 +86,6 @@ const Upgrade = () => {
   const [currentPlan, setCurrentPlan] = useState<string>("free");
   const [isLoading, setIsLoading] = useState(true);
   
-  // Proration modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [prorationPreview, setProrationPreview] = useState<ProrationPreview | null>(null);
@@ -100,11 +98,12 @@ const Upgrade = () => {
       title: "Choisissez votre",
       titleAccent: "plan",
       subtitle: "Des formules adaptées à chaque étape de votre croissance. Passez à l'échelle sans limites.",
-      currentPlan: "Votre plan",
-      upgrade: "Choisir ce plan",
+      currentPlan: "Plan actuel",
+      upgrade: "Passer à ce plan",
+      downgrade: "Rétrograder",
       manage: "Gérer",
       guarantee: "Garantie satisfait ou remboursé 14 jours",
-      changePlanNote: "Changez de plan à tout moment avec une facturation au prorata.",
+      changePlanNote: "Changez de plan à tout moment. Les montants sont calculés au prorata.",
       upgradeSuccess: "Plan mis à jour !",
       upgradeSuccessDesc: "Votre abonnement a été mis à jour avec succès.",
       plans: [
@@ -115,7 +114,6 @@ const Upgrade = () => {
           period: "/mois",
           desc: "Idéal pour démarrer",
           features: ["1 site web", "10 000 pages/mois", "Support par email", "Rapports basiques", "SSL inclus"],
-          popular: false,
         },
         {
           id: "pro",
@@ -124,7 +122,6 @@ const Upgrade = () => {
           period: "/mois",
           desc: "Pour les équipes ambitieuses",
           features: ["5 sites web", "Pages illimitées", "Analytics avancés", "Support prioritaire", "Accès API", "Webhooks"],
-          popular: true,
         },
         {
           id: "business",
@@ -133,7 +130,6 @@ const Upgrade = () => {
           period: "/mois",
           desc: "Solution entreprise",
           features: ["Sites illimités", "Rapports SEO détaillés", "Support 24/7", "API complète", "Manager dédié", "SLA 99.9%"],
-          popular: false,
         },
       ],
     },
@@ -142,11 +138,12 @@ const Upgrade = () => {
       title: "Choose your",
       titleAccent: "plan",
       subtitle: "Plans tailored to every stage of your growth. Scale without limits.",
-      currentPlan: "Your plan",
-      upgrade: "Choose this plan",
+      currentPlan: "Current plan",
+      upgrade: "Upgrade to this plan",
+      downgrade: "Downgrade",
       manage: "Manage",
       guarantee: "14-day money-back guarantee",
-      changePlanNote: "Change plans anytime with prorated billing.",
+      changePlanNote: "Change plans anytime. Amounts are prorated.",
       upgradeSuccess: "Plan updated!",
       upgradeSuccessDesc: "Your subscription has been updated successfully.",
       plans: [
@@ -157,7 +154,6 @@ const Upgrade = () => {
           period: "/mo",
           desc: "Perfect to get started",
           features: ["1 website", "10,000 pages/month", "Email support", "Basic reports", "SSL included"],
-          popular: false,
         },
         {
           id: "pro",
@@ -166,7 +162,6 @@ const Upgrade = () => {
           period: "/mo",
           desc: "For ambitious teams",
           features: ["5 websites", "Unlimited pages", "Advanced analytics", "Priority support", "API access", "Webhooks"],
-          popular: true,
         },
         {
           id: "business",
@@ -175,13 +170,18 @@ const Upgrade = () => {
           period: "/mo",
           desc: "Enterprise solution",
           features: ["Unlimited sites", "Detailed SEO reports", "24/7 support", "Full API", "Dedicated manager", "99.9% SLA"],
-          popular: false,
         },
       ],
     },
   };
 
   const t = content[lang];
+
+  const getCurrentPlanOrder = () => PLANS[currentPlan as keyof typeof PLANS]?.order || 0;
+  const getPlanOrder = (planId: string) => PLANS[planId as keyof typeof PLANS]?.order || 0;
+
+  const isUpgrade = (planId: string) => getPlanOrder(planId) > getCurrentPlanOrder();
+  const isDowngrade = (planId: string) => getPlanOrder(planId) < getCurrentPlanOrder();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -214,15 +214,12 @@ const Upgrade = () => {
     }
   }, [navigate, searchParams, toast, lang]);
 
-  // Handle upgrade: either show proration preview (for existing subscribers) or redirect to checkout
   const handleUpgrade = async (planId: string) => {
-    // If user is on free plan, go directly to checkout
     if (currentPlan === "free") {
       await handleCheckout(planId);
       return;
     }
 
-    // For existing subscribers, show proration preview
     setSelectedPlanId(planId);
     setShowPreviewModal(true);
     setIsLoadingPreview(true);
@@ -236,7 +233,6 @@ const Upgrade = () => {
       if (error) throw error;
 
       if (data?.needsCheckout) {
-        // No active subscription, redirect to checkout
         setShowPreviewModal(false);
         await handleCheckout(planId);
         return;
@@ -258,7 +254,6 @@ const Upgrade = () => {
     }
   };
 
-  // Confirm the upgrade (actually update the subscription)
   const handleConfirmUpgrade = async () => {
     if (!selectedPlanId) return;
 
@@ -279,7 +274,6 @@ const Upgrade = () => {
           description: t.upgradeSuccessDesc,
         });
       } else if (data?.needsCheckout) {
-        // Fallback to checkout if no subscription found
         setShowPreviewModal(false);
         await handleCheckout(selectedPlanId);
       }
@@ -295,7 +289,6 @@ const Upgrade = () => {
     }
   };
 
-  // Regular checkout for new subscribers
   const handleCheckout = async (planId: string) => {
     setLoadingPlan(planId);
     
@@ -395,40 +388,40 @@ const Upgrade = () => {
                 const planColors = PLAN_COLORS[plan.id as keyof typeof PLAN_COLORS];
                 const Icon = planConfig?.icon || Zap;
                 const isCurrentPlan = currentPlan === plan.id;
-                const canUpgrade = !isCurrentPlan && currentPlan !== "business";
+                const isPlanUpgrade = isUpgrade(plan.id);
+                const isPlanDowngrade = isDowngrade(plan.id);
+                const isPopular = plan.id === "pro";
 
                 return (
                   <div
                     key={index}
                     className={cn(
                       "relative flex flex-col p-6 lg:p-8 rounded-2xl border transition-all duration-300",
-                      plan.popular 
-                        ? "bg-accent text-accent-foreground border-accent scale-105 shadow-2xl shadow-accent/20" 
-                        : isCurrentPlan
-                          ? cn("bg-card/50 backdrop-blur-sm", planColors.borderActive, "border-2 shadow-lg", planColors.shadow)
-                          : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+                      isCurrentPlan
+                        ? cn("bg-card border-2", planColors.borderActive, "shadow-lg", planColors.shadow)
+                        : isPopular
+                          ? "bg-card border-accent/50 shadow-lg shadow-accent/10 scale-105"
+                          : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30"
                     )}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    {/* Popular badge */}
-                    {plan.popular && !isCurrentPlan && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                        <span className="bg-background text-accent text-xs font-mono font-semibold px-4 py-1.5 rounded-full border border-accent/20 shadow-lg">
-                          Recommandé
+                    {/* Current plan badge */}
+                    {isCurrentPlan && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className={cn(
+                          "text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg",
+                          planColors.badge
+                        )}>
+                          {t.currentPlan}
                         </span>
                       </div>
                     )}
 
-                    {/* Current plan badge - with unique colors per plan */}
-                    {isCurrentPlan && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                        <span className={cn(
-                          "text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg",
-                          plan.popular 
-                            ? "bg-background text-accent" 
-                            : planColors.badge
-                        )}>
-                          {t.currentPlan}
+                    {/* Popular badge (only if not current) */}
+                    {isPopular && !isCurrentPlan && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className="bg-accent text-accent-foreground text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg">
+                          Recommandé
                         </span>
                       </div>
                     )}
@@ -438,35 +431,21 @@ const Upgrade = () => {
                       <div className="flex items-center gap-3 mb-3">
                         <div className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center",
-                          plan.popular ? "bg-accent-foreground/10" : planColors.bgLight
+                          planColors.bgLight
                         )}>
-                          <Icon className={cn(
-                            "w-5 h-5",
-                            plan.popular ? "text-accent-foreground" : planColors.text
-                          )} />
+                          <Icon className={cn("w-5 h-5", planColors.text)} />
                         </div>
-                        <h3 className="text-xl font-semibold">{plan.name}</h3>
+                        <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
                       </div>
-                      <p className={cn(
-                        "text-sm",
-                        plan.popular ? "text-accent-foreground/70" : "text-muted-foreground"
-                      )}>
-                        {plan.desc}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{plan.desc}</p>
                     </div>
 
                     {/* Price */}
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
-                        <span className={cn(
-                          "text-xl",
-                          plan.popular ? "text-accent-foreground/70" : "text-muted-foreground"
-                        )}>€</span>
-                        <span className={cn(
-                          "text-sm ml-1",
-                          plan.popular ? "text-accent-foreground/60" : "text-muted-foreground"
-                        )}>{plan.period}</span>
+                        <span className="text-5xl font-bold tracking-tight text-foreground">{plan.price}</span>
+                        <span className="text-xl text-muted-foreground">€</span>
+                        <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
                       </div>
                     </div>
 
@@ -476,17 +455,11 @@ const Upgrade = () => {
                         <li key={i} className="flex items-start gap-3">
                           <div className={cn(
                             "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-                            plan.popular ? "bg-accent-foreground/10" : planColors.bgLight
+                            planColors.bgLight
                           )}>
-                            <Check className={cn(
-                              "w-3 h-3",
-                              plan.popular ? "text-accent-foreground" : planColors.text
-                            )} />
+                            <Check className={cn("w-3 h-3", planColors.text)} />
                           </div>
-                          <span className={cn(
-                            "text-sm",
-                            plan.popular ? "text-accent-foreground/80" : "text-muted-foreground"
-                          )}>{feature}</span>
+                          <span className="text-sm text-muted-foreground">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -494,32 +467,19 @@ const Upgrade = () => {
                     {/* CTA Button */}
                     {isCurrentPlan ? (
                       <Button 
-                        className={cn(
-                          "w-full h-12 font-semibold group",
-                          plan.popular 
-                            ? "bg-accent-foreground text-accent hover:bg-accent-foreground/90" 
-                            : cn(planColors.bg, "text-white hover:opacity-90")
-                        )}
+                        className={cn("w-full h-12 font-semibold", planColors.button)}
                         onClick={handleManageSubscription}
                         disabled={loadingPlan === "manage"}
                       >
                         {loadingPlan === "manage" ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <>
-                            {t.manage}
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </>
+                          t.manage
                         )}
                       </Button>
-                    ) : canUpgrade ? (
+                    ) : isPlanUpgrade ? (
                       <Button 
-                        className={cn(
-                          "w-full h-12 font-semibold group",
-                          plan.popular 
-                            ? "bg-accent-foreground text-accent hover:bg-accent-foreground/90" 
-                            : cn(planColors.bg, "text-white hover:opacity-90")
-                        )}
+                        className={cn("w-full h-12 font-semibold group", planColors.button)}
                         onClick={() => handleUpgrade(plan.id)}
                         disabled={loadingPlan === plan.id}
                       >
@@ -532,13 +492,36 @@ const Upgrade = () => {
                           </>
                         )}
                       </Button>
+                    ) : isPlanDowngrade ? (
+                      <Button 
+                        variant="outline"
+                        className="w-full h-12 font-semibold group"
+                        onClick={() => handleUpgrade(plan.id)}
+                        disabled={loadingPlan === plan.id}
+                      >
+                        {loadingPlan === plan.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            {t.downgrade}
+                            <ArrowDown className="w-4 h-4 ml-2 group-hover:translate-y-1 transition-transform" />
+                          </>
+                        )}
+                      </Button>
                     ) : (
                       <Button 
-                        className="w-full h-12 font-semibold" 
-                        variant="outline"
-                        disabled
+                        className={cn("w-full h-12 font-semibold group", planColors.button)}
+                        onClick={() => handleUpgrade(plan.id)}
+                        disabled={loadingPlan === plan.id}
                       >
-                        {t.currentPlan}
+                        {loadingPlan === plan.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            {t.upgrade}
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
@@ -547,11 +530,9 @@ const Upgrade = () => {
             </div>
 
             {/* Note about proration */}
-            {currentPlan !== "free" && currentPlan !== "business" && (
-              <p className="text-center text-sm text-muted-foreground mt-6">
-                {t.changePlanNote}
-              </p>
-            )}
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              {t.changePlanNote}
+            </p>
           </section>
 
           {/* Trust indicators */}

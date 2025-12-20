@@ -87,21 +87,41 @@ serve(async (req) => {
       limit: 12,
     });
 
-    const formattedInvoices = invoices.data.map((invoice: Stripe.Invoice) => ({
-      id: invoice.id,
-      number: invoice.number,
-      amountDue: invoice.amount_due,
-      amountPaid: invoice.amount_paid,
-      currency: invoice.currency,
-      status: invoice.status,
-      createdAt: new Date(invoice.created * 1000).toISOString(),
-      paidAt: invoice.status_transitions?.paid_at 
-        ? new Date(invoice.status_transitions.paid_at * 1000).toISOString() 
-        : null,
-      hostedInvoiceUrl: invoice.hosted_invoice_url,
-      pdfUrl: invoice.invoice_pdf,
-      description: invoice.lines.data[0]?.description || "Abonnement",
-    }));
+    const formattedInvoices = invoices.data.map((invoice: Stripe.Invoice) => {
+      // Safely handle date conversions
+      let createdAt = null;
+      let paidAt = null;
+      
+      try {
+        if (invoice.created && typeof invoice.created === 'number') {
+          createdAt = new Date(invoice.created * 1000).toISOString();
+        }
+      } catch (e) {
+        logStep("Error parsing invoice created date", { invoiceId: invoice.id });
+      }
+      
+      try {
+        if (invoice.status_transitions?.paid_at && typeof invoice.status_transitions.paid_at === 'number') {
+          paidAt = new Date(invoice.status_transitions.paid_at * 1000).toISOString();
+        }
+      } catch (e) {
+        logStep("Error parsing invoice paid_at date", { invoiceId: invoice.id });
+      }
+      
+      return {
+        id: invoice.id,
+        number: invoice.number,
+        amountDue: invoice.amount_due || 0,
+        amountPaid: invoice.amount_paid || 0,
+        currency: invoice.currency || 'eur',
+        status: invoice.status,
+        createdAt: createdAt || new Date().toISOString(),
+        paidAt,
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+        pdfUrl: invoice.invoice_pdf,
+        description: invoice.lines.data?.[0]?.description || "Abonnement",
+      };
+    });
 
     logStep("Retrieved invoices", { count: formattedInvoices.length });
 
@@ -112,11 +132,26 @@ serve(async (req) => {
         const upcoming = await stripe.invoices.retrieveUpcoming({
           customer: customerId,
         });
+        
+        let periodStart = null;
+        let periodEnd = null;
+        
+        try {
+          if (upcoming.period_start && typeof upcoming.period_start === 'number') {
+            periodStart = new Date(upcoming.period_start * 1000).toISOString();
+          }
+          if (upcoming.period_end && typeof upcoming.period_end === 'number') {
+            periodEnd = new Date(upcoming.period_end * 1000).toISOString();
+          }
+        } catch (e) {
+          logStep("Error parsing upcoming invoice dates");
+        }
+        
         upcomingInvoice = {
-          amountDue: upcoming.amount_due,
-          currency: upcoming.currency,
-          periodStart: new Date(upcoming.period_start * 1000).toISOString(),
-          periodEnd: new Date(upcoming.period_end * 1000).toISOString(),
+          amountDue: upcoming.amount_due || 0,
+          currency: upcoming.currency || 'eur',
+          periodStart: periodStart || subscriptionData.currentPeriodEnd,
+          periodEnd: periodEnd || subscriptionData.currentPeriodEnd,
         };
         logStep("Retrieved upcoming invoice", { amountDue: upcoming.amount_due });
       } catch (e) {
