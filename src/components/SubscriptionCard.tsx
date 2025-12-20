@@ -81,7 +81,7 @@ const formatCurrency = (amount: number, currency: string) => {
 const getStatusBadge = (status: string | null) => {
   switch (status) {
     case "paid":
-      return <Badge variant="default" className="bg-primary/20 text-primary border-primary/30">Payée</Badge>;
+      return <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/30">Payée</Badge>;
     case "open":
       return <Badge variant="secondary">En attente</Badge>;
     case "draft":
@@ -138,19 +138,19 @@ export const SubscriptionCard = ({
   return (
     <div className="space-y-6">
       {/* Subscription Details Card */}
-      <Card className="border-primary/30">
+      <Card className="border-border bg-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-code text-primary flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+              <CardTitle className="font-code text-foreground flex items-center gap-2 text-base">
+                <CreditCard className="w-5 h-5 text-accent" />
                 Abonnement
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-code">
                 {subscription ? "Détails de votre abonnement actif" : "Aucun abonnement actif"}
               </CardDescription>
             </div>
-            <Badge variant="outline" className="font-code text-lg px-4 py-1">
+            <Badge variant="outline" className="font-code px-3 py-1 capitalize">
               {PLAN_NAMES[currentPlan] || currentPlan}
             </Badge>
           </div>
@@ -192,11 +192,11 @@ export const SubscriptionCard = ({
               )}
 
               {upcomingInvoice && !subscription.cancelAtPeriodEnd && (
-                <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-code text-muted-foreground mb-1">Prochaine facture</p>
-                      <p className="font-code font-bold text-lg text-primary">
+                      <p className="font-code font-semibold text-lg text-foreground">
                         {formatCurrency(upcomingInvoice.amountDue, upcomingInvoice.currency)}
                       </p>
                     </div>
@@ -222,7 +222,7 @@ export const SubscriptionCard = ({
                   Gérer l'abonnement
                 </Button>
                 <Link to="/upgrade" className="flex-1">
-                  <Button variant="default" className="font-code w-full glow-green">
+                  <Button variant="default" className="font-code w-full">
                     <ArrowUpRight className="w-4 h-4 mr-2" />
                     Changer de plan
                   </Button>
@@ -230,12 +230,12 @@ export const SubscriptionCard = ({
               </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground font-code mb-4">
+            <div className="text-center py-6">
+              <p className="text-muted-foreground font-code text-sm mb-4">
                 Vous n'avez pas d'abonnement actif
               </p>
               <Link to="/upgrade">
-                <Button className="font-code glow-green">
+                <Button className="font-code">
                   <ArrowUpRight className="w-4 h-4 mr-2" />
                   Découvrir nos offres
                 </Button>
@@ -246,13 +246,13 @@ export const SubscriptionCard = ({
       </Card>
 
       {/* Invoices Card */}
-      <Card className="border-border">
+      <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="font-code text-primary flex items-center gap-2">
-            <FileText className="w-5 h-5" />
+          <CardTitle className="font-code text-foreground flex items-center gap-2 text-base">
+            <FileText className="w-5 h-5 text-accent" />
             Historique des factures
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="font-code">
             Vos {invoices.length} dernières factures
           </CardDescription>
         </CardHeader>
@@ -271,10 +271,10 @@ export const SubscriptionCard = ({
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center",
-                      invoice.status === "paid" ? "bg-primary/10" : "bg-muted"
+                      invoice.status === "paid" ? "bg-green-500/10" : "bg-muted"
                     )}>
                       {invoice.status === "paid" ? (
-                        <CheckCircle className="w-5 h-5 text-primary" />
+                        <CheckCircle className="w-5 h-5 text-green-500" />
                       ) : (
                         <Clock className="w-5 h-5 text-muted-foreground" />
                       )}
