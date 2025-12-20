@@ -301,25 +301,6 @@ const Index = () => {
                 </div>
               </AnimatedSection>
 
-              {/* Stats */}
-              <AnimatedSection delay={450}>
-                <div className="mt-16 pt-12 border-t border-border">
-                  <div className="grid grid-cols-3 gap-8 md:gap-16">
-                    {t.stats.map((stat, i) => (
-                      <div key={i} className="group" style={{ animationDelay: `${i * 100}ms` }}>
-                        <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent group-hover:scale-110">
-                          <AnimatedCounter value={stat.value} duration={2000 + i * 300} />
-                          <span className="text-muted-foreground text-2xl md:text-3xl group-hover:text-accent/70 transition-colors">{stat.suffix}</span>
-                        </div>
-                        <p className="mt-2 text-sm text-muted-foreground font-mono">
-                          {stat.label}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </AnimatedSection>
-
             </div>
           </div>
         </section>
@@ -403,6 +384,40 @@ const Index = () => {
                 </div>
               </AnimatedSection>
             </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <section className="py-24 border-t border-border relative">
+          <div className="container mx-auto px-4">
+            <AnimatedSection>
+              <div className="text-center mb-16">
+                <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
+                  {lang === "fr" ? "Performance" : "Performance"}
+                </p>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
+                  {lang === "fr" ? "Des résultats " : "Measurable "}
+                  <span className="font-mono text-accent">{lang === "fr" ? "mesurables" : "results"}</span>
+                </h2>
+                <div className="mt-6 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={150}>
+              <div className="grid grid-cols-3 gap-8 md:gap-16 max-w-4xl mx-auto">
+                {t.stats.map((stat, i) => (
+                  <div key={i} className="text-center group" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent group-hover:scale-110">
+                      <AnimatedCounter value={stat.value} duration={2000 + i * 300} />
+                      <span className="text-muted-foreground text-2xl md:text-3xl group-hover:text-accent/70 transition-colors">{stat.suffix}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground font-mono">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </AnimatedSection>
           </div>
         </section>
 
