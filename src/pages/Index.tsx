@@ -153,59 +153,62 @@ const Index = () => {
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden pt-28 md:pt-36">
-          {/* Modern matte background: subtle grid + restrained glow */}
+        <section className="relative overflow-hidden pt-32 md:pt-40">
+          {/* Modern matte background: subtle grid + animated glows */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-40" />
-            <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_30%_20%,hsl(var(--primary)/0.14),transparent_65%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(760px_420px_at_78%_30%,hsl(var(--primary)/0.10),transparent_62%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,hsl(var(--background)),hsl(var(--background))_55%,transparent)]" />
+            <div className="absolute inset-0 grid-subtle opacity-50" />
+            <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_25%_15%,hsl(var(--primary)/0.18),transparent_60%)] animate-breathe" />
+            <div className="absolute inset-0 bg-[radial-gradient(700px_400px_at_80%_25%,hsl(var(--primary)/0.12),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,hsl(var(--background)),hsl(var(--background))_40%,transparent)]" />
           </div>
 
-          <div className="container mx-auto px-4 pb-16 md:pb-24">
-            <div className="grid items-start gap-10 md:grid-cols-12 md:gap-14">
+          <div className="container mx-auto px-4 pb-20 md:pb-28">
+            <div className="grid items-start gap-12 md:grid-cols-12 md:gap-16">
               <div className="md:col-span-7">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
-                    SEO • PRERENDER • CRAWLERS IA
-                  </p>
-                  <h1 className="mt-5 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-foreground">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 backdrop-blur">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground font-mono">
+                      SEO • PRERENDER • AI CRAWLERS
+                    </span>
+                  </div>
+                  <h1 className="mt-6 text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.04em] text-foreground font-display leading-[1.1]">
                     {t.hero.title}{" "}
-                    <span className="text-primary">{t.hero.titleHighlight}</span>
+                    <span className="text-primary text-glow">{t.hero.titleHighlight}</span>
                   </h1>
                 </AnimatedSection>
 
                 <AnimatedSection delay={120}>
-                  <p className="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-muted-foreground">
+                  <p className="mt-7 max-w-lg text-lg md:text-xl leading-relaxed text-muted-foreground">
                     {t.hero.subtitle}
                   </p>
                 </AnimatedSection>
 
                 <AnimatedSection delay={220}>
-                  <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <div className="mt-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
                     <Link to="/auth?mode=signup">
-                      <Button size="lg" className="h-12 px-8 text-base font-medium">
+                      <Button size="lg" className="h-14 px-10 text-base font-semibold">
                         {t.hero.cta}
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                     </Link>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="text-foreground font-medium">14 jours</span> • Sans carte • Annulation instantanée
+                    <div className="text-sm text-muted-foreground font-mono">
+                      <span className="text-foreground font-medium">14 jours</span> • Sans carte
                     </div>
                   </div>
                 </AnimatedSection>
 
-                <AnimatedSection delay={320}>
-                  <div className="mt-14 grid max-w-xl grid-cols-3 gap-4">
+                <AnimatedSection delay={350}>
+                  <div className="mt-16 grid max-w-lg grid-cols-3 gap-5">
                     {t.stats.map((stat, i) => (
                       <div
                         key={i}
-                        className="rounded-xl border border-border/70 bg-card/45 p-5 backdrop-blur supports-[backdrop-filter]:bg-card/40"
+                        className="group rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur card-hover"
                       >
-                        <div className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                        <div className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-display">
                           {stat.value}
                         </div>
-                        <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground font-mono">
+                        <div className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono">
                           {stat.label}
                         </div>
                       </div>
@@ -215,38 +218,35 @@ const Index = () => {
               </div>
 
               <div className="md:col-span-5">
-                <AnimatedSection animation="scale" delay={200}>
-                  <div className="rounded-2xl border border-border/70 bg-card/55 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/45">
+                <AnimatedSection animation="scale" delay={250}>
+                  <div className="rounded-2xl border border-border/60 bg-card/50 p-7 backdrop-blur glass gradient-border">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">Preview</p>
-                      <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1 text-xs text-muted-foreground font-mono">
+                      <p className="text-xs tracking-[0.25em] uppercase text-primary font-mono">Preview</p>
+                      <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary font-mono">
                         Googlebot
                       </span>
                     </div>
 
-                    <div className="mt-5 rounded-xl border border-border/70 bg-background/30 p-4">
-                      <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
+                    <div className="mt-6 rounded-xl border border-border/50 bg-background/40 p-5">
+                      <pre className="text-[11px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
                         <code>{`<html>\n  <body>\n    <h1>${t.hero.title} ${t.hero.titleHighlight}</h1>\n    <p>${t.hero.subtitle}</p>\n  </body>\n</html>`}</code>
                       </pre>
                     </div>
 
-                    <div className="mt-6 grid gap-4">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-md border border-border/70 bg-background/30 p-1.5 text-primary">
-                          <Check className="h-4 w-4" />
+                    <div className="mt-7 space-y-4">
+                      {[
+                        "HTML prêt à indexer pour Google, Bing et les crawlers IA.",
+                        "Zéro refacto de votre app — vous gardez votre stack."
+                      ].map((text, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-primary">
+                            <Check className="h-3 w-3" />
+                          </div>
+                          <p className="text-sm leading-relaxed text-muted-foreground">
+                            {text}
+                          </p>
                         </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          HTML prêt à indexer pour Google, Bing et les crawlers IA.
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-md border border-border/70 bg-background/30 p-1.5 text-primary">
-                          <Check className="h-4 w-4" />
-                        </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          Zéro refacto de votre app — vous gardez votre stack.
-                        </p>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </AnimatedSection>
@@ -255,39 +255,40 @@ const Index = () => {
           </div>
 
           <div className="container mx-auto px-4">
-            <div className="border-t border-border/70" />
+            <div className="border-t border-border/50" />
           </div>
         </section>
 
         {/* Problem */}
-        <section className="relative border-t border-border/70 bg-background">
+        <section className="relative border-t border-border/50 bg-background overflow-hidden">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 grid-subtle opacity-20" />
-            <div className="absolute inset-0 bg-[radial-gradient(760px_420px_at_85%_30%,hsl(var(--primary)/0.08),transparent_60%)]" />
+            <div className="absolute inset-0 grid-subtle opacity-30" />
+            <div className="absolute inset-0 bg-[radial-gradient(700px_400px_at_90%_20%,hsl(0_70%_50%/0.08),transparent_55%)]" />
           </div>
 
-          <div className="container mx-auto px-4 py-20 md:py-28">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
+          <div className="container mx-auto px-4 py-24 md:py-32">
+            <div className="grid gap-12 md:grid-cols-12 md:gap-16">
               <div className="md:col-span-5">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-xs text-destructive font-mono">
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                     {t.problem.label}
-                  </p>
-                  <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
+                  </span>
+                  <h2 className="mt-5 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
                     {t.problem.title}
                   </h2>
-                  <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                  <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
                     {t.problem.desc}
                   </p>
                 </AnimatedSection>
               </div>
 
               <div className="md:col-span-7">
-                <AnimatedSection delay={120} animation="blur">
-                  <div className="rounded-2xl border border-border/70 bg-card/45 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/40">
-                    <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">Ce que Google voit</p>
-                    <div className="mt-4 rounded-xl border border-border/70 bg-background/25 p-4">
-                      <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
+                <AnimatedSection delay={150} animation="blur">
+                  <div className="rounded-2xl border border-destructive/20 bg-card/40 p-7 backdrop-blur glass">
+                    <p className="text-xs tracking-[0.25em] uppercase text-destructive/80 font-mono">Ce que Google voit</p>
+                    <div className="mt-5 rounded-xl border border-border/50 bg-background/30 p-5">
+                      <pre className="text-[11px] leading-relaxed text-muted-foreground overflow-x-auto font-mono">
                         <code>{`<html>\n  <body>\n    <div id=\"root\"></div>\n    <!-- aucun contenu -->\n  </body>\n</html>`}</code>
                       </pre>
                     </div>
@@ -299,38 +300,39 @@ const Index = () => {
         </section>
 
         {/* Solution */}
-        <section className="relative border-t border-border/70 bg-card">
+        <section className="relative border-t border-border/50 bg-card overflow-hidden">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(760px_520px_at_20%_30%,hsl(var(--primary)/0.10),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(800px_500px_at_15%_35%,hsl(var(--primary)/0.12),transparent_55%)] animate-breathe" />
           </div>
 
-          <div className="container mx-auto px-4 py-20 md:py-28">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
+          <div className="container mx-auto px-4 py-24 md:py-32">
+            <div className="grid gap-12 md:grid-cols-12 md:gap-16">
               <div className="md:col-span-5">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary font-mono">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     {t.solution.label}
-                  </p>
-                  <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
+                  </span>
+                  <h2 className="mt-5 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
                     {t.solution.title}
                   </h2>
-                  <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                  <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
                     {t.solution.desc}
                   </p>
                 </AnimatedSection>
               </div>
 
               <div className="md:col-span-7">
-                <StaggeredList className="space-y-3" staggerDelay={90} animation="fade-up">
+                <StaggeredList className="space-y-4" staggerDelay={100} animation="fade-up">
                   {t.solution.steps.map((step, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-4 rounded-xl border border-border/70 bg-background/25 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/20"
+                      className="flex items-center gap-5 rounded-xl border border-border/50 bg-background/30 p-5 backdrop-blur glass card-hover"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/35 text-primary">
-                        <span className="text-sm font-medium font-mono">{i + 1}</span>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary font-mono font-semibold">
+                        {i + 1}
                       </div>
-                      <span className="text-foreground">{step}</span>
+                      <span className="text-foreground font-medium">{step}</span>
                     </div>
                   ))}
                 </StaggeredList>
@@ -340,36 +342,42 @@ const Index = () => {
         </section>
 
         {/* Features */}
-        <section className="border-t border-border/70 bg-background">
-          <div className="container mx-auto px-4 py-20 md:py-28">
+        <section className="relative border-t border-border/50 bg-background overflow-hidden">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 grid-subtle opacity-25" />
+          </div>
+
+          <div className="container mx-auto px-4 py-24 md:py-32">
             <AnimatedSection>
-              <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
+              <div className="max-w-2xl mx-auto text-center mb-14">
+                <p className="text-xs tracking-[0.3em] uppercase text-primary font-mono">
                   {t.features.label}
                 </p>
-                <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
+                <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
                   {t.features.title}
                 </h2>
               </div>
             </AnimatedSection>
 
             <StaggeredList
-              className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-              staggerDelay={70}
+              className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto"
+              staggerDelay={80}
               animation="fade-up"
             >
               {t.features.items.map((feature, i) => (
                 <div
                   key={i}
-                  className="group rounded-2xl border border-border/70 bg-card/35 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/30 transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-card/45 hover:border-border"
+                  className="group rounded-2xl border border-border/50 bg-card/40 p-7 backdrop-blur glass card-hover"
                 >
-                  <h3 className="text-base font-medium tracking-tight text-foreground">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-5">
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold tracking-tight text-foreground font-display">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {feature.desc}
                   </p>
-                  <div className="mt-5 h-px w-10 bg-border/70 transition-all group-hover:w-14" />
                 </div>
               ))}
             </StaggeredList>
@@ -419,63 +427,67 @@ const Index = () => {
         </section>
 
         {/* Pricing */}
-        <section className="border-t border-border bg-background">
-          <div className="container mx-auto px-4 py-20 md:py-28">
+        <section className="relative border-t border-border/70 bg-background overflow-hidden">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 grid-subtle opacity-30" />
+            <div className="absolute inset-0 bg-[radial-gradient(800px_500px_at_50%_20%,hsl(var(--primary)/0.12),transparent_60%)]" />
+          </div>
+
+          <div className="container mx-auto px-4 py-24 md:py-32">
             <AnimatedSection>
-              <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+              <div className="max-w-3xl mx-auto text-center mb-14">
+                <p className="text-xs tracking-[0.3em] uppercase text-primary font-mono">
                   {t.pricing.label}
                 </p>
-                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                <h2 className="mt-4 text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display">
                   {t.pricing.title}
                 </h2>
               </div>
             </AnimatedSection>
 
-            <StaggeredList className="mt-10 grid gap-4 md:grid-cols-3" staggerDelay={90} animation="fade-up">
+            <StaggeredList className="mt-10 grid gap-6 md:grid-cols-3 max-w-5xl mx-auto" staggerDelay={120} animation="fade-up">
               {t.pricing.plans.map((plan, i) => (
                 <div
                   key={i}
                   className={cn(
-                    "relative rounded-2xl border bg-card/40 p-7 backdrop-blur",
-                    plan.popular ? "border-primary/40" : "border-border"
+                    "relative rounded-2xl p-8 card-hover glass",
+                    plan.popular 
+                      ? "border-2 border-primary/50 gradient-border glow" 
+                      : "border border-border/60"
                   )}
                 >
                   {plan.popular && (
-                    <span className="absolute -top-3 left-6 rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-foreground">
+                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-lg">
                       {t.pricing.popular}
                     </span>
                   )}
 
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-base font-medium text-foreground">{plan.name}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">Pour lancer rapidement.</p>
-                    </div>
-                    <div className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
-                      {plan.period.replace("/", "")}
-                    </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-foreground font-display">{plan.name}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">Pour lancer rapidement.</p>
                   </div>
 
-                  <div className="mt-6 flex items-baseline gap-2">
-                    <span className="text-4xl font-semibold tracking-tight text-foreground">
+                  <div className="mt-8 flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-bold tracking-tight text-foreground font-display">
                       {plan.price}€
                     </span>
-                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                    <span className="text-sm text-muted-foreground font-mono">{plan.period}</span>
                   </div>
 
-                  <ul className="mt-6 space-y-3">
+                  <ul className="mt-8 space-y-4">
                     {plan.features.map((f, j) => (
                       <li key={j} className="flex items-center gap-3">
-                        <Check className="h-4 w-4 text-primary" />
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-primary">
+                          <Check className="h-3 w-3" />
+                        </div>
                         <span className="text-sm text-muted-foreground">{f}</span>
                       </li>
                     ))}
                   </ul>
 
-                  <div className="mt-8">
+                  <div className="mt-10">
                     <Link to="/auth?mode=signup">
-                      <Button className="w-full" variant={plan.popular ? "default" : "secondary"}>
+                      <Button className="w-full" variant={plan.popular ? "default" : "outline"} size="lg">
                         {t.pricing.cta}
                       </Button>
                     </Link>
@@ -487,23 +499,30 @@ const Index = () => {
         </section>
 
         {/* Final CTA */}
-        <section className="border-t border-border bg-card">
-          <div className="container mx-auto px-4 py-20 md:py-28">
-            <div className="max-w-3xl">
+        <section className="relative border-t border-border/70 bg-card overflow-hidden">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(600px_400px_at_50%_50%,hsl(var(--primary)/0.15),transparent_60%)] animate-breathe" />
+          </div>
+
+          <div className="container mx-auto px-4 py-24 md:py-32">
+            <div className="max-w-2xl mx-auto text-center">
               <AnimatedSection>
-                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground font-display text-glow">
                   {t.cta.title}
                 </h2>
-                <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
                   {t.cta.desc}
                 </p>
-                <div className="mt-8">
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link to="/auth?mode=signup">
-                    <Button size="lg" className="h-12 px-8 text-base font-medium">
+                    <Button size="lg" className="h-14 px-10 text-base font-semibold animate-pulse-glow">
                       {t.cta.button}
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>
+                  <span className="text-sm text-muted-foreground font-mono">
+                    14 jours gratuits • Sans CB
+                  </span>
                 </div>
               </AnimatedSection>
             </div>
