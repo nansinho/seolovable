@@ -306,7 +306,8 @@ const Dashboard = () => {
                   sites.map((site) => (
                     <div
                       key={site.id}
-                      className="p-4 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors"
+                      className="p-4 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/dashboard/sites/${site.id}`)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -315,7 +316,7 @@ const Dashboard = () => {
                             {site.name}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           {site.url && (
                             <a
                               href={site.url}
