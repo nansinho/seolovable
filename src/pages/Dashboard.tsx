@@ -295,19 +295,19 @@ const Dashboard = () => {
           />
 
           {/* Plan Quota Indicator */}
-          <div className="p-4 lg:p-6 rounded-lg border border-primary/30 bg-card">
-            <div className="flex items-center justify-between mb-3">
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
-                <Globe2 className="w-5 h-5 text-primary" />
-                <h3 className="font-code font-bold text-foreground">Quota de sites</h3>
+                <Globe2 className="w-5 h-5 text-accent" />
+                <h3 className="font-code font-semibold text-foreground">Quota de sites</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-code px-2 py-1 rounded bg-primary/20 text-primary">
+                <span className="text-xs font-code px-2 py-1 rounded bg-accent/20 text-accent capitalize">
                   Plan {userPlan.plan_type}
                 </span>
                 {userPlan.plan_type === "free" ? (
                   <Link to="/upgrade">
-                    <Button size="sm" variant="outline" className="font-code text-xs gap-1 glow-green">
+                    <Button size="sm" variant="outline" className="font-code text-xs gap-1">
                       Passer au supérieur
                       <ArrowUpRight className="w-3 h-3" />
                     </Button>
@@ -324,7 +324,7 @@ const Dashboard = () => {
             </div>
             {userPlan.sites_limit === -1 ? (
               <div className="flex items-center gap-2">
-                <Infinity className="w-5 h-5 text-primary" />
+                <Infinity className="w-5 h-5 text-accent" />
                 <span className="text-sm font-code text-muted-foreground">
                   Sites illimités • {sites.length} site(s) créé(s)
                 </span>
@@ -335,7 +335,7 @@ const Dashboard = () => {
                   <span className="text-sm font-code text-muted-foreground">
                     {sites.length} / {userPlan.sites_limit} sites utilisés
                   </span>
-                  <span className="text-sm font-code text-primary">
+                  <span className="text-sm font-code text-accent">
                     {userPlan.sites_limit - sites.length} restant(s)
                   </span>
                 </div>
@@ -348,7 +348,7 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="space-y-3">
+          <div className="space-y-6 mb-6">
             {!hasStatsData && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
                 <AlertTriangle className="w-4 h-4 text-muted-foreground" />
@@ -358,27 +358,27 @@ const Dashboard = () => {
               </div>
             )}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
-                <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-1">Pages rendues</p>
+                <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.total_pages_rendered.toLocaleString()}
                 </p>
               </div>
-              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-2">Bots aujourd'hui</p>
-                <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-1">Bots aujourd'hui</p>
+                <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.total_bots}
                 </p>
               </div>
-              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-2">Google crawls</p>
-                <p className="text-2xl lg:text-3xl font-bold font-code text-primary">
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-1">Google crawls</p>
+                <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.google_crawls}
                 </p>
               </div>
-              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-2">AI crawls</p>
-                <p className="text-2xl lg:text-3xl font-bold font-code text-secondary">
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-1">AI crawls</p>
+                <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.ai_crawls}
                 </p>
               </div>
@@ -386,9 +386,9 @@ const Dashboard = () => {
           </div>
 
           {/* Charts Section */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold font-code text-primary">Évolution des crawls</h2>
+              <h2 className="text-base font-semibold font-code text-foreground">Évolution des crawls</h2>
               <span className="text-xs text-muted-foreground font-code">
                 7 derniers jours
               </span>
@@ -396,17 +396,17 @@ const Dashboard = () => {
             <CrawlsChart botActivity={botActivity} />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6 mb-6">
             {/* Sites List */}
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold font-code text-primary">Mes sites</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold font-code text-foreground">Mes sites</h2>
                 <span className="text-xs text-muted-foreground font-code">
                   {sites.length} sites
                 </span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {sites.length === 0 ? (
                   <p className="text-sm text-muted-foreground font-code text-center py-8">
                     Aucun site ajouté. Cliquez sur "Ajouter un site" pour commencer.
@@ -415,12 +415,12 @@ const Dashboard = () => {
                   sites.map((site) => (
                     <div
                       key={site.id}
-                      className="p-4 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors cursor-pointer"
+                      className="p-3 rounded-lg border border-border bg-background hover:border-accent/50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/dashboard/sites/${site.id}`)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Globe2 className="w-4 h-4 text-primary" />
+                          <Globe2 className="w-4 h-4 text-accent" />
                           <span className="font-code text-sm text-foreground">
                             {site.name}
                           </span>
@@ -431,7 +431,7 @@ const Dashboard = () => {
                               href={site.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-primary transition-colors"
+                              className="text-muted-foreground hover:text-accent transition-colors"
                             >
                               <ExternalLink className="w-4 h-4" />
                             </a>
@@ -448,7 +448,7 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {site.status === "active" ? (
-                            <CheckCircle className="w-4 h-4 text-primary" />
+                            <CheckCircle className="w-4 h-4 text-green-500" />
                           ) : site.status === "pending" ? (
                             <Clock className="w-4 h-4 text-yellow-500" />
                           ) : (
@@ -473,34 +473,30 @@ const Dashboard = () => {
             </div>
 
             {/* Bot Activity */}
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card terminal-window">
-              <div className="terminal-header !bg-transparent !p-0 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="terminal-dot red" />
-                  <div className="terminal-dot yellow" />
-                  <div className="terminal-dot green" />
-                  <span className="ml-2 text-xs text-muted-foreground font-code">
-                    bot-activity.log
-                  </span>
-                </div>
+            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold font-code text-foreground">Activité des bots</h2>
+                <span className="text-xs text-muted-foreground font-code">
+                  Dernières activités
+                </span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {botActivity.length === 0 ? (
                   <p className="text-sm text-muted-foreground font-code text-center py-8">
                     Aucune activité de bot détectée.
                   </p>
                 ) : (
-                  botActivity.map((activity) => (
+                  botActivity.slice(0, 5).map((activity) => (
                     <div
                       key={activity.id}
                       className="flex items-center justify-between py-2 border-b border-border last:border-0"
                     >
                       <div className="flex items-center gap-3">
                         {activity.bot_type === "search" ? (
-                          <Search className="w-4 h-4 text-primary" />
+                          <Search className="w-4 h-4 text-accent" />
                         ) : (
-                          <Bot className="w-4 h-4 text-primary" />
+                          <Bot className="w-4 h-4 text-accent" />
                         )}
                         <span className="font-code text-sm text-foreground">
                           {activity.bot_name}
@@ -519,23 +515,23 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-primary">
-                <Bot className="w-4 h-4" />
-                <span className="text-xs font-code">+23% de crawls vs. hier</span>
-              </div>
+              {botActivity.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-accent">
+                  <Bot className="w-4 h-4" />
+                  <span className="text-xs font-code">+23% de crawls vs. hier</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Subscription & Invoices Section */}
-          <div className="mt-8">
-            <SubscriptionCard
-              subscription={subscription}
-              invoices={invoices}
-              upcomingInvoice={upcomingInvoice}
-              currentPlan={userPlan.plan_type}
-              isLoading={invoicesLoading}
-            />
-          </div>
+          <SubscriptionCard
+            subscription={subscription}
+            invoices={invoices}
+            upcomingInvoice={upcomingInvoice}
+            currentPlan={userPlan.plan_type}
+            isLoading={invoicesLoading}
+          />
         </div>
       </main>
     </div>

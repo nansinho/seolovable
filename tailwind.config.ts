@@ -17,6 +17,7 @@ export default {
         sans: ["'Inter'", "system-ui", "sans-serif"],
         serif: ["'Playfair Display'", "Georgia", "serif"],
         mono: ["'DM Mono'", "'Fira Code'", "monospace"],
+        code: ["'DM Mono'", "'Fira Code'", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
