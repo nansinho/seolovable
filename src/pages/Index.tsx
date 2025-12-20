@@ -294,9 +294,16 @@ const Index = () => {
                 </div>
               </AnimatedSection>
 
+              {/* Integration - juste après les boutons */}
+              <AnimatedSection delay={350}>
+                <div className="mt-12">
+                  <IntegrationLogos lang={lang} />
+                </div>
+              </AnimatedSection>
+
               {/* Stats */}
               <AnimatedSection delay={450}>
-                <div className="mt-24 pt-12 border-t border-border">
+                <div className="mt-16 pt-12 border-t border-border">
                   <div className="grid grid-cols-3 gap-8 md:gap-16">
                     {t.stats.map((stat, i) => (
                       <div key={i} className="group" style={{ animationDelay: `${i * 100}ms` }}>
@@ -314,17 +321,6 @@ const Index = () => {
               </AnimatedSection>
 
             </div>
-          </div>
-        </section>
-
-        {/* Integration Section */}
-        <section className="py-16 border-t border-border relative">
-          <div className="container mx-auto px-4">
-            <AnimatedSection>
-              <div className="text-center">
-                <IntegrationLogos lang={lang} />
-              </div>
-            </AnimatedSection>
           </div>
         </section>
 

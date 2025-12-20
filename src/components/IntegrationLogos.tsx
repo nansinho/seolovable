@@ -12,8 +12,8 @@ const IntegrationLogos = ({ lang }: IntegrationLogosProps) => {
   const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
 
   const logos = [
-    { src: boltLogo, alt: "Bolt.new", name: "bolt.new" },
     { src: lovableLogo, alt: "Lovable", name: "lovable.dev" },
+    { src: boltLogo, alt: "Bolt.new", name: "bolt.new" },
   ];
 
   useEffect(() => {
