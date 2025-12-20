@@ -72,6 +72,27 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Existing customer found", { customerId });
+
+      // Check for existing active subscriptions and cancel them
+      const existingSubscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+      });
+
+      if (existingSubscriptions.data.length > 0) {
+        logStep("Found existing subscriptions to cancel", { 
+          count: existingSubscriptions.data.length,
+          subscriptions: existingSubscriptions.data.map((s: Stripe.Subscription) => s.id)
+        });
+
+        // Cancel all existing subscriptions
+        for (const subscription of existingSubscriptions.data) {
+          await stripe.subscriptions.cancel(subscription.id, {
+            prorate: true, // Prorate the cancellation
+          });
+          logStep("Cancelled subscription", { subscriptionId: subscription.id });
+        }
+      }
     }
 
     const origin = req.headers.get("origin") || "https://dcjurgffzjpjxqpmqtkd.lovableproject.com";
