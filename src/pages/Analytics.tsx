@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,16 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  LayoutDashboard,
-  BarChart3,
-  Settings,
-  ArrowLeft,
   TrendingUp,
   Bot,
   Search,
   Calendar,
   RefreshCw,
-  CreditCard,
+  BarChart3,
 } from "lucide-react";
 import {
   AreaChart,
@@ -36,6 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 interface BotActivity {
   id: string;
@@ -69,15 +66,9 @@ const BOT_COLORS: Record<string, string> = {
   "Other": "hsl(var(--muted-foreground))",
 };
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics", active: true },
-  { icon: CreditCard, label: "Abonnement", href: "/upgrade" },
-  { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
-];
-
 export default function Analytics() {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState("30");
   const [selectedSite, setSelectedSite] = useState<string>("all");
   const [loading, setLoading] = useState(true);
@@ -220,33 +211,10 @@ export default function Analytics() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r border-border flex-col">
-        <div className="p-6 border-b border-border">
-          <Link to="/" className="font-code text-xl font-bold text-primary">
-            SEO<span className="text-foreground">Lovable</span>
-          </Link>
-        </div>
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                    item.active
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
@@ -254,9 +222,7 @@ export default function Analytics() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
               <div>
                 <h1 className="text-2xl font-bold font-code">Analytics</h1>
                 <p className="text-muted-foreground text-sm">

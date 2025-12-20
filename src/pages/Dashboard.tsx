@@ -2,30 +2,21 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  Terminal, 
-  LayoutDashboard, 
   Globe2, 
-  BarChart3, 
-  Settings, 
-  LogOut,
   Plus,
   ExternalLink,
   CheckCircle,
   Clock,
   AlertTriangle,
-  TrendingUp,
   Bot,
   Search,
-  Menu,
-  X,
   Trash2,
   Infinity,
   ArrowUpRight,
-  CreditCard,
+  Settings,
   Play
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddSiteModal } from "@/components/AddSiteModal";
@@ -34,6 +25,7 @@ import { CrawlsChart } from "@/components/CrawlsChart";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 interface Site {
   id: string;
@@ -97,12 +89,6 @@ interface UpcomingInvoiceData {
   periodEnd: string;
 }
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
-  { icon: CreditCard, label: "Abonnement", href: "/upgrade" },
-  { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
-];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -249,130 +235,65 @@ const Dashboard = () => {
     checkAuthAndFetchData();
   }, [navigate, fetchSites, checkIfBlocked]);
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Erreur lors de la déconnexion");
-      return;
-    }
-    toast.success("Déconnexion réussie");
-    navigate("/");
-  };
-
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
       {/* Sidebar */}
-      <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform transition-transform lg:transform-none",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded bg-primary/20 border border-primary flex items-center justify-center">
-                <Terminal className="w-4 h-4 text-primary" />
-              </div>
-              <span className="font-code font-bold text-primary">
-                SEO Lovable
-              </span>
-            </Link>
-            <button 
-              className="lg:hidden text-sidebar-foreground"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors font-code text-sm"
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Logout */}
-          <div className="p-4 border-t border-sidebar-border">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 font-code text-sm text-sidebar-foreground"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-5 h-5" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </aside>
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Header */}
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8">
-          <div className="flex items-center gap-4">
-            <button 
-              className="lg:hidden text-foreground"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-bold font-code text-primary">Dashboard</h1>
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <div>
+                <h1 className="text-2xl font-bold font-code">Dashboard</h1>
+                <p className="text-muted-foreground text-sm">
+                  Vue d'ensemble de vos sites et statistiques
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                className="font-code" 
+                size="sm" 
+                onClick={() => setPrerenderTestOpen(true)}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Test Prerender
+              </Button>
+              <Button className="font-code" size="sm" onClick={() => setAddSiteOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter un site
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              className="font-code" 
-              size="sm" 
-              onClick={() => setPrerenderTestOpen(true)}
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Test Prerender
-            </Button>
-            <Button className="font-code glow-green" size="sm" onClick={() => setAddSiteOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un site
-            </Button>
-          </div>
-        </header>
 
-        <AddSiteModal 
-          open={addSiteOpen} 
-          onOpenChange={setAddSiteOpen} 
-          onSiteAdded={fetchSites}
-          currentSitesCount={sites.length}
-        />
+          <AddSiteModal 
+            open={addSiteOpen} 
+            onOpenChange={setAddSiteOpen} 
+            onSiteAdded={fetchSites}
+            currentSitesCount={sites.length}
+          />
 
-        <PrerenderTestModal
-          open={prerenderTestOpen}
-          onOpenChange={setPrerenderTestOpen}
-        />
+          <PrerenderTestModal
+            open={prerenderTestOpen}
+            onOpenChange={setPrerenderTestOpen}
+          />
 
-        <DeleteSiteDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          siteName={siteToDelete?.name || ""}
-          onConfirm={handleDeleteConfirm}
-          isDeleting={isDeleting}
-        />
+          <DeleteSiteDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            siteName={siteToDelete?.name || ""}
+            onConfirm={handleDeleteConfirm}
+            isDeleting={isDeleting}
+          />
 
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-8 space-y-8 overflow-auto">
           {/* Plan Quota Indicator */}
           <div className="p-4 lg:p-6 rounded-lg border border-primary/30 bg-card">
             <div className="flex items-center justify-between mb-3">
@@ -599,7 +520,7 @@ const Dashboard = () => {
               </div>
 
               <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-primary">
-                <TrendingUp className="w-4 h-4" />
+                <Bot className="w-4 h-4" />
                 <span className="text-xs font-code">+23% de crawls vs. hier</span>
               </div>
             </div>
@@ -615,8 +536,8 @@ const Dashboard = () => {
               isLoading={invoicesLoading}
             />
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
