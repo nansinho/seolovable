@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddSiteModal } from "@/components/AddSiteModal";
 import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
+import { CrawlsChart } from "@/components/CrawlsChart";
 
 interface Site {
   id: string;
@@ -285,6 +286,17 @@ const Dashboard = () => {
                 {stats.ai_crawls}
               </p>
             </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold font-code text-primary">Évolution des crawls</h2>
+              <span className="text-xs text-muted-foreground font-code">
+                7 derniers jours
+              </span>
+            </div>
+            <CrawlsChart botActivity={botActivity} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
