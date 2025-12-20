@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["'Outfit'", "system-ui", "sans-serif"],
-        display: ["'Space Grotesk'", "'Outfit'", "sans-serif"],
+        display: ["'Orbitron'", "'Space Grotesk'", "sans-serif"],
         mono: ["'JetBrains Mono'", "'Fira Code'", "monospace"],
       },
       colors: {
