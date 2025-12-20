@@ -16,12 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { PlanBadge, AvatarRing } from "@/components/PlanBadge";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userPlan, setUserPlan] = useState<string>("free");
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useI18n();
@@ -51,6 +53,23 @@ export const Header = () => {
     return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "";
   };
 
+  // Fetch user plan
+  const fetchUserPlan = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_plans")
+        .select("plan_type")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setUserPlan(data.plan_type || "free");
+      }
+    } catch (e) {
+      console.error("Error fetching user plan:", e);
+    }
+  };
+
   // Écouter les changements d'état d'authentification
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -59,7 +78,7 @@ export const Header = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Check admin status
+        // Check admin status and fetch plan
         if (session?.user) {
           setTimeout(() => {
             supabase
@@ -71,9 +90,12 @@ export const Header = () => {
               .then(({ data }) => {
                 setIsAdmin(!!data);
               });
+            
+            fetchUserPlan(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setUserPlan("free");
         }
       }
     );
@@ -83,7 +105,7 @@ export const Header = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Check admin status
+      // Check admin status and fetch plan
       if (session?.user) {
         supabase
           .from("user_roles")
@@ -94,6 +116,8 @@ export const Header = () => {
           .then(({ data }) => {
             setIsAdmin(!!data);
           });
+        
+        fetchUserPlan(session.user.id);
       }
     });
 
@@ -157,12 +181,14 @@ export const Header = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full border border-border p-1 pr-3 hover:bg-muted/50 transition-colors">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
-                      <AvatarFallback className="bg-accent text-accent-foreground text-xs font-mono">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarRing plan={userPlan} size="sm">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
+                        <AvatarFallback className="bg-accent text-accent-foreground text-xs font-mono">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </AvatarRing>
                     <span className="text-sm font-mono text-foreground max-w-[120px] truncate">
                       {getUserName().split(" ")[0]}
                     </span>
@@ -170,7 +196,10 @@ export const Header = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{getUserName()}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium">{getUserName()}</p>
+                      <PlanBadge plan={userPlan} size="sm" showLabel={true} showIcon={true} />
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
@@ -280,14 +309,19 @@ export const Header = () => {
               {!loading && user ? (
                 <>
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border mb-2">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
-                      <AvatarFallback className="bg-accent text-accent-foreground font-mono">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarRing plan={userPlan} size="md">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
+                        <AvatarFallback className="bg-accent text-accent-foreground font-mono">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </AvatarRing>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono font-medium text-foreground truncate">{getUserName()}</p>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="font-mono font-medium text-foreground truncate">{getUserName()}</p>
+                        <PlanBadge plan={userPlan} size="sm" showIcon={false} />
+                      </div>
                       <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
