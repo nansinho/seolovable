@@ -324,7 +324,7 @@ const Index = () => {
                 <p className="text-sm text-accent tracking-widest mb-4 font-mono uppercase">
                   {lang === "fr" ? "Compatibilité" : "Compatibility"}
                 </p>
-                <h2 className="text-3xl md:text-4xl font-medium tracking-[-0.02em] leading-tight">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
                   {lang === "fr" ? "Optimisé pour les " : "Optimized for "}
                   <span className="font-mono text-accent">{lang === "fr" ? "crawlers IA" : "AI crawlers"}</span>
                 </h2>
