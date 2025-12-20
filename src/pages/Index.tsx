@@ -10,19 +10,14 @@ import {
   Globe2, 
   BarChart3, 
   Shield, 
-  Clock, 
   Bot,
   Check,
   Star,
-  Code,
-  CheckCircle,
-  Rocket,
-  Server,
-  Cpu,
-  FileCode
+  Cpu
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { AnimatedSection, StaggeredList } from "@/hooks/useScrollAnimation";
 
 const Index = () => {
   const { lang } = useI18n();
@@ -208,97 +203,124 @@ const Index = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-6">
-              <Zap className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-mono text-primary">{t.hero.badge}</span>
-            </div>
+            <AnimatedSection delay={0}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-6 hover:bg-primary/10 transition-colors">
+                <Zap className="w-3.5 h-3.5 text-primary animate-pulse" />
+                <span className="text-xs font-mono text-primary">{t.hero.badge}</span>
+              </div>
+            </AnimatedSection>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-foreground mb-4 leading-tight">
-              {t.hero.title}<br />
-              <span className="text-primary">{t.hero.titleHighlight}</span>
-            </h1>
+            <AnimatedSection delay={100}>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-foreground mb-4 leading-tight">
+                {t.hero.title}<br />
+                <span className="text-primary relative">
+                  {t.hero.titleHighlight}
+                  <span className="absolute -inset-1 bg-primary/10 blur-xl -z-10" />
+                </span>
+              </h1>
+            </AnimatedSection>
             
-            <p className="text-lg text-muted-foreground font-mono max-w-2xl mb-8">
-              {t.hero.subtitle}
-            </p>
+            <AnimatedSection delay={200}>
+              <p className="text-lg text-muted-foreground font-mono max-w-2xl mb-8">
+                {t.hero.subtitle}
+              </p>
+            </AnimatedSection>
 
-            <div className="flex flex-wrap gap-4 mb-12">
-              <Link to="/auth?mode=signup">
-                <Button size="lg" className="font-mono group">
-                  {t.hero.cta}
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <AnimatedSection delay={300}>
+              <div className="flex flex-wrap gap-4 mb-12">
+                <Link to="/auth?mode=signup">
+                  <Button size="lg" className="font-mono group relative overflow-hidden">
+                    <span className="relative z-10 flex items-center">
+                      {t.hero.cta}
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Button>
+                </Link>
+                <Button size="lg" variant="outline" className="font-mono group">
+                  {t.hero.cta2}
                 </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="font-mono">
-                {t.hero.cta2}
-              </Button>
-            </div>
+              </div>
+            </AnimatedSection>
 
-            {/* Stats */}
-            <div className="flex gap-12 mb-12">
-              {t.hero.stats.map((stat, i) => (
-                <div key={i}>
-                  <div className="text-4xl font-mono font-bold text-foreground">
-                    {stat.value}<span className="text-primary">{stat.unit}</span>
+            <AnimatedSection delay={400}>
+              <div className="flex gap-12 mb-12">
+                {t.hero.stats.map((stat, i) => (
+                  <div key={i} className="group cursor-default">
+                    <div className="text-4xl font-mono font-bold text-foreground group-hover:scale-110 transition-transform origin-left">
+                      {stat.value}<span className="text-primary">{stat.unit}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground font-mono">{stat.label}</div>
                   </div>
-                  <div className="text-sm text-muted-foreground font-mono">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
 
       {/* Brands */}
-      <section className="py-12 border-y border-border bg-card/50">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm text-muted-foreground font-mono mb-6">{t.hero.trusted}</p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-            {brands.map((brand) => (
-              <span key={brand} className="text-muted-foreground font-mono text-sm hover:text-foreground transition-colors">
-                {brand}
-              </span>
-            ))}
+      <AnimatedSection>
+        <section className="py-12 border-y border-border bg-card/50">
+          <div className="container mx-auto px-4">
+            <p className="text-center text-sm text-muted-foreground font-mono mb-6">{t.hero.trusted}</p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+              {brands.map((brand, i) => (
+                <span 
+                  key={brand} 
+                  className="text-muted-foreground font-mono text-sm hover:text-primary transition-colors cursor-default"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  {brand}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </AnimatedSection>
 
       {/* Problem Section */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
-              {t.problem.title}
-            </h2>
-            <p className="text-muted-foreground font-mono">{t.problem.subtitle}</p>
-          </div>
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
+                {t.problem.title}
+              </h2>
+              <p className="text-muted-foreground font-mono">{t.problem.subtitle}</p>
+            </div>
+          </AnimatedSection>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div>
-              <p className="text-sm font-mono text-muted-foreground mb-3">{t.problem.botView}</p>
-              <Terminal title="crawler-view.html">
-                <div className="space-y-1 text-sm">
-                  <p className="text-muted-foreground">{"<html>"}</p>
-                  <p className="text-muted-foreground pl-2">{"<body>"}</p>
-                  <p className="text-destructive pl-4">{"<div id=\"root\"></div>"}</p>
-                  <p className="text-muted-foreground pl-4 text-xs">{"<!-- Empty! No content -->"}</p>
-                  <p className="text-muted-foreground pl-2">{"</body>"}</p>
-                  <p className="text-muted-foreground">{"</html>"}</p>
-                </div>
-              </Terminal>
-            </div>
-            <div>
-              <p className="text-sm font-mono text-muted-foreground mb-3">{t.problem.humanView}</p>
-              <Terminal title="rendered-view.html" className="border-primary/30">
-                <div className="space-y-1 text-sm">
-                  <p className="text-primary">{"<header>Navigation...</header>"}</p>
-                  <p className="text-primary">{"<h1>Your Amazing Title</h1>"}</p>
-                  <p className="text-primary">{"<main>All your content...</main>"}</p>
-                  <p className="text-primary">{"<footer>Links & info</footer>"}</p>
-                  <p className="text-primary text-xs">{"<!-- Full content! ✓ -->"}</p>
-                </div>
-              </Terminal>
-            </div>
+            <AnimatedSection animation="fade-left" delay={100}>
+              <div>
+                <p className="text-sm font-mono text-muted-foreground mb-3">{t.problem.botView}</p>
+                <Terminal title="crawler-view.html" className="hover:border-destructive/50 transition-colors">
+                  <div className="space-y-1 text-sm">
+                    <p className="text-muted-foreground">{"<html>"}</p>
+                    <p className="text-muted-foreground pl-2">{"<body>"}</p>
+                    <p className="text-destructive pl-4 animate-pulse">{"<div id=\"root\"></div>"}</p>
+                    <p className="text-muted-foreground pl-4 text-xs">{"<!-- Empty! No content -->"}</p>
+                    <p className="text-muted-foreground pl-2">{"</body>"}</p>
+                    <p className="text-muted-foreground">{"</html>"}</p>
+                  </div>
+                </Terminal>
+              </div>
+            </AnimatedSection>
+            <AnimatedSection animation="fade-right" delay={200}>
+              <div>
+                <p className="text-sm font-mono text-muted-foreground mb-3">{t.problem.humanView}</p>
+                <Terminal title="rendered-view.html" className="border-primary/30 hover:border-primary/50 transition-colors">
+                  <div className="space-y-1 text-sm">
+                    <p className="text-primary">{"<header>Navigation...</header>"}</p>
+                    <p className="text-primary">{"<h1>Your Amazing Title</h1>"}</p>
+                    <p className="text-primary">{"<main>All your content...</main>"}</p>
+                    <p className="text-primary">{"<footer>Links & info</footer>"}</p>
+                    <p className="text-primary text-xs">{"<!-- Full content! ✓ -->"}</p>
+                  </div>
+                </Terminal>
+              </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
@@ -306,114 +328,138 @@ const Index = () => {
       {/* Solution Steps */}
       <section className="py-24 bg-card border-y border-border">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground text-center mb-16">
-            {t.solution.title}
-          </h2>
+          <AnimatedSection>
+            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground text-center mb-16">
+              {t.solution.title}
+            </h2>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <StaggeredList 
+            className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+            staggerDelay={150}
+          >
             {t.solution.steps.map((step, i) => (
-              <div key={i} className="relative text-center group">
+              <div key={i} className="relative text-center group cursor-default">
                 {i < 3 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-px bg-border" />
+                  <div className="hidden md:block absolute top-8 left-full w-full h-px bg-border group-hover:bg-primary/30 transition-colors" />
                 )}
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 group-hover:border-primary/50 transition-all duration-300">
                   <span className="font-mono font-bold text-primary">{step.num}</span>
                 </div>
-                <h3 className="font-mono font-semibold text-foreground mb-1">{step.title}</h3>
+                <h3 className="font-mono font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{step.title}</h3>
                 <p className="text-sm text-muted-foreground font-mono">{step.desc}</p>
               </div>
             ))}
-          </div>
+          </StaggeredList>
         </div>
       </section>
 
       {/* Features Grid */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
-              {t.features.title}
-            </h2>
-            <p className="text-muted-foreground font-mono">{t.features.subtitle}</p>
-          </div>
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
+                {t.features.title}
+              </h2>
+              <p className="text-muted-foreground font-mono">{t.features.subtitle}</p>
+            </div>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <StaggeredList 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            staggerDelay={100}
+          >
             {t.features.items.map((feature, i) => (
-              <div key={i} className="p-6 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors">
-                <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
+              <div key={i} className="p-6 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all duration-300 group cursor-default">
+                <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all">
                   <feature.icon className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="font-mono font-semibold text-foreground mb-2">{feature.title}</h3>
+                <h3 className="font-mono font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground font-mono">{feature.desc}</p>
               </div>
             ))}
-          </div>
+          </StaggeredList>
         </div>
       </section>
 
       {/* Builder Features */}
       <section className="py-24 bg-card border-y border-border">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
-              {t.builderFeatures.title}
-            </h2>
-            <p className="text-muted-foreground font-mono">{t.builderFeatures.subtitle}</p>
-          </div>
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
+                {t.builderFeatures.title}
+              </h2>
+              <p className="text-muted-foreground font-mono">{t.builderFeatures.subtitle}</p>
+            </div>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <StaggeredList 
+            className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+            staggerDelay={100}
+          >
             {t.builderFeatures.items.map((item, i) => (
-              <div key={i} className="flex items-start gap-4 p-6 rounded-lg border border-border bg-background">
-                <div className="w-8 h-8 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+              <div key={i} className="flex items-start gap-4 p-6 rounded-lg border border-border bg-background hover:border-primary/30 transition-colors group">
+                <div className="w-8 h-8 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <Check className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-mono font-semibold text-foreground mb-1">{item.title}</h3>
+                  <h3 className="font-mono font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{item.title}</h3>
                   <p className="text-sm text-muted-foreground font-mono">{item.desc}</p>
                 </div>
               </div>
             ))}
-          </div>
+          </StaggeredList>
         </div>
       </section>
 
       {/* Edge Section */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
-              {t.edge.title}
-            </h2>
-            <p className="text-muted-foreground font-mono max-w-2xl mx-auto">{t.edge.subtitle}</p>
-          </div>
+          <AnimatedSection>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
+                {t.edge.title}
+              </h2>
+              <p className="text-muted-foreground font-mono max-w-2xl mx-auto">{t.edge.subtitle}</p>
+            </div>
+          </AnimatedSection>
 
-          <div className="max-w-3xl mx-auto">
-            <Terminal title="response-headers.txt">
-              <div className="space-y-1 text-sm">
-                <p><span className="text-muted-foreground">HTTP/2</span> <span className="text-primary">200 OK</span></p>
-                <p><span className="text-muted-foreground">content-type:</span> <span className="text-foreground">text/html; charset=utf-8</span></p>
-                <p><span className="text-muted-foreground">x-render-time:</span> <span className="text-primary">12ms</span></p>
-                <p><span className="text-muted-foreground">x-cache:</span> <span className="text-primary">HIT</span></p>
-                <p><span className="text-muted-foreground">cf-ray:</span> <span className="text-foreground">edge-paris-01</span></p>
-              </div>
-            </Terminal>
-          </div>
+          <AnimatedSection animation="scale" delay={200}>
+            <div className="max-w-3xl mx-auto">
+              <Terminal title="response-headers.txt" className="hover:border-primary/30 transition-colors">
+                <div className="space-y-1 text-sm">
+                  <p><span className="text-muted-foreground">HTTP/2</span> <span className="text-primary">200 OK</span></p>
+                  <p><span className="text-muted-foreground">content-type:</span> <span className="text-foreground">text/html; charset=utf-8</span></p>
+                  <p><span className="text-muted-foreground">x-render-time:</span> <span className="text-primary animate-pulse">12ms</span></p>
+                  <p><span className="text-muted-foreground">x-cache:</span> <span className="text-primary">HIT</span></p>
+                  <p><span className="text-muted-foreground">cf-ray:</span> <span className="text-foreground">edge-paris-01</span></p>
+                </div>
+              </Terminal>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
       {/* Testimonials */}
       <section className="py-24 bg-card border-y border-border">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground text-center mb-16">
-            {t.testimonials.title}
-          </h2>
+          <AnimatedSection>
+            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground text-center mb-16">
+              {t.testimonials.title}
+            </h2>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <StaggeredList 
+            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            staggerDelay={150}
+          >
             {t.testimonials.items.map((item, i) => (
-              <div key={i} className="p-6 rounded-lg border border-border bg-background">
+              <div key={i} className="p-6 rounded-lg border border-border bg-background hover:border-primary/30 transition-colors group">
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-primary text-primary" />
+                    <Star key={j} className="w-4 h-4 fill-primary text-primary group-hover:scale-110 transition-transform" style={{ transitionDelay: `${j * 50}ms` }} />
                   ))}
                 </div>
                 <p className="text-muted-foreground font-mono text-sm mb-4">"{item.text}"</p>
@@ -423,27 +469,32 @@ const Index = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </StaggeredList>
         </div>
       </section>
 
       {/* Pricing */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
-              {t.pricing.title}
-            </h2>
-            <p className="text-muted-foreground font-mono">{t.pricing.subtitle}</p>
-          </div>
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-4">
+                {t.pricing.title}
+              </h2>
+              <p className="text-muted-foreground font-mono">{t.pricing.subtitle}</p>
+            </div>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <StaggeredList 
+            className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            staggerDelay={150}
+          >
             {t.pricing.plans.map((plan, i) => (
               <div
                 key={i}
                 className={cn(
-                  "relative p-8 rounded-lg border bg-card transition-all",
-                  plan.popular ? "border-primary" : "border-border hover:border-primary/50"
+                  "relative p-8 rounded-lg border bg-card transition-all duration-300 hover:scale-[1.02]",
+                  plan.popular ? "border-primary shadow-lg shadow-primary/10" : "border-border hover:border-primary/50"
                 )}
               >
                 {plan.popular && (
@@ -467,36 +518,42 @@ const Index = () => {
                   ))}
                 </ul>
                 <Link to="/auth?mode=signup">
-                  <Button className="w-full font-mono" variant={plan.popular ? "default" : "secondary"}>
+                  <Button className="w-full font-mono group" variant={plan.popular ? "default" : "secondary"}>
                     {t.pricing.cta}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
               </div>
             ))}
-          </div>
+          </StaggeredList>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 bg-card border-t border-border">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-2">
-            {t.cta.title}
-          </h2>
-          <h2 className="text-4xl md:text-5xl font-mono font-bold text-primary mb-6">
-            {t.cta.subtitle}
-          </h2>
-          <p className="text-muted-foreground font-mono max-w-xl mx-auto mb-8">
-            {t.cta.desc}
-          </p>
-          <Link to="/auth?mode=signup">
-            <Button size="lg" className="font-mono group">
-              {t.cta.button}
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      <AnimatedSection>
+        <section className="py-24 bg-card border-t border-border relative overflow-hidden">
+          <div className="absolute inset-0 dot-pattern opacity-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+          
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <h2 className="text-4xl md:text-5xl font-mono font-bold text-foreground mb-2">
+              {t.cta.title}
+            </h2>
+            <h2 className="text-4xl md:text-5xl font-mono font-bold text-primary mb-6">
+              {t.cta.subtitle}
+            </h2>
+            <p className="text-muted-foreground font-mono max-w-xl mx-auto mb-8">
+              {t.cta.desc}
+            </p>
+            <Link to="/auth?mode=signup">
+              <Button size="lg" className="font-mono group">
+                {t.cta.button}
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </AnimatedSection>
 
       <Footer />
     </div>
