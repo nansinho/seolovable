@@ -19,17 +19,36 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const authHeader = req.headers.get("Authorization");
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+      throw new Error("Missing backend configuration");
+    }
+
+    // Use ANON client for auth validation; service-role for DB operations
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+    });
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    logStep("Auth header received", {
+      hasAuthHeader: !!authHeader,
+      authHeaderPrefix: authHeader?.slice(0, 12) ?? null,
+    });
+
     if (!authHeader) throw new Error("No authorization header provided");
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    logStep("Token parsed", { tokenLength: token.length });
+    if (!token) throw new Error("Empty token");
+
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
@@ -40,7 +59,7 @@ serve(async (req) => {
     logStep("Checking DNS for site", { siteId });
 
     // Get site details
-    const { data: site, error: siteError } = await supabaseClient
+    const { data: site, error: siteError } = await supabaseAdmin
       .from("sites")
       .select("id, url, cname_target, txt_record_token, user_id, dns_verified")
       .eq("id", siteId)
@@ -51,7 +70,7 @@ serve(async (req) => {
     }
 
     // Check user owns the site or is admin
-    const { data: isAdmin } = await supabaseClient.rpc("is_admin");
+    const { data: isAdmin } = await supabaseAdmin.rpc("is_admin");
     if (site.user_id !== user.id && !isAdmin) {
       throw new Error("Not authorized to check this site");
     }
@@ -77,7 +96,7 @@ serve(async (req) => {
     } catch {
       throw new Error("Invalid site URL");
     }
-    
+
     const txtRecordName = `_seolovable.${domain}`;
     logStep("Checking TXT record", { txtRecordName, expectedToken: site.txt_record_token });
 
@@ -98,14 +117,12 @@ serve(async (req) => {
 
       if (dnsData.Answer && dnsData.Answer.length > 0) {
         // Check if any TXT record matches our token
-        const txtRecords = dnsData.Answer.filter(
-          (record: { type: number }) => record.type === 16 // TXT record type
-        );
-        
+        const txtRecords = dnsData.Answer.filter((record: { type: number }) => record.type === 16);
+
         for (const record of txtRecords) {
           // TXT record data is often quoted
-          const recordData = record.data.replace(/^"|"$/g, "").trim();
-          
+          const recordData = String(record.data).replace(/^"|"$/g, "").trim();
+
           if (recordData === site.txt_record_token) {
             verified = true;
             message = "TXT record vérifié avec succès";
@@ -128,7 +145,7 @@ serve(async (req) => {
 
     // Update site if verified
     if (verified && !site.dns_verified) {
-      const { error: updateError } = await supabaseClient
+      const { error: updateError } = await supabaseAdmin
         .from("sites")
         .update({
           dns_verified: true,
@@ -151,7 +168,6 @@ serve(async (req) => {
         message,
         domain,
         txt_record_name: txtRecordName,
-        txt_record_token: site.txt_record_token,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
