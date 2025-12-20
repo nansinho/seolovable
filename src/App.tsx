@@ -8,6 +8,7 @@ import CookieBanner from "@/components/CookieBanner";
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
+import Upgrade from "./pages/Upgrade";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import SiteDetails from "./pages/SiteDetails";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/sites/:id" element={<SiteDetails />} />
