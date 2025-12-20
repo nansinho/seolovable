@@ -82,8 +82,10 @@ serve(async (req) => {
       throw new Error("Site not found");
     }
 
-    // Check user owns the site or is admin
-    const { data: isAdmin } = await supabaseAdmin.rpc("is_admin");
+    // Check user owns the site or is admin (use has_role with user_id since service_role has no auth context)
+    const { data: isAdmin } = await supabaseAdmin.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    logStep("Authorization check", { siteUserId: site.user_id, currentUserId: user.id, isAdmin });
+    
     if (site.user_id !== user.id && !isAdmin) {
       throw new Error("Not authorized to check this site");
     }
