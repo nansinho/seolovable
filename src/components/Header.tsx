@@ -47,7 +47,7 @@ export const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <Link to="/auth">
-              <Button variant="ghost" size="sm" className="font-mono uppercase tracking-wider">
+              <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border">
                 {t("nav.login")}
               </Button>
             </Link>
@@ -93,7 +93,7 @@ export const Header = () => {
               ))}
               <div className="flex flex-col gap-2 pt-4 mt-4 border-t border-border">
                 <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full font-mono uppercase tracking-wider">
+                  <Button variant="outline" className="w-full font-mono uppercase tracking-wider border-border">
                     {t("nav.login")}
                   </Button>
                 </Link>
