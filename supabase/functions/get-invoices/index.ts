@@ -17,20 +17,25 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+  // Use ANON client for JWT validation
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false },
+  });
 
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    logStep("Auth header check", { hasHeader: !!authHeader });
     if (!authHeader) throw new Error("No authorization header provided");
     
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) throw new Error("Empty token");
+    
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
