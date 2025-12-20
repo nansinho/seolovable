@@ -5,8 +5,7 @@ export const Footer = () => {
   const { t } = useI18n();
 
   return (
-    <footer className="border-t border-border py-12">
-      <div className="container mx-auto px-4">
+    <footer className="border-t border-border/70 bg-card/20 py-14">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8">
           <div>
             <Link to="/" className="font-semibold text-lg text-foreground">
@@ -47,10 +46,9 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border mt-10 pt-6">
-          <p className="text-muted-foreground text-sm">
-            © 2025 SEO Lovable
-          </p>
+        <div className="border-t border-border/70 mt-10 pt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-sm">© 2025 SEO Lovable</p>
+          <p className="text-muted-foreground text-sm">Contact: support@seo-lovable.com</p>
         </div>
       </div>
     </footer>

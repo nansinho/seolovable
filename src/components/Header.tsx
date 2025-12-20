@@ -18,13 +18,15 @@ export const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--foreground)/0.04)]">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+        <div className="flex items-center justify-between h-[68px]">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-semibold text-lg text-foreground">
+            <span className="font-semibold text-lg tracking-tight text-foreground">
               SEO Lovable
+            </span>
+            <span className="hidden sm:inline-flex rounded-full border border-border/70 bg-card/40 px-2 py-0.5 text-[10px] tracking-[0.22em] uppercase text-muted-foreground font-mono">
+              Prerender
             </span>
           </Link>
 

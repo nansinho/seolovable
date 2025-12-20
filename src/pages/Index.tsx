@@ -148,26 +148,28 @@ const Index = () => {
   const t = content[lang];
 
   return (
-    <div className="min-h-screen bg-background noise">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden pt-28 md:pt-36">
-          {/* Matte background treatment */}
+          {/* Modern matte background: subtle grid + restrained glow */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute bottom-[-220px] left-[-180px] h-[420px] w-[420px] rounded-full bg-primary/5 blur-3xl" />
+            <div className="absolute inset-0 grid-subtle opacity-40" />
+            <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_30%_20%,hsl(var(--primary)/0.14),transparent_65%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(760px_420px_at_78%_30%,hsl(var(--primary)/0.10),transparent_62%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,hsl(var(--background)),hsl(var(--background))_55%,transparent)]" />
           </div>
 
           <div className="container mx-auto px-4 pb-16 md:pb-24">
-            <div className="grid items-start gap-10 md:grid-cols-12 md:gap-12">
+            <div className="grid items-start gap-10 md:grid-cols-12 md:gap-14">
               <div className="md:col-span-7">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
-                    SEO • Prerender • Crawlers IA
+                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
+                    SEO • PRERENDER • CRAWLERS IA
                   </p>
-                  <h1 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground">
+                  <h1 className="mt-5 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-foreground">
                     {t.hero.title}{" "}
                     <span className="text-primary">{t.hero.titleHighlight}</span>
                   </h1>
@@ -194,16 +196,16 @@ const Index = () => {
                 </AnimatedSection>
 
                 <AnimatedSection delay={320}>
-                  <div className="mt-14 grid max-w-xl grid-cols-3 gap-6">
+                  <div className="mt-14 grid max-w-xl grid-cols-3 gap-4">
                     {t.stats.map((stat, i) => (
                       <div
                         key={i}
-                        className="rounded-xl border border-border bg-card/40 p-5 backdrop-blur"
+                        className="rounded-xl border border-border/70 bg-card/45 p-5 backdrop-blur supports-[backdrop-filter]:bg-card/40"
                       >
                         <div className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                           {stat.value}
                         </div>
-                        <div className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                        <div className="mt-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground font-mono">
                           {stat.label}
                         </div>
                       </div>
@@ -214,15 +216,15 @@ const Index = () => {
 
               <div className="md:col-span-5">
                 <AnimatedSection animation="scale" delay={200}>
-                  <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+                  <div className="rounded-2xl border border-border/70 bg-card/55 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/45">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">Preview</p>
-                      <span className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+                      <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">Preview</p>
+                      <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1 text-xs text-muted-foreground font-mono">
                         Googlebot
                       </span>
                     </div>
 
-                    <div className="mt-5 rounded-xl border border-border bg-background/40 p-4">
+                    <div className="mt-5 rounded-xl border border-border/70 bg-background/30 p-4">
                       <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
                         <code>{`<html>\n  <body>\n    <h1>${t.hero.title} ${t.hero.titleHighlight}</h1>\n    <p>${t.hero.subtitle}</p>\n  </body>\n</html>`}</code>
                       </pre>
@@ -230,7 +232,7 @@ const Index = () => {
 
                     <div className="mt-6 grid gap-4">
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-md border border-border bg-background/50 p-1.5 text-primary">
+                        <div className="mt-0.5 rounded-md border border-border/70 bg-background/30 p-1.5 text-primary">
                           <Check className="h-4 w-4" />
                         </div>
                         <p className="text-sm leading-relaxed text-muted-foreground">
@@ -238,7 +240,7 @@ const Index = () => {
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-md border border-border bg-background/50 p-1.5 text-primary">
+                        <div className="mt-0.5 rounded-md border border-border/70 bg-background/30 p-1.5 text-primary">
                           <Check className="h-4 w-4" />
                         </div>
                         <p className="text-sm leading-relaxed text-muted-foreground">
@@ -253,20 +255,25 @@ const Index = () => {
           </div>
 
           <div className="container mx-auto px-4">
-            <div className="border-t border-border" />
+            <div className="border-t border-border/70" />
           </div>
         </section>
 
         {/* Problem */}
-        <section className="bg-background">
+        <section className="relative border-t border-border/70 bg-background">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 grid-subtle opacity-20" />
+            <div className="absolute inset-0 bg-[radial-gradient(760px_420px_at_85%_30%,hsl(var(--primary)/0.08),transparent_60%)]" />
+          </div>
+
           <div className="container mx-auto px-4 py-20 md:py-28">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
               <div className="md:col-span-5">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
                     {t.problem.label}
                   </p>
-                  <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
                     {t.problem.title}
                   </h2>
                   <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
@@ -277,9 +284,9 @@ const Index = () => {
 
               <div className="md:col-span-7">
                 <AnimatedSection delay={120} animation="blur">
-                  <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/50">
-                    <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">Ce que Google voit</p>
-                    <div className="mt-4 rounded-xl border border-border bg-background/40 p-4">
+                  <div className="rounded-2xl border border-border/70 bg-card/45 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/40">
+                    <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">Ce que Google voit</p>
+                    <div className="mt-4 rounded-xl border border-border/70 bg-background/25 p-4">
                       <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
                         <code>{`<html>\n  <body>\n    <div id=\"root\"></div>\n    <!-- aucun contenu -->\n  </body>\n</html>`}</code>
                       </pre>
@@ -292,15 +299,19 @@ const Index = () => {
         </section>
 
         {/* Solution */}
-        <section className="border-t border-border bg-card">
+        <section className="relative border-t border-border/70 bg-card">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(760px_520px_at_20%_30%,hsl(var(--primary)/0.10),transparent_60%)]" />
+          </div>
+
           <div className="container mx-auto px-4 py-20 md:py-28">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
               <div className="md:col-span-5">
                 <AnimatedSection>
-                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                  <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
                     {t.solution.label}
                   </p>
-                  <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
                     {t.solution.title}
                   </h2>
                   <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
@@ -314,10 +325,10 @@ const Index = () => {
                   {t.solution.steps.map((step, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-4 rounded-xl border border-border bg-background/40 p-4 backdrop-blur"
+                      className="flex items-center gap-4 rounded-xl border border-border/70 bg-background/25 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/20"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/70 text-primary">
-                        <span className="text-sm font-medium">{i + 1}</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/35 text-primary">
+                        <span className="text-sm font-medium font-mono">{i + 1}</span>
                       </div>
                       <span className="text-foreground">{step}</span>
                     </div>
@@ -329,14 +340,14 @@ const Index = () => {
         </section>
 
         {/* Features */}
-        <section className="border-t border-border bg-background">
+        <section className="border-t border-border/70 bg-background">
           <div className="container mx-auto px-4 py-20 md:py-28">
             <AnimatedSection>
               <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
                   {t.features.label}
                 </p>
-                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
                   {t.features.title}
                 </h2>
               </div>
@@ -350,7 +361,7 @@ const Index = () => {
               {t.features.items.map((feature, i) => (
                 <div
                   key={i}
-                  className="group rounded-2xl border border-border bg-card/40 p-6 backdrop-blur transition-colors hover:bg-card/60"
+                  className="group rounded-2xl border border-border/70 bg-card/35 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/30 transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-card/45 hover:border-border"
                 >
                   <h3 className="text-base font-medium tracking-tight text-foreground">
                     {feature.title}
@@ -358,7 +369,7 @@ const Index = () => {
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     {feature.desc}
                   </p>
-                  <div className="mt-5 h-px w-10 bg-border transition-all group-hover:w-14" />
+                  <div className="mt-5 h-px w-10 bg-border/70 transition-all group-hover:w-14" />
                 </div>
               ))}
             </StaggeredList>
@@ -366,14 +377,18 @@ const Index = () => {
         </section>
 
         {/* Testimonials */}
-        <section className="border-t border-border bg-card">
+        <section className="relative border-t border-border/70 bg-card">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(760px_520px_at_75%_25%,hsl(var(--primary)/0.09),transparent_60%)]" />
+          </div>
+
           <div className="container mx-auto px-4 py-20 md:py-28">
             <AnimatedSection>
               <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                <p className="text-xs tracking-[0.28em] uppercase text-muted-foreground font-mono">
                   {t.testimonials.label}
                 </p>
-                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-foreground">
                   {t.testimonials.title}
                 </h2>
               </div>
@@ -383,7 +398,7 @@ const Index = () => {
               {t.testimonials.items.map((item, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-border bg-background/40 p-6 backdrop-blur"
+                  className="rounded-2xl border border-border/70 bg-background/22 p-6 backdrop-blur supports-[backdrop-filter]:bg-background/20"
                 >
                   <div className="flex items-center gap-1 text-primary">
                     {[...Array(5)].map((_, j) => (
@@ -393,7 +408,7 @@ const Index = () => {
                   <p className="mt-5 text-sm leading-relaxed text-foreground">“{item.text}”</p>
                   <div className="mt-6">
                     <p className="text-sm font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-mono">
                       {item.role}
                     </p>
                   </div>
