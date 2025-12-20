@@ -12,6 +12,14 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Security logging for user lookups
+const logSecurityEvent = (event: string, details: Record<string, unknown>) => {
+  console.log(`[SECURITY] ${event}`, {
+    ...details,
+    timestamp: new Date().toISOString()
+  });
+};
+
 // Plans configuration - must match database constraint: free, starter, pro, business
 const PRODUCT_TO_PLAN: Record<string, { planType: string; sitesLimit: number }> = {
   "prod_TdhuLMAF5eXcjT": { planType: "starter", sitesLimit: 1 },
@@ -24,6 +32,43 @@ const getValidPlanType = (productId: string): { planType: string; sitesLimit: nu
   const plan = PRODUCT_TO_PLAN[productId];
   if (plan) return plan;
   return { planType: "starter", sitesLimit: 1 };
+};
+
+// Helper function to find user by stripe_customer_id first, then email as fallback
+const findUserByCustomer = async (
+  supabase: any,
+  customerId: string,
+  customerEmail: string | null
+): Promise<string | null> => {
+  // Try to find user by stripe_customer_id first (preferred - no email enumeration risk)
+  const { data: planData } = await supabase
+    .from("user_plans")
+    .select("user_id")
+    .eq("stripe_customer_id", customerId)
+    .limit(1);
+
+  if (planData && planData.length > 0) {
+    logSecurityEvent("user_lookup_by_customer_id", { customer_id: customerId, found: true });
+    return (planData[0] as { user_id: string }).user_id;
+  }
+
+  // Fallback to email lookup for new customers
+  if (customerEmail) {
+    logSecurityEvent("user_lookup_by_email", { customer_id: customerId, has_email: true });
+    
+    const { data: users } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", customerEmail)
+      .limit(1);
+
+    if (users && users.length > 0) {
+      return (users[0] as { id: string }).id;
+    }
+  }
+
+  logSecurityEvent("user_lookup_failed", { customer_id: customerId });
+  return null;
 };
 
 serve(async (req) => {
@@ -50,13 +95,19 @@ serve(async (req) => {
 
     let event: Stripe.Event;
 
-    if (webhookSecret && sig) {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-      logStep("Webhook signature verified");
-    } else {
-      event = JSON.parse(body);
-      logStep("Webhook without signature verification");
+    // SECURITY: Require webhook signature verification
+    if (!webhookSecret) {
+      logStep("ERROR: STRIPE_WEBHOOK_SECRET not configured");
+      throw new Error("STRIPE_WEBHOOK_SECRET must be configured for security");
     }
+
+    if (!sig) {
+      logStep("ERROR: Missing stripe-signature header");
+      throw new Error("Missing stripe-signature header");
+    }
+
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    logStep("Webhook signature verified");
 
     logStep("Event type", { type: event.type });
 
@@ -70,15 +121,9 @@ serve(async (req) => {
           const customerId = session.customer as string;
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
           
-          // Get user by email
-          const { data: users } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("email", customer.email)
-            .limit(1);
+          const userId = await findUserByCustomer(supabase, customerId, customer.email);
 
-          if (users && users.length > 0) {
-            const userId = users[0].id;
+          if (userId) {
             const productId = subscription.items.data[0].price.product as string;
             const planInfo = getValidPlanType(productId);
 
@@ -112,14 +157,9 @@ serve(async (req) => {
         const customerId = subscription.customer as string;
         const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
 
-        const { data: users } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", customer.email)
-          .limit(1);
+        const userId = await findUserByCustomer(supabase, customerId, customer.email);
 
-        if (users && users.length > 0) {
-          const userId = users[0].id;
+        if (userId) {
           const productId = subscription.items.data[0].price.product as string;
           const planInfo = getValidPlanType(productId);
 
@@ -148,15 +188,9 @@ serve(async (req) => {
         const customerId = subscription.customer as string;
         const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
 
-        const { data: users } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", customer.email)
-          .limit(1);
+        const userId = await findUserByCustomer(supabase, customerId, customer.email);
 
-        if (users && users.length > 0) {
-          const userId = users[0].id;
-
+        if (userId) {
           await supabase
             .from("user_plans")
             .update({
