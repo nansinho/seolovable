@@ -190,9 +190,9 @@ export const Header = () => {
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer text-destructive focus:text-destructive">
+                        <Link to="/admin" className="cursor-pointer text-accent focus:text-accent">
                           <Shield className="w-4 h-4 mr-2" />
-                          Admin Suprême
+                          Administration
                         </Link>
                       </DropdownMenuItem>
                     </>
