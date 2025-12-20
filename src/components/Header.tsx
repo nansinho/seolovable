@@ -1,15 +1,38 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
   const { t } = useI18n();
+
+  // Écouter les changements d'état d'authentification
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fermer le menu quand on change de route
   useEffect(() => {
@@ -64,16 +87,27 @@ export const Header = () => {
 
           <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
-            <Link to="/auth">
-              <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border h-9 px-6">
-                {t("nav.login")}
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-9 px-6">
-                {t("nav.trial")}
-              </Button>
-            </Link>
+            {!loading && user ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-9 px-6">
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider border-border h-9 px-6">
+                    {t("nav.login")}
+                  </Button>
+                </Link>
+                <Link to="/auth?mode=signup">
+                  <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-9 px-6">
+                    {t("nav.trial")}
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -133,16 +167,27 @@ export const Header = () => {
             </div>
             
             <div className="flex flex-col gap-4 w-full">
-              <Link to="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
-                <Button variant="outline" className="w-full font-mono uppercase tracking-wider border-border h-14 text-lg">
-                  {t("nav.login")}
-                </Button>
-              </Link>
-              <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)} className="w-full">
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
-                  {t("nav.trial")}
-                </Button>
-              </Link>
+              {!loading && user ? (
+                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
+                  <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
+                    <Button variant="outline" className="w-full font-mono uppercase tracking-wider border-border h-14 text-lg">
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                  <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)} className="w-full">
+                    <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
+                      {t("nav.trial")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>
