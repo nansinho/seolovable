@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, AlertCircle, Copy, CheckCircle } from "lucide-react";
+import { Loader2, AlertCircle, Copy, CheckCircle, Globe, Settings, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const siteSchema = z.object({
@@ -67,7 +67,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [newSiteData, setNewSiteData] = useState<{ txtToken: string; txtRecordName: string; domain: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"name" | "value" | null>(null);
 
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
@@ -182,31 +182,50 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
     }
   };
 
-  const handleCopy = async () => {
+  const handleCopyName = async () => {
+    if (newSiteData) {
+      await navigator.clipboard.writeText(`_seolovable`);
+      setCopied("name");
+      toast.success("Nom copié !");
+      setTimeout(() => setCopied(null), 2000);
+    }
+  };
+
+  const handleCopyValue = async () => {
     if (newSiteData?.txtToken) {
       await navigator.clipboard.writeText(newSiteData.txtToken);
-      setCopied(true);
+      setCopied("value");
       toast.success("Token copié !");
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(null), 2000);
     }
   };
 
   const handleClose = () => {
     setNewSiteData(null);
-    setCopied(false);
+    setCopied(null);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-code text-primary">
-            {newSiteData ? "Configuration DNS" : "Ajouter un site"}
+          <DialogTitle className="font-code text-primary flex items-center gap-2">
+            {newSiteData ? (
+              <>
+                <Settings className="w-5 h-5" />
+                Configuration DNS requise
+              </>
+            ) : (
+              <>
+                <Globe className="w-5 h-5" />
+                Ajouter un site
+              </>
+            )}
           </DialogTitle>
           <DialogDescription>
             {newSiteData 
-              ? "Configurez votre DNS pour activer le prerendering"
+              ? "Suivez ces 3 étapes pour vérifier votre domaine"
               : "Ajoutez un nouveau site à surveiller pour le SEO dynamique."
             }
           </DialogDescription>
@@ -217,58 +236,118 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : newSiteData ? (
-          <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-              <p className="text-sm font-mono text-muted-foreground mb-3">
-                Ajoutez cet enregistrement TXT dans votre zone DNS :
-              </p>
-              <div className="p-3 rounded bg-background border border-border font-mono text-sm space-y-3">
-                <div className="flex flex-col gap-1">
-                  <span className="text-muted-foreground text-xs">Type :</span>
-                  <code className="text-primary font-semibold">TXT</code>
+          <div className="space-y-5">
+            {/* Step 1 */}
+            <div className="relative">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                  1
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-muted-foreground text-xs">Nom / Host :</span>
-                  <code className="text-primary select-all break-all">{newSiteData.txtRecordName}</code>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-muted-foreground text-xs">Valeur :</span>
-                  <code className="text-primary select-all break-all">{newSiteData.txtToken}</code>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-2">Accédez à votre gestionnaire DNS</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Connectez-vous au panneau de contrôle de votre registrar (OVH, Cloudflare, Gandi, etc.)
+                  </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className="mt-3 font-mono w-full"
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2 text-primary" />
-                    Copié !
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copier le token
-                  </>
-                )}
-              </Button>
             </div>
-            <div className="p-3 rounded bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground font-code">
-                <strong>Exemple chez votre registrar :</strong><br />
-                Nom: <code className="text-primary">_seolovable</code><br />
-                Type: <code className="text-primary">TXT</code><br />
-                Valeur: <code className="text-primary">{newSiteData.txtToken}</code>
+
+            {/* Step 2 */}
+            <div className="relative">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-3">Créez un enregistrement TXT</h4>
+                  
+                  <div className="space-y-3">
+                    {/* Type */}
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-xs text-muted-foreground block mb-1">Type</span>
+                          <span className="font-mono font-bold text-primary text-lg">TXT</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div className="p-3 rounded-lg bg-primary/5 border-2 border-primary/30">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-muted-foreground block mb-1">Nom / Host</span>
+                          <code className="font-mono font-bold text-primary text-base break-all">_seolovable</code>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCopyName}
+                          className="flex-shrink-0 h-8 px-2"
+                        >
+                          {copied === "name" ? (
+                            <CheckCircle className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Value */}
+                    <div className="p-3 rounded-lg bg-secondary/10 border-2 border-secondary/30">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-muted-foreground block mb-1">Valeur</span>
+                          <code className="font-mono font-bold text-secondary text-sm break-all">{newSiteData.txtToken}</code>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCopyValue}
+                          className="flex-shrink-0 h-8 px-2"
+                        >
+                          {copied === "value" ? (
+                            <CheckCircle className="w-4 h-4 text-secondary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-2">Sauvegardez et patientez</h4>
+                  <p className="text-sm text-muted-foreground">
+                    La propagation DNS peut prendre <span className="text-primary font-medium">jusqu'à 48h</span>. 
+                    Nous vérifierons automatiquement votre configuration.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Info box */}
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                <span className="text-foreground font-medium">Pourquoi cette vérification ?</span><br />
+                L'enregistrement TXT prouve que vous êtes le propriétaire du domaine <span className="text-primary font-mono">{newSiteData.domain}</span>
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Après avoir configuré le DNS, le statut sera automatiquement vérifié. 
-              La propagation DNS peut prendre jusqu'à 48h.
-            </p>
-            <Button onClick={handleClose} className="w-full font-code">
-              Compris, fermer
+
+            <Button onClick={handleClose} className="w-full font-code glow-green">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              J'ai configuré mon DNS
             </Button>
           </div>
         ) : !canAddSite ? (
