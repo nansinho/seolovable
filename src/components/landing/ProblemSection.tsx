@@ -1,7 +1,10 @@
 import { Terminal } from "@/components/Terminal";
 import { AlertTriangle } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const ProblemSection = () => {
+  const { t } = useI18n();
+
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-card" />
@@ -12,14 +15,14 @@ export const ProblemSection = () => {
           <h2 
             className="text-3xl md:text-4xl lg:text-5xl font-mono font-bold text-foreground mb-4 opacity-0 animate-fade-in"
           >
-            Your AI-Built Apps Are{" "}
-            <span className="text-primary border border-primary px-3 py-1">Invisible</span>
+            {t("problem.title1")}{" "}
+            <span className="text-primary border border-primary px-3 py-1">{t("problem.title2")}</span>
           </h2>
           <p 
             className="text-muted-foreground font-mono max-w-2xl mx-auto opacity-0 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Google and social media can't see what you built - just empty pages.
+            {t("problem.subtitle")}
           </p>
         </div>
 
@@ -33,13 +36,13 @@ export const ProblemSection = () => {
                 <AlertTriangle className="w-5 h-5 text-destructive" />
               </div>
               <p className="text-muted-foreground font-mono text-sm leading-relaxed">
-                When you share your app link on any social media platform, it looks broken. When Google tries to index your pages, it sees nothing. That's because your content loads with JavaScript - and bots don't wait around.
+                {t("problem.desc")}
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <p className="text-xs font-mono text-muted-foreground mb-3">What bots see:</p>
+                <p className="text-xs font-mono text-muted-foreground mb-3">{t("problem.bots")}</p>
                 <Terminal title="crawler-view.html">
                   <div className="space-y-1">
                     <p className="text-muted-foreground">{"<html>"}</p>
@@ -51,7 +54,7 @@ export const ProblemSection = () => {
                 </Terminal>
               </div>
               <div>
-                <p className="text-xs font-mono text-muted-foreground mb-3">What should be indexed:</p>
+                <p className="text-xs font-mono text-muted-foreground mb-3">{t("problem.indexed")}</p>
                 <Terminal title="rendered-view.html" className="border-primary/30">
                   <div className="space-y-1">
                     <p className="text-primary">{"<h1>Page Title</h1>"}</p>

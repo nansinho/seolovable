@@ -2,54 +2,57 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const plans = [
-  {
-    name: "Basic",
-    price: "7€",
-    period: "/mo",
-    description: "Perfect for testing",
-    features: [
-      "1 Lovable site",
-      "10,000 pages/month",
-      "Basic prerender",
-      "Email support",
-    ],
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "15€",
-    period: "/mo",
-    description: "+200% traffic guaranteed",
-    features: [
-      "5 Lovable sites",
-      "Unlimited pages",
-      "Bot stats dashboard",
-      "Smart cache",
-      "Priority support",
-      "API access",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "39€",
-    period: "/mo",
-    description: "For Lovable pros",
-    features: [
-      "Unlimited sites",
-      "Monthly SEO reports",
-      "24/7 support",
-      "AI integration",
-      "Custom features",
-      "99.9% SLA",
-    ],
-    popular: false,
-  },
-];
+import { useI18n } from "@/lib/i18n";
 
 export const PricingSection = () => {
+  const { t } = useI18n();
+
+  const plans = [
+    {
+      name: t("plan.basic"),
+      price: "7€",
+      period: "/mois",
+      description: t("plan.basic.desc"),
+      features: [
+        t("plan.basic.f1"),
+        t("plan.basic.f2"),
+        t("plan.basic.f3"),
+        t("plan.basic.f4"),
+      ],
+      popular: false,
+    },
+    {
+      name: t("plan.pro"),
+      price: "15€",
+      period: "/mois",
+      description: t("plan.pro.desc"),
+      features: [
+        t("plan.pro.f1"),
+        t("plan.pro.f2"),
+        t("plan.pro.f3"),
+        t("plan.pro.f4"),
+        t("plan.pro.f5"),
+        t("plan.pro.f6"),
+      ],
+      popular: true,
+    },
+    {
+      name: t("plan.enterprise"),
+      price: "39€",
+      period: "/mois",
+      description: t("plan.enterprise.desc"),
+      features: [
+        t("plan.enterprise.f1"),
+        t("plan.enterprise.f2"),
+        t("plan.enterprise.f3"),
+        t("plan.enterprise.f4"),
+        t("plan.enterprise.f5"),
+        t("plan.enterprise.f6"),
+      ],
+      popular: false,
+    },
+  ];
+
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-background" />
@@ -59,13 +62,13 @@ export const PricingSection = () => {
           <h2 
             className="text-3xl md:text-4xl font-mono font-bold text-foreground mb-4 opacity-0 animate-fade-in"
           >
-            Simple pricing
+            {t("pricing.title")}
           </h2>
           <p 
             className="text-muted-foreground font-mono max-w-xl mx-auto opacity-0 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Launch promo - Limited time
+            {t("pricing.subtitle")}
           </p>
         </div>
 
@@ -83,7 +86,7 @@ export const PricingSection = () => {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-mono">
-                  Popular
+                  {t("pricing.popular")}
                 </div>
               )}
 
@@ -123,7 +126,7 @@ export const PricingSection = () => {
                   )}
                   variant={plan.popular ? "default" : "secondary"}
                 >
-                  Get started
+                  {t("pricing.cta")}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -137,15 +140,15 @@ export const PricingSection = () => {
         >
           <div className="flex items-center gap-2 text-muted-foreground">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm font-mono">Cancel anytime</span>
+            <span className="text-sm font-mono">{t("pricing.cancel")}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm font-mono">30-day refund</span>
+            <span className="text-sm font-mono">{t("pricing.refund")}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm font-mono">14-day free trial</span>
+            <span className="text-sm font-mono">{t("pricing.trial")}</span>
           </div>
         </div>
       </div>

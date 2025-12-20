@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { Terminal, Github, Twitter } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const Footer = () => {
+  const { t } = useI18n();
+
   return (
     <footer className="bg-card border-t border-border py-12">
       <div className="container mx-auto px-4">
@@ -17,7 +20,7 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-md leading-relaxed font-mono">
-              Prerender pour sites Lovable. Rendez votre contenu visible pour Google et les AI crawlers.
+              {t("footer.desc")}
             </p>
             
             <div className="flex items-center gap-3 mt-6">
@@ -32,32 +35,32 @@ export const Footer = () => {
 
           {/* Navigation */}
           <div>
-            <h4 className="font-mono font-semibold text-foreground mb-4 text-sm">Produit</h4>
+            <h4 className="font-mono font-semibold text-foreground mb-4 text-sm">{t("footer.product")}</h4>
             <nav className="flex flex-col gap-2">
               <Link to="/" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                Accueil
+                {t("nav.home")}
               </Link>
               <Link to="/how-it-works" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                Comment ça marche
+                {t("nav.how")}
               </Link>
               <Link to="/pricing" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                Tarifs
+                {t("nav.pricing")}
               </Link>
             </nav>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="font-mono font-semibold text-foreground mb-4 text-sm">Légal</h4>
+            <h4 className="font-mono font-semibold text-foreground mb-4 text-sm">{t("footer.legal")}</h4>
             <nav className="flex flex-col gap-2">
               <Link to="/auth" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                Connexion
+                {t("nav.login")}
               </Link>
               <Link to="#" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                Confidentialité
+                {t("footer.privacy")}
               </Link>
               <Link to="#" className="text-muted-foreground text-sm hover:text-primary transition-colors font-mono">
-                CGV
+                {t("footer.terms")}
               </Link>
             </nav>
           </div>
