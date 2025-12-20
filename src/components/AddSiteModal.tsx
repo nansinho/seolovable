@@ -77,6 +77,21 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
         return;
       }
 
+      // Check if user is admin (admins have unlimited access)
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleData) {
+        // Admin = unlimited
+        setUserPlan({ plan_type: "admin", sites_limit: -1 });
+        setLoading(false);
+        return;
+      }
+
       const { data: planData } = await supabase
         .from("user_plans")
         .select("plan_type, sites_limit")

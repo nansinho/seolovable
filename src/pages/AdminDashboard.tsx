@@ -497,34 +497,65 @@ const AdminDashboard = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={getUserPlan(user.id)?.plan_type || "free"}
-                          onValueChange={(value) => handleChangePlan(user.id, value)}
-                        >
-                          <SelectTrigger className="w-32 h-8 font-code text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="free" className="font-code text-xs">
-                              Free
-                            </SelectItem>
-                            <SelectItem value="pro" className="font-code text-xs">
-                              <span className="flex items-center gap-1">
-                                <Sparkles className="w-3 h-3 text-primary" />
-                                Pro
-                              </span>
-                            </SelectItem>
-                            <SelectItem value="unlimited" className="font-code text-xs">
-                              <span className="flex items-center gap-1">
-                                <Infinity className="w-3 h-3 text-accent" />
-                                Illimité
-                              </span>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        {isUserAdmin(user.id) ? (
+                          <div className="flex items-center gap-1 text-xs font-code text-accent">
+                            <Infinity className="w-3 h-3" />
+                            <span>Illimité (Admin)</span>
+                          </div>
+                        ) : (
+                          <Select
+                            value={getUserPlan(user.id)?.plan_type || "free"}
+                            onValueChange={(value) => handleChangePlan(user.id, value)}
+                          >
+                            <SelectTrigger className="w-32 h-8 font-code text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="free" className="font-code text-xs">
+                                Free
+                              </SelectItem>
+                              <SelectItem value="pro" className="font-code text-xs">
+                                <span className="flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3 text-primary" />
+                                  Pro
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="unlimited" className="font-code text-xs">
+                                <span className="flex items-center gap-1">
+                                  <Infinity className="w-3 h-3 text-accent" />
+                                  Illimité
+                                </span>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                       </TableCell>
                       <TableCell className="font-code">
-                        {getSiteCount(user.id)}
+                        {(() => {
+                          const siteCount = getSiteCount(user.id);
+                          const plan = getUserPlan(user.id);
+                          const limit = isUserAdmin(user.id) ? -1 : (plan?.sites_limit ?? 1);
+                          
+                          if (isUserAdmin(user.id) || limit === -1) {
+                            return (
+                              <span className="flex items-center gap-1 text-accent">
+                                {siteCount} <Infinity className="w-3 h-3" />
+                              </span>
+                            );
+                          }
+                          
+                          const remaining = limit - siteCount;
+                          const isAtLimit = remaining <= 0;
+                          
+                          return (
+                            <span className={isAtLimit ? "text-destructive" : "text-muted-foreground"}>
+                              {siteCount} / {limit}
+                              <span className="ml-1 text-xs">
+                                ({remaining > 0 ? `${remaining} dispo` : "limite"})
+                              </span>
+                            </span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="font-code text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString("fr-FR")}
