@@ -20,7 +20,8 @@ import {
   X,
   Trash2,
   Infinity,
-  ArrowUpRight
+  ArrowUpRight,
+  CreditCard
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ import { toast } from "sonner";
 import { AddSiteModal } from "@/components/AddSiteModal";
 import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
 import { CrawlsChart } from "@/components/CrawlsChart";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 
 interface Site {
@@ -60,10 +62,44 @@ interface UserPlan {
   sites_limit: number;
 }
 
+interface InvoiceData {
+  id: string;
+  number: string | null;
+  amountDue: number;
+  amountPaid: number;
+  currency: string;
+  status: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  hostedInvoiceUrl: string | null;
+  pdfUrl: string | null;
+  description: string;
+}
+
+interface SubscriptionData {
+  id: string;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  cancelAt: string | null;
+  createdAt: string;
+  priceId: string;
+  productId: string;
+}
+
+interface UpcomingInvoiceData {
+  amountDue: number;
+  currency: string;
+  periodStart: string;
+  periodEnd: string;
+}
+
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Globe2, label: "Sites", href: "/dashboard/sites" },
   { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
+  { icon: CreditCard, label: "Abonnement", href: "/dashboard/billing" },
   { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
 ];
 
@@ -84,6 +120,12 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
+  
+  // Subscription & invoices state
+  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoiceData | null>(null);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
 
   const fetchSites = useCallback(async () => {
     const { data: sitesData } = await supabase
@@ -175,6 +217,20 @@ const Dashboard = () => {
       }
 
       setLoading(false);
+      
+      // Fetch invoices and subscription info
+      try {
+        const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke("get-invoices");
+        if (!invoiceError && invoiceData) {
+          setInvoices(invoiceData.invoices || []);
+          setSubscription(invoiceData.subscription || null);
+          setUpcomingInvoice(invoiceData.upcomingInvoice || null);
+        }
+      } catch (e) {
+        console.error("Error fetching invoices:", e);
+      } finally {
+        setInvoicesLoading(false);
+      }
     };
 
     checkAuthAndFetchData();
@@ -508,6 +564,17 @@ const Dashboard = () => {
                 <span className="text-xs font-code">+23% de crawls vs. hier</span>
               </div>
             </div>
+          </div>
+
+          {/* Subscription & Invoices Section */}
+          <div className="mt-8">
+            <SubscriptionCard
+              subscription={subscription}
+              invoices={invoices}
+              upcomingInvoice={upcomingInvoice}
+              currentPlan={userPlan.plan_type}
+              isLoading={invoicesLoading}
+            />
           </div>
         </main>
       </div>

@@ -20,6 +20,7 @@ const PLANS = {
     sitesLimit: 1,
     planType: "starter",
     amount: 2900, // 29€ in cents
+    order: 1,
   },
   pro: {
     priceId: "price_1SgQVRKVQwNIgFQrBW5LjlIh",
@@ -27,6 +28,7 @@ const PLANS = {
     sitesLimit: 5,
     planType: "pro",
     amount: 5900, // 59€ in cents
+    order: 2,
   },
   business: {
     priceId: "price_1SgQVdKVQwNIgFQr8BjyVsph",
@@ -34,7 +36,16 @@ const PLANS = {
     sitesLimit: 999,
     planType: "business",
     amount: 9900, // 99€ in cents
+    order: 3,
   }
+};
+
+// Determine if this is an upgrade or downgrade
+const isDowngrade = (currentPriceId: string, newPlanId: string): boolean => {
+  const currentPlan = Object.entries(PLANS).find(([_, p]) => p.priceId === currentPriceId);
+  const newPlan = PLANS[newPlanId as keyof typeof PLANS];
+  if (!currentPlan || !newPlan) return false;
+  return newPlan.order < currentPlan[1].order;
 };
 
 serve(async (req) => {
@@ -177,27 +188,36 @@ serve(async (req) => {
       });
     }
 
-    // Perform the actual upgrade with proration
-    logStep("Updating subscription with proration");
+    // Determine if this is an upgrade or downgrade
+    const downgrade = isDowngrade(currentPriceId, planId);
+    logStep(downgrade ? "Processing downgrade" : "Processing upgrade");
+    
+    // For downgrades: use create_prorations to apply credit to next invoice
+    // For upgrades: use always_invoice to charge immediately
+    const prorationBehavior = downgrade ? "create_prorations" : "always_invoice";
+    
+    logStep("Updating subscription with proration", { prorationBehavior });
     
     const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
       items: [{
         id: subscriptionItem.id,
         price: newPlan.priceId,
       }],
-      proration_behavior: "always_invoice", // Immediately invoice the prorated amount
+      proration_behavior: prorationBehavior,
       metadata: {
         planType: newPlan.planType,
         sitesLimit: newPlan.sitesLimit.toString(),
-        upgradedAt: new Date().toISOString(),
+        changedAt: new Date().toISOString(),
         previousPriceId: currentPriceId,
+        changeType: downgrade ? "downgrade" : "upgrade",
       }
     });
 
     logStep("Subscription updated successfully", { 
       subscriptionId: updatedSubscription.id,
       newPriceId: newPlan.priceId,
-      status: updatedSubscription.status
+      status: updatedSubscription.status,
+      changeType: downgrade ? "downgrade" : "upgrade"
     });
 
     // Update user_plans in Supabase
