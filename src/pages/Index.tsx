@@ -243,11 +243,11 @@ const Index = () => {
       <main>
         {/* Hero */}
         <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
-          <Particles count={40} />
+          <Particles count={60} />
           <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl">
+            <div className="max-w-4xl mx-auto text-center">
               <AnimatedSection>
-                <p className="text-sm text-muted-foreground tracking-wide mb-6 font-mono">
+                <p className="text-sm text-muted-foreground tracking-wide mb-6 font-mono animate-fade-in">
                   {t.hero.eyebrow}
                 </p>
               </AnimatedSection>
@@ -263,15 +263,15 @@ const Index = () => {
               </AnimatedSection>
 
               <AnimatedSection delay={200}>
-                <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
+                <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
                   {t.hero.subtitle}
                 </p>
               </AnimatedSection>
 
               <AnimatedSection delay={300}>
-                <div className="mt-10 flex flex-wrap items-center gap-4">
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
                   <Link to="/auth?mode=signup">
-                    <Button size="lg">
+                    <Button size="lg" className="animate-float">
                       {t.hero.cta}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -290,8 +290,8 @@ const Index = () => {
                 <div className="mt-24 pt-12 border-t border-border">
                   <div className="grid grid-cols-3 gap-8 md:gap-16">
                     {t.stats.map((stat, i) => (
-                      <div key={i} className="group">
-                        <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent">
+                      <div key={i} className="group" style={{ animationDelay: `${i * 100}ms` }}>
+                        <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent group-hover:scale-110">
                           {stat.value}
                           <span className="text-muted-foreground text-2xl md:text-3xl group-hover:text-accent/70 transition-colors">{stat.suffix}</span>
                         </div>
@@ -308,16 +308,17 @@ const Index = () => {
         </section>
 
         {/* Problem */}
-        <section className="py-32 border-t border-border">
-          <div className="container mx-auto px-4">
+        <section className="py-32 border-t border-border relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent pointer-events-none" />
+          <div className="container mx-auto px-4 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <AnimatedSection>
-                  <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
+                  <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono animate-slide-in">
                     {t.problem.eyebrow}
                   </p>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
-                    {t.problem.title} <span className="font-mono text-accent">{t.problem.titleAccent}</span>
+                    {t.problem.title} <span className="font-mono text-accent animate-pulse-subtle">{t.problem.titleAccent}</span>
                   </h2>
                   <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
                     {t.problem.desc}
@@ -326,11 +327,11 @@ const Index = () => {
               </div>
 
               <AnimatedSection delay={150}>
-                <div className="bg-card border border-border rounded-lg p-6 font-mono text-sm">
+                <div className="bg-card border border-border rounded-xl p-6 font-mono text-sm hover-lift border-glow transition-all duration-500 group">
                   <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-                    <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-red-500/60 group-hover:bg-red-500 transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/60 group-hover:bg-yellow-500 transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/60 group-hover:bg-green-500 transition-colors" />
                     <span className="ml-4 text-muted-foreground text-xs">Ce que Google voit</span>
                   </div>
                   <pre className="text-muted-foreground leading-relaxed overflow-x-auto">
@@ -351,8 +352,9 @@ const Index = () => {
         </section>
 
         {/* Solution */}
-        <section className="py-32 border-t border-border bg-card/30">
-          <div className="container mx-auto px-4">
+        <section className="py-32 border-t border-border bg-card/30 relative">
+          <Particles count={20} className="opacity-50" />
+          <div className="container mx-auto px-4 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-start">
               <div className="lg:sticky lg:top-32">
                 <AnimatedSection>
@@ -360,7 +362,7 @@ const Index = () => {
                     {t.solution.eyebrow}
                   </p>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em] leading-tight">
-                    {t.solution.title} <span className="font-mono text-accent">{t.solution.titleAccent}</span>
+                    {t.solution.title} <span className="font-mono text-accent animate-pulse-subtle">{t.solution.titleAccent}</span>
                   </h2>
                   <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
                     {t.solution.desc}
@@ -373,9 +375,9 @@ const Index = () => {
                   {t.solution.steps.map((step, i) => (
                     <div
                       key={i}
-                      className="group flex items-center gap-6 p-6 bg-background border border-border rounded-lg card-elegant"
+                      className="group flex items-center gap-6 p-6 bg-background border border-border rounded-xl hover-lift border-glow transition-all duration-500"
                     >
-                      <span className="flex-shrink-0 w-12 h-12 rounded-full border border-border flex items-center justify-center text-sm font-mono text-muted-foreground group-hover:border-foreground/30 group-hover:text-foreground transition-colors">
+                      <span className="flex-shrink-0 w-12 h-12 rounded-full border border-accent/30 bg-accent/10 flex items-center justify-center text-sm font-mono text-accent group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <span className="text-foreground font-medium">{step}</span>
@@ -388,27 +390,30 @@ const Index = () => {
         </section>
 
         {/* Features */}
-        <section className="py-32 border-t border-border">
-          <div className="container mx-auto px-4">
+        <section className="py-32 border-t border-border relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="container mx-auto px-4 relative z-10">
             <AnimatedSection>
               <div className="max-w-2xl mb-16">
                 <p className="text-sm text-muted-foreground tracking-wide mb-4 font-mono">
                   {t.features.eyebrow}
                 </p>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-[-0.02em]">
-                  {t.features.title} <span className="font-mono text-accent">{t.features.titleAccent}</span>
+                  {t.features.title} <span className="font-mono text-accent animate-pulse-subtle">{t.features.titleAccent}</span>
                 </h2>
               </div>
             </AnimatedSection>
 
-            <StaggeredList className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border" staggerDelay={80} animation="fade-up">
+            <StaggeredList className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={80} animation="fade-up">
               {t.features.items.map((feature, i) => (
                 <div
                   key={i}
-                  className="bg-background p-8 md:p-10 group hover-lift border-glow border border-transparent"
+                  className="bg-card p-8 md:p-10 group rounded-xl border border-border hover-lift border-glow transition-all duration-500"
                 >
-                  <div className="divider mb-6 transition-all duration-500 group-hover:w-16 group-hover:bg-accent" />
-                  <h3 className="text-lg font-medium text-foreground mb-3 font-mono">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-accent/20 transition-all duration-300">
+                    <span className="font-mono text-accent text-sm">{String(i + 1).padStart(2, '0')}</span>
+                  </div>
+                  <h3 className="text-lg font-medium text-foreground mb-3 font-mono group-hover:text-accent transition-colors">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">

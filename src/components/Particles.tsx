@@ -11,10 +11,11 @@ export const Particles = ({ count = 30, className = "" }: ParticlesProps) => {
       id: i,
       left: Math.random() * 100,
       top: Math.random() * 100,
-      size: Math.random() * 3 + 1,
-      duration: Math.random() * 10 + 15,
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.5 + 0.1,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 8 + 10,
+      delay: Math.random() * 3,
+      opacity: Math.random() * 0.6 + 0.3,
+      type: Math.random() > 0.7 ? 'glow' : 'dot',
     }));
   }, [count]);
 
@@ -23,7 +24,11 @@ export const Particles = ({ count = 30, className = "" }: ParticlesProps) => {
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className="absolute rounded-full bg-accent/30 animate-particle"
+          className={`absolute rounded-full animate-particle ${
+            particle.type === 'glow' 
+              ? 'bg-accent shadow-[0_0_10px_hsl(var(--accent)/0.5)]' 
+              : 'bg-accent/50'
+          }`}
           style={{
             left: `${particle.left}%`,
             top: `${particle.top}%`,
