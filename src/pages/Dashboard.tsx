@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AddSiteModal } from "@/components/AddSiteModal";
 
 interface Site {
   id: string;
@@ -57,6 +58,7 @@ const navItems = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [addSiteOpen, setAddSiteOpen] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
   const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
   const [stats, setStats] = useState<DailyStats>({
@@ -67,6 +69,15 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  const fetchSites = useCallback(async () => {
+    const { data: sitesData } = await supabase
+      .from("sites")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (sitesData) setSites(sitesData);
+  }, []);
+
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -76,12 +87,7 @@ const Dashboard = () => {
       }
       
       // Fetch sites
-      const { data: sitesData } = await supabase
-        .from("sites")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (sitesData) setSites(sitesData);
+      await fetchSites();
 
       // Fetch bot activity (last 10)
       const { data: activityData } = await supabase
@@ -113,7 +119,7 @@ const Dashboard = () => {
     };
 
     checkAuthAndFetchData();
-  }, [navigate]);
+  }, [navigate, fetchSites]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -200,11 +206,17 @@ const Dashboard = () => {
             </button>
             <h1 className="text-xl font-bold font-code text-primary">Dashboard</h1>
           </div>
-          <Button className="font-code glow-green" size="sm">
+          <Button className="font-code glow-green" size="sm" onClick={() => setAddSiteOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Ajouter un site
           </Button>
         </header>
+
+        <AddSiteModal 
+          open={addSiteOpen} 
+          onOpenChange={setAddSiteOpen} 
+          onSiteAdded={fetchSites}
+        />
 
         {/* Content */}
         <main className="flex-1 p-4 lg:p-8 space-y-8 overflow-auto">
