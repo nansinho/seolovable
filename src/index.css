@@ -330,6 +330,22 @@
   animation: marquee 30s linear infinite;
 }
 
+/* Confetti animation */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confetti-fall ease-out forwards;
+}
+
 /* Number styling */
 .number-display {
   font-variant-numeric: tabular-nums;
