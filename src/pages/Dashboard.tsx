@@ -21,7 +21,8 @@ import {
   Trash2,
   Infinity,
   ArrowUpRight,
-  CreditCard
+  CreditCard,
+  Play
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
 import { CrawlsChart } from "@/components/CrawlsChart";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
+import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 
 interface Site {
   id: string;
@@ -108,6 +110,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [prerenderTestOpen, setPrerenderTestOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
@@ -325,10 +328,21 @@ const Dashboard = () => {
             </button>
             <h1 className="text-xl font-bold font-code text-primary">Dashboard</h1>
           </div>
-          <Button className="font-code glow-green" size="sm" onClick={() => setAddSiteOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter un site
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="font-code" 
+              size="sm" 
+              onClick={() => setPrerenderTestOpen(true)}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Test Prerender
+            </Button>
+            <Button className="font-code glow-green" size="sm" onClick={() => setAddSiteOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un site
+            </Button>
+          </div>
         </header>
 
         <AddSiteModal 
@@ -336,6 +350,11 @@ const Dashboard = () => {
           onOpenChange={setAddSiteOpen} 
           onSiteAdded={fetchSites}
           currentSitesCount={sites.length}
+        />
+
+        <PrerenderTestModal
+          open={prerenderTestOpen}
+          onOpenChange={setPrerenderTestOpen}
         />
 
         <DeleteSiteDialog

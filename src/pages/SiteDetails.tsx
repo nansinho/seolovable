@@ -18,11 +18,13 @@ import {
   RefreshCw,
   Loader2,
   Copy,
+  Play,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { DnsStatusBadge } from "@/components/DnsStatusBadge";
+import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 
 interface Site {
   id: string;
@@ -54,6 +56,7 @@ const SiteDetails = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [prerenderTestOpen, setPrerenderTestOpen] = useState(false);
 
   const { checkIfBlocked } = useBlockedUserCheck();
 
@@ -177,6 +180,12 @@ const SiteDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PrerenderTestModal
+        open={prerenderTestOpen}
+        onOpenChange={setPrerenderTestOpen}
+        defaultUrl={site?.url || ""}
+      />
+
       {/* Header */}
       <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-4">
@@ -218,6 +227,16 @@ const SiteDetails = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-code"
+                onClick={() => setPrerenderTestOpen(true)}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Test Prerender
+              </Button>
+              
               <div className="flex items-center gap-2">
                 {site.status === "active" ? (
                   <CheckCircle className="w-5 h-5 text-primary" />
