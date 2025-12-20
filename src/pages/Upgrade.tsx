@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { UpgradePreviewModal } from "@/components/UpgradePreviewModal";
 
 const PLANS = {
   starter: {
@@ -67,6 +68,16 @@ const PLAN_COLORS = {
   },
 };
 
+interface ProrationPreview {
+  credit: number;
+  debit: number;
+  amountDue: number;
+  renewalDate: string;
+  currentPlan: string;
+  newPlan: string;
+  currency: string;
+}
+
 const Upgrade = () => {
   const { lang } = useI18n();
   const { toast } = useToast();
@@ -75,6 +86,13 @@ const Upgrade = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string>("free");
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Proration modal state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [prorationPreview, setProrationPreview] = useState<ProrationPreview | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isConfirmingUpgrade, setIsConfirmingUpgrade] = useState(false);
 
   const content = {
     fr: {
@@ -86,7 +104,9 @@ const Upgrade = () => {
       upgrade: "Choisir ce plan",
       manage: "Gérer",
       guarantee: "Garantie satisfait ou remboursé 14 jours",
-      changePlanNote: "Votre abonnement actuel sera annulé et remplacé par le nouveau plan.",
+      changePlanNote: "Changez de plan à tout moment avec une facturation au prorata.",
+      upgradeSuccess: "Plan mis à jour !",
+      upgradeSuccessDesc: "Votre abonnement a été mis à jour avec succès.",
       plans: [
         {
           id: "starter",
@@ -126,7 +146,9 @@ const Upgrade = () => {
       upgrade: "Choose this plan",
       manage: "Manage",
       guarantee: "14-day money-back guarantee",
-      changePlanNote: "Your current subscription will be canceled and replaced with the new plan.",
+      changePlanNote: "Change plans anytime with prorated billing.",
+      upgradeSuccess: "Plan updated!",
+      upgradeSuccessDesc: "Your subscription has been updated successfully.",
       plans: [
         {
           id: "starter",
@@ -192,7 +214,89 @@ const Upgrade = () => {
     }
   }, [navigate, searchParams, toast, lang]);
 
+  // Handle upgrade: either show proration preview (for existing subscribers) or redirect to checkout
   const handleUpgrade = async (planId: string) => {
+    // If user is on free plan, go directly to checkout
+    if (currentPlan === "free") {
+      await handleCheckout(planId);
+      return;
+    }
+
+    // For existing subscribers, show proration preview
+    setSelectedPlanId(planId);
+    setShowPreviewModal(true);
+    setIsLoadingPreview(true);
+    setProrationPreview(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("upgrade-subscription", {
+        body: { planId, preview: true }
+      });
+
+      if (error) throw error;
+
+      if (data?.needsCheckout) {
+        // No active subscription, redirect to checkout
+        setShowPreviewModal(false);
+        await handleCheckout(planId);
+        return;
+      }
+
+      if (data?.preview) {
+        setProrationPreview(data as ProrationPreview);
+      }
+    } catch (error) {
+      console.error("Error getting proration preview:", error);
+      setShowPreviewModal(false);
+      toast({
+        title: lang === "fr" ? "Erreur" : "Error",
+        description: lang === "fr" ? "Impossible de calculer le prorata." : "Unable to calculate proration.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  // Confirm the upgrade (actually update the subscription)
+  const handleConfirmUpgrade = async () => {
+    if (!selectedPlanId) return;
+
+    setIsConfirmingUpgrade(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("upgrade-subscription", {
+        body: { planId: selectedPlanId, preview: false }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setCurrentPlan(selectedPlanId);
+        setShowPreviewModal(false);
+        toast({
+          title: t.upgradeSuccess,
+          description: t.upgradeSuccessDesc,
+        });
+      } else if (data?.needsCheckout) {
+        // Fallback to checkout if no subscription found
+        setShowPreviewModal(false);
+        await handleCheckout(selectedPlanId);
+      }
+    } catch (error) {
+      console.error("Error upgrading subscription:", error);
+      toast({
+        title: lang === "fr" ? "Erreur" : "Error",
+        description: lang === "fr" ? "Impossible de mettre à jour l'abonnement." : "Unable to update subscription.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConfirmingUpgrade(false);
+    }
+  };
+
+  // Regular checkout for new subscribers
+  const handleCheckout = async (planId: string) => {
     setLoadingPlan(planId);
     
     try {
@@ -292,7 +396,6 @@ const Upgrade = () => {
                 const Icon = planConfig?.icon || Zap;
                 const isCurrentPlan = currentPlan === plan.id;
                 const canUpgrade = !isCurrentPlan && currentPlan !== "business";
-                const canChangePlan = !isCurrentPlan && currentPlan !== "free" && currentPlan !== "business";
 
                 return (
                   <div
@@ -443,7 +546,7 @@ const Upgrade = () => {
               })}
             </div>
 
-            {/* Note about plan change */}
+            {/* Note about proration */}
             {currentPlan !== "free" && currentPlan !== "business" && (
               <p className="text-center text-sm text-muted-foreground mt-6">
                 {t.changePlanNote}
@@ -460,16 +563,28 @@ const Upgrade = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-accent" />
-                <span className="text-sm">Annulation à tout moment</span>
+                <span className="text-sm">Sans engagement</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-accent" />
-                <span className="text-sm">Support dédié</span>
+                <span className="text-sm">Support réactif</span>
               </div>
             </div>
           </section>
         </div>
       </main>
+
+      {/* Proration Preview Modal */}
+      <UpgradePreviewModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        onConfirm={handleConfirmUpgrade}
+        preview={prorationPreview}
+        isLoading={isLoadingPreview}
+        isConfirming={isConfirmingUpgrade}
+        lang={lang}
+      />
+
       <Footer />
     </div>
   );
