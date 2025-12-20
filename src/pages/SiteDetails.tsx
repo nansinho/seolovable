@@ -3,6 +3,12 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Terminal,
   ArrowLeft,
   Globe2,
@@ -17,6 +23,7 @@ import {
   FileText,
   Copy,
   Play,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -273,15 +280,28 @@ const SiteDetails = () => {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground font-code">Activer</span>
-                <Switch
-                  checked={site.status === "active"}
-                  onCheckedChange={handleStatusChange}
-                  disabled={updatingStatus || (!site.dns_verified && site.status !== "active")}
-                  title={!site.dns_verified ? "Vérifiez d'abord le DNS" : undefined}
-                />
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      {!site.dns_verified && site.status !== "active" && (
+                        <Lock className="w-4 h-4 text-yellow-500" />
+                      )}
+                      <span className="text-sm text-muted-foreground font-code">Activer</span>
+                      <Switch
+                        checked={site.status === "active"}
+                        onCheckedChange={handleStatusChange}
+                        disabled={updatingStatus || (!site.dns_verified && site.status !== "active")}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  {!site.dns_verified && site.status !== "active" && (
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="text-sm">Configurez et vérifiez votre DNS avant d'activer le site.</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
