@@ -214,7 +214,7 @@ const Index = () => {
                 <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-medium tracking-[-0.03em] leading-[0.95]">
                   <span className="text-foreground">{t.hero.title}</span>
                   <br />
-                  <span className="font-serif italic text-accent-gradient">{t.hero.titleAccent}</span>
+                  <span className="font-mono text-accent animate-pulse-subtle">{t.hero.titleAccent}</span>
                   {" "}
                   <span className="text-foreground">{t.hero.titleEnd}</span>
                 </h1>
@@ -248,12 +248,12 @@ const Index = () => {
                 <div className="mt-24 pt-12 border-t border-border">
                   <div className="grid grid-cols-3 gap-8 md:gap-16">
                     {t.stats.map((stat, i) => (
-                      <div key={i}>
-                        <div className="number-display text-4xl md:text-5xl lg:text-6xl font-medium text-foreground">
+                      <div key={i} className="group">
+                        <div className="number-display text-4xl md:text-5xl lg:text-6xl font-mono font-medium text-foreground transition-all duration-500 group-hover:text-accent">
                           {stat.value}
-                          <span className="text-muted-foreground text-2xl md:text-3xl">{stat.suffix}</span>
+                          <span className="text-muted-foreground text-2xl md:text-3xl group-hover:text-accent/70 transition-colors">{stat.suffix}</span>
                         </div>
-                        <p className="mt-2 text-sm text-muted-foreground">
+                        <p className="mt-2 text-sm text-muted-foreground font-mono">
                           {stat.label}
                         </p>
                       </div>
@@ -363,10 +363,10 @@ const Index = () => {
               {t.features.items.map((feature, i) => (
                 <div
                   key={i}
-                  className="bg-background p-8 md:p-10 group"
+                  className="bg-background p-8 md:p-10 group hover-lift border-glow border border-transparent"
                 >
-                  <div className="divider mb-6 transition-all group-hover:w-16" />
-                  <h3 className="text-lg font-medium text-foreground mb-3">
+                  <div className="divider mb-6 transition-all duration-500 group-hover:w-16 group-hover:bg-accent" />
+                  <h3 className="text-lg font-medium text-foreground mb-3 font-mono">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -430,20 +430,20 @@ const Index = () => {
                 <div
                   key={i}
                   className={cn(
-                    "relative p-8 rounded-lg border",
+                    "relative p-8 rounded-lg border transition-all duration-500",
                     plan.popular 
-                      ? "bg-foreground text-background border-foreground" 
-                      : "bg-background border-border card-elegant"
+                      ? "bg-foreground text-background border-foreground animate-glow-pulse" 
+                      : "bg-background border-border card-elegant hover-lift"
                   )}
                 >
                   {plan.popular && (
-                    <span className="absolute -top-3 left-6 bg-accent text-accent-foreground text-xs font-medium px-3 py-1 rounded-full">
+                    <span className="absolute -top-3 left-6 bg-accent text-accent-foreground text-xs font-mono font-medium px-3 py-1 rounded-full">
                       {t.pricing.popular}
                     </span>
                   )}
 
                   <div className="mb-8">
-                    <h3 className="text-lg font-medium mb-2">{plan.name}</h3>
+                    <h3 className="text-lg font-medium mb-2 font-mono">{plan.name}</h3>
                     <p className={cn(
                       "text-sm mb-6",
                       plan.popular ? "text-background/60" : "text-muted-foreground"
@@ -451,13 +451,13 @@ const Index = () => {
                       {plan.desc}
                     </p>
                     <div className="flex items-baseline gap-1">
-                      <span className="number-display text-5xl font-medium">{plan.price}</span>
+                      <span className="number-display text-5xl font-mono font-medium">{plan.price}</span>
                       <span className={cn(
-                        "text-2xl",
+                        "text-2xl font-mono",
                         plan.popular ? "text-background/60" : "text-muted-foreground"
                       )}>€</span>
                       <span className={cn(
-                        "text-sm ml-1",
+                        "text-sm ml-1 font-mono",
                         plan.popular ? "text-background/60" : "text-muted-foreground"
                       )}>{plan.period}</span>
                     </div>
