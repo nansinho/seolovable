@@ -1,19 +1,54 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useI18n();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Erreur lors de la déconnexion");
+      return;
+    }
+    toast.success("Déconnexion réussie");
+    navigate("/");
+  };
+
+  const getUserInitials = () => {
+    if (!user) return "?";
+    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "";
+    if (name.includes("@")) return name[0].toUpperCase();
+    return name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const getUserAvatar = () => {
+    return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  };
+
+  const getUserName = () => {
+    return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "";
+  };
 
   // Écouter les changements d'état d'authentification
   useEffect(() => {
@@ -88,12 +123,45 @@ export const Header = () => {
           <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
             {!loading && user ? (
-              <Link to="/dashboard">
-                <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-9 px-6">
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full border border-border p-1 pr-3 hover:bg-muted/50 transition-colors">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
+                      <AvatarFallback className="bg-accent text-accent-foreground text-xs font-mono">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-mono text-foreground max-w-[120px] truncate">
+                      {getUserName().split(" ")[0]}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{getUserName()}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard/settings" className="cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Paramètres
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Link to="/auth">
@@ -168,12 +236,37 @@ export const Header = () => {
             
             <div className="flex flex-col gap-4 w-full">
               {!loading && user ? (
-                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
-                  <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
-                    <LayoutDashboard className="w-5 h-5 mr-2" />
-                    Dashboard
+                <>
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border mb-2">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={getUserAvatar() || undefined} alt={getUserName()} />
+                      <AvatarFallback className="bg-accent text-accent-foreground font-mono">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono font-medium text-foreground truncate">{getUserName()}</p>
+                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
+                    <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-mono uppercase tracking-wider h-14 text-lg">
+                      <LayoutDashboard className="w-5 h-5 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full font-mono uppercase tracking-wider border-border h-14 text-lg text-destructive hover:text-destructive"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut className="w-5 h-5 mr-2" />
+                    Déconnexion
                   </Button>
-                </Link>
+                </>
               ) : (
                 <>
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
