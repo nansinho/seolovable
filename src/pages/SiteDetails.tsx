@@ -121,6 +121,12 @@ const SiteDetails = () => {
   const handleStatusChange = async (checked: boolean) => {
     if (!site) return;
 
+    // Empêcher l'activation si DNS non vérifié
+    if (checked && !site.dns_verified) {
+      toast.error("Vous devez d'abord vérifier votre configuration DNS avant d'activer le site.");
+      return;
+    }
+
     setUpdatingStatus(true);
     const newStatus = checked ? "active" : "pending";
 
@@ -272,7 +278,8 @@ const SiteDetails = () => {
                 <Switch
                   checked={site.status === "active"}
                   onCheckedChange={handleStatusChange}
-                  disabled={updatingStatus}
+                  disabled={updatingStatus || (!site.dns_verified && site.status !== "active")}
+                  title={!site.dns_verified ? "Vérifiez d'abord le DNS" : undefined}
                 />
               </div>
             </div>

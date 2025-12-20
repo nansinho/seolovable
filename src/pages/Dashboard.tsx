@@ -98,9 +98,7 @@ interface UpcomingInvoiceData {
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
-  { icon: Globe2, label: "Sites", href: "/dashboard", section: "sites" },
-  { icon: BarChart3, label: "Analytics", href: "/dashboard", section: "analytics" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: CreditCard, label: "Abonnement", href: "/upgrade" },
   { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
 ];
