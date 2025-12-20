@@ -150,215 +150,351 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background noise">
       <Header />
-      
-      {/* Hero */}
-      <section className="pt-32 pb-24 md:pt-40 md:pb-32">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <AnimatedSection>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground leading-tight tracking-tight mb-6">
-                {t.hero.title}
-                <br />
-                <span className="text-primary">{t.hero.titleHighlight}</span>
-              </h1>
-            </AnimatedSection>
-            
-            <AnimatedSection delay={100}>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-                {t.hero.subtitle}
-              </p>
-            </AnimatedSection>
 
-            <AnimatedSection delay={200}>
-              <Link to="/auth?mode=signup">
-                <Button size="lg" className="h-12 px-8 text-base font-medium">
-                  {t.hero.cta}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </AnimatedSection>
+      <main>
+        {/* Hero */}
+        <section className="relative overflow-hidden pt-28 md:pt-36">
+          {/* Matte background treatment */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute bottom-[-220px] left-[-180px] h-[420px] w-[420px] rounded-full bg-primary/5 blur-3xl" />
           </div>
 
-          {/* Stats */}
-          <AnimatedSection delay={300}>
-            <div className="flex justify-center gap-16 md:gap-24 mt-20">
-              {t.stats.map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-3xl md:text-4xl font-semibold text-foreground mb-1">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
+          <div className="container mx-auto px-4 pb-16 md:pb-24">
+            <div className="grid items-start gap-10 md:grid-cols-12 md:gap-12">
+              <div className="md:col-span-7">
+                <AnimatedSection>
+                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                    SEO • Prerender • Crawlers IA
+                  </p>
+                  <h1 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground">
+                    {t.hero.title}{" "}
+                    <span className="text-primary">{t.hero.titleHighlight}</span>
+                  </h1>
+                </AnimatedSection>
+
+                <AnimatedSection delay={120}>
+                  <p className="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-muted-foreground">
+                    {t.hero.subtitle}
+                  </p>
+                </AnimatedSection>
+
+                <AnimatedSection delay={220}>
+                  <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                    <Link to="/auth?mode=signup">
+                      <Button size="lg" className="h-12 px-8 text-base font-medium">
+                        {t.hero.cta}
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                    <div className="text-sm text-muted-foreground">
+                      <span className="text-foreground font-medium">14 jours</span> • Sans carte • Annulation instantanée
+                    </div>
+                  </div>
+                </AnimatedSection>
+
+                <AnimatedSection delay={320}>
+                  <div className="mt-14 grid max-w-xl grid-cols-3 gap-6">
+                    {t.stats.map((stat, i) => (
+                      <div
+                        key={i}
+                        className="rounded-xl border border-border bg-card/40 p-5 backdrop-blur"
+                      >
+                        <div className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                          {stat.value}
+                        </div>
+                        <div className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                          {stat.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </AnimatedSection>
+              </div>
+
+              <div className="md:col-span-5">
+                <AnimatedSection animation="scale" delay={200}>
+                  <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">Preview</p>
+                      <span className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+                        Googlebot
+                      </span>
+                    </div>
+
+                    <div className="mt-5 rounded-xl border border-border bg-background/40 p-4">
+                      <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
+                        <code>{`<html>\n  <body>\n    <h1>${t.hero.title} ${t.hero.titleHighlight}</h1>\n    <p>${t.hero.subtitle}</p>\n  </body>\n</html>`}</code>
+                      </pre>
+                    </div>
+
+                    <div className="mt-6 grid gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-md border border-border bg-background/50 p-1.5 text-primary">
+                          <Check className="h-4 w-4" />
+                        </div>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          HTML prêt à indexer pour Google, Bing et les crawlers IA.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-md border border-border bg-background/50 p-1.5 text-primary">
+                          <Check className="h-4 w-4" />
+                        </div>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          Zéro refacto de votre app — vous gardez votre stack.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              </div>
             </div>
-          </AnimatedSection>
-        </div>
-      </section>
+          </div>
 
-      {/* Problem */}
-      <section className="py-24 md:py-32 border-t border-border">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
+          <div className="container mx-auto px-4">
+            <div className="border-t border-border" />
+          </div>
+        </section>
+
+        {/* Problem */}
+        <section className="bg-background">
+          <div className="container mx-auto px-4 py-20 md:py-28">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+              <div className="md:col-span-5">
+                <AnimatedSection>
+                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                    {t.problem.label}
+                  </p>
+                  <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                    {t.problem.title}
+                  </h2>
+                  <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                    {t.problem.desc}
+                  </p>
+                </AnimatedSection>
+              </div>
+
+              <div className="md:col-span-7">
+                <AnimatedSection delay={120} animation="blur">
+                  <div className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+                    <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">Ce que Google voit</p>
+                    <div className="mt-4 rounded-xl border border-border bg-background/40 p-4">
+                      <pre className="text-[12px] leading-relaxed text-muted-foreground overflow-x-auto">
+                        <code>{`<html>\n  <body>\n    <div id=\"root\"></div>\n    <!-- aucun contenu -->\n  </body>\n</html>`}</code>
+                      </pre>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Solution */}
+        <section className="border-t border-border bg-card">
+          <div className="container mx-auto px-4 py-20 md:py-28">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+              <div className="md:col-span-5">
+                <AnimatedSection>
+                  <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                    {t.solution.label}
+                  </p>
+                  <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                    {t.solution.title}
+                  </h2>
+                  <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                    {t.solution.desc}
+                  </p>
+                </AnimatedSection>
+              </div>
+
+              <div className="md:col-span-7">
+                <StaggeredList className="space-y-3" staggerDelay={90} animation="fade-up">
+                  {t.solution.steps.map((step, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 rounded-xl border border-border bg-background/40 p-4 backdrop-blur"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/70 text-primary">
+                        <span className="text-sm font-medium">{i + 1}</span>
+                      </div>
+                      <span className="text-foreground">{step}</span>
+                    </div>
+                  ))}
+                </StaggeredList>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="border-t border-border bg-background">
+          <div className="container mx-auto px-4 py-20 md:py-28">
             <AnimatedSection>
-              <p className="text-sm text-primary font-medium mb-4">{t.problem.label}</p>
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-6">{t.problem.title}</h2>
-              <p className="text-muted-foreground text-lg leading-relaxed">{t.problem.desc}</p>
-            </AnimatedSection>
-
-            <AnimatedSection delay={150}>
-              <div className="mt-12 p-6 rounded-lg bg-card border border-border">
-                <pre className="text-sm text-muted-foreground overflow-x-auto">
-                  <code>{`<!-- Ce que Google voit -->
-<html>
-  <body>
-    <div id="root"></div>
-    <!-- Aucun contenu -->
-  </body>
-</html>`}</code>
-                </pre>
+              <div className="max-w-3xl">
+                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                  {t.features.label}
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  {t.features.title}
+                </h2>
               </div>
             </AnimatedSection>
-          </div>
-        </div>
-      </section>
 
-      {/* Solution */}
-      <section className="py-24 md:py-32 bg-card border-t border-border">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <AnimatedSection>
-              <p className="text-sm text-primary font-medium mb-4">{t.solution.label}</p>
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-6">{t.solution.title}</h2>
-              <p className="text-muted-foreground text-lg leading-relaxed mb-12">{t.solution.desc}</p>
-            </AnimatedSection>
-
-            <StaggeredList className="space-y-4" staggerDelay={100}>
-              {t.solution.steps.map((step, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-lg border border-border bg-background">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-medium text-primary">{i + 1}</span>
-                  </div>
-                  <span className="text-foreground">{step}</span>
+            <StaggeredList
+              className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+              staggerDelay={70}
+              animation="fade-up"
+            >
+              {t.features.items.map((feature, i) => (
+                <div
+                  key={i}
+                  className="group rounded-2xl border border-border bg-card/40 p-6 backdrop-blur transition-colors hover:bg-card/60"
+                >
+                  <h3 className="text-base font-medium tracking-tight text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {feature.desc}
+                  </p>
+                  <div className="mt-5 h-px w-10 bg-border transition-all group-hover:w-14" />
                 </div>
               ))}
             </StaggeredList>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section className="py-24 md:py-32 border-t border-border">
-        <div className="container mx-auto px-4">
-          <AnimatedSection>
-            <div className="max-w-3xl mx-auto text-center mb-16">
-              <p className="text-sm text-primary font-medium mb-4">{t.features.label}</p>
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground">{t.features.title}</h2>
-            </div>
-          </AnimatedSection>
-
-          <StaggeredList className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto" staggerDelay={80}>
-            {t.features.items.map((feature, i) => (
-              <div key={i} className="p-6 rounded-lg border border-border bg-card hover:border-primary/30 transition-colors">
-                <h3 className="text-lg font-medium text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.desc}</p>
+        {/* Testimonials */}
+        <section className="border-t border-border bg-card">
+          <div className="container mx-auto px-4 py-20 md:py-28">
+            <AnimatedSection>
+              <div className="max-w-3xl">
+                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                  {t.testimonials.label}
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  {t.testimonials.title}
+                </h2>
               </div>
-            ))}
-          </StaggeredList>
-        </div>
-      </section>
+            </AnimatedSection>
 
-      {/* Testimonials */}
-      <section className="py-24 md:py-32 bg-card border-t border-border">
-        <div className="container mx-auto px-4">
-          <AnimatedSection>
-            <div className="max-w-3xl mx-auto text-center mb-16">
-              <p className="text-sm text-primary font-medium mb-4">{t.testimonials.label}</p>
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground">{t.testimonials.title}</h2>
-            </div>
-          </AnimatedSection>
-
-          <StaggeredList className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto" staggerDelay={100}>
-            {t.testimonials.items.map((item, i) => (
-              <div key={i} className="p-6 rounded-lg border border-border bg-background">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-foreground mb-6">"{item.text}"</p>
-                <div>
-                  <p className="font-medium text-foreground">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">{item.role}</p>
-                </div>
-              </div>
-            ))}
-          </StaggeredList>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-24 md:py-32 border-t border-border">
-        <div className="container mx-auto px-4">
-          <AnimatedSection>
-            <div className="max-w-3xl mx-auto text-center mb-16">
-              <p className="text-sm text-primary font-medium mb-4">{t.pricing.label}</p>
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground">{t.pricing.title}</h2>
-            </div>
-          </AnimatedSection>
-
-          <StaggeredList className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto" staggerDelay={100}>
-            {t.pricing.plans.map((plan, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "relative p-8 rounded-lg border bg-card",
-                  plan.popular ? "border-primary" : "border-border"
-                )}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                    {t.pricing.popular}
-                  </span>
-                )}
-                <div className="text-center mb-8">
-                  <h3 className="text-lg font-medium text-foreground mb-4">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-semibold text-foreground">{plan.price}€</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+            <StaggeredList className="mt-10 grid gap-4 md:grid-cols-3" staggerDelay={90} animation="fade-up">
+              {t.testimonials.items.map((item, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-border bg-background/40 p-6 backdrop-blur"
+                >
+                  <div className="flex items-center gap-1 text-primary">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="mt-5 text-sm leading-relaxed text-foreground">“{item.text}”</p>
+                  <div className="mt-6">
+                    <p className="text-sm font-medium text-foreground">{item.name}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      {item.role}
+                    </p>
                   </div>
                 </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span className="text-muted-foreground text-sm">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/auth?mode=signup">
-                  <Button className="w-full" variant={plan.popular ? "default" : "secondary"}>
-                    {t.pricing.cta}
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </StaggeredList>
-        </div>
-      </section>
+              ))}
+            </StaggeredList>
+          </div>
+        </section>
 
-      {/* Final CTA */}
-      <section className="py-24 md:py-32 bg-card border-t border-border">
-        <div className="container mx-auto px-4 text-center">
-          <AnimatedSection>
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-4">{t.cta.title}</h2>
-            <p className="text-muted-foreground mb-8">{t.cta.desc}</p>
-            <Link to="/auth?mode=signup">
-              <Button size="lg" className="h-12 px-8 text-base font-medium">
-                {t.cta.button}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </AnimatedSection>
-        </div>
-      </section>
+        {/* Pricing */}
+        <section className="border-t border-border bg-background">
+          <div className="container mx-auto px-4 py-20 md:py-28">
+            <AnimatedSection>
+              <div className="max-w-3xl">
+                <p className="text-xs tracking-[0.24em] uppercase text-muted-foreground">
+                  {t.pricing.label}
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  {t.pricing.title}
+                </h2>
+              </div>
+            </AnimatedSection>
+
+            <StaggeredList className="mt-10 grid gap-4 md:grid-cols-3" staggerDelay={90} animation="fade-up">
+              {t.pricing.plans.map((plan, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "relative rounded-2xl border bg-card/40 p-7 backdrop-blur",
+                    plan.popular ? "border-primary/40" : "border-border"
+                  )}
+                >
+                  {plan.popular && (
+                    <span className="absolute -top-3 left-6 rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-foreground">
+                      {t.pricing.popular}
+                    </span>
+                  )}
+
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-base font-medium text-foreground">{plan.name}</h3>
+                      <p className="mt-2 text-sm text-muted-foreground">Pour lancer rapidement.</p>
+                    </div>
+                    <div className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+                      {plan.period.replace("/", "")}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex items-baseline gap-2">
+                    <span className="text-4xl font-semibold tracking-tight text-foreground">
+                      {plan.price}€
+                    </span>
+                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                  </div>
+
+                  <ul className="mt-6 space-y-3">
+                    {plan.features.map((f, j) => (
+                      <li key={j} className="flex items-center gap-3">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-muted-foreground">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-8">
+                    <Link to="/auth?mode=signup">
+                      <Button className="w-full" variant={plan.popular ? "default" : "secondary"}>
+                        {t.pricing.cta}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </StaggeredList>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="border-t border-border bg-card">
+          <div className="container mx-auto px-4 py-20 md:py-28">
+            <div className="max-w-3xl">
+              <AnimatedSection>
+                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                  {t.cta.title}
+                </h2>
+                <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
+                  {t.cta.desc}
+                </p>
+                <div className="mt-8">
+                  <Link to="/auth?mode=signup">
+                    <Button size="lg" className="h-12 px-8 text-base font-medium">
+                      {t.cta.button}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </AnimatedSection>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <Footer />
     </div>
