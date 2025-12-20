@@ -1,33 +1,36 @@
 import { Globe, Code, CheckCircle, Rocket } from "lucide-react";
-
-const steps = [
-  {
-    icon: Globe,
-    step: "01",
-    title: "Sign up",
-    description: "Create your account and add your Lovable URL",
-  },
-  {
-    icon: Code,
-    step: "02",
-    title: "Add CNAME",
-    description: "Simple DNS config, copy-paste in 30 seconds",
-  },
-  {
-    icon: CheckCircle,
-    step: "03",
-    title: "Auto verification",
-    description: "Our system validates your configuration",
-  },
-  {
-    icon: Rocket,
-    step: "04",
-    title: "You're live",
-    description: "Your site is now indexable by all bots",
-  },
-];
+import { useI18n } from "@/lib/i18n";
 
 export const SolutionSection = () => {
+  const { t } = useI18n();
+
+  const steps = [
+    {
+      icon: Globe,
+      step: "01",
+      title: t("step.1.title"),
+      description: t("step.1.desc"),
+    },
+    {
+      icon: Code,
+      step: "02",
+      title: t("step.2.title"),
+      description: t("step.2.desc"),
+    },
+    {
+      icon: CheckCircle,
+      step: "03",
+      title: t("step.3.title"),
+      description: t("step.3.desc"),
+    },
+    {
+      icon: Rocket,
+      step: "04",
+      title: t("step.4.title"),
+      description: t("step.4.desc"),
+    },
+  ];
+
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-background" />
@@ -35,13 +38,13 @@ export const SolutionSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <p className="text-sm font-mono text-primary mb-4 opacity-0 animate-fade-in">
-            // How it works
+            {t("solution.tag")}
           </p>
           <h2 
             className="text-3xl md:text-4xl font-mono font-bold text-foreground mb-4 opacity-0 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            4 steps to SEO visibility
+            {t("solution.title")}
           </h2>
         </div>
 

@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Terminal } from "@/components/Terminal";
 import { Globe3D } from "@/components/Globe3D";
 import { ArrowRight } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const HeroSection = () => {
+  const { t } = useI18n();
+
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Background */}
@@ -24,22 +27,22 @@ export const HeroSection = () => {
               className="text-sm font-mono text-primary opacity-0 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              // Prerender pour Lovable
+              {t("hero.tag")}
             </p>
 
             <h1 
               className="text-4xl md:text-5xl lg:text-6xl font-mono font-bold leading-tight opacity-0 animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
-              <span className="text-foreground">Be found everywhere your audience</span>{" "}
-              <span className="text-primary">searches</span>
+              <span className="text-foreground">{t("hero.title1")}</span>{" "}
+              <span className="text-primary">{t("hero.title2")}</span>
             </h1>
 
             <p 
               className="text-lg text-muted-foreground leading-relaxed max-w-xl font-mono opacity-0 animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              Don't lose traffic because of your AI coding platform. Make your Lovable sites visible to Google, ChatGPT, Claude and Perplexity.
+              {t("hero.subtitle")}
             </p>
 
             <div 
@@ -48,13 +51,13 @@ export const HeroSection = () => {
             >
               <Link to="/auth?mode=signup">
                 <Button size="lg" className="font-mono group">
-                  Start free trial
+                  {t("hero.cta")}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/how-it-works">
                 <Button size="lg" variant="outline" className="font-mono">
-                  How it works
+                  {t("hero.cta2")}
                 </Button>
               </Link>
             </div>
@@ -64,7 +67,7 @@ export const HeroSection = () => {
               className="flex flex-wrap items-center gap-8 pt-8 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.5s" }}
             >
-              <span className="text-xs text-muted-foreground font-mono">Trusted by:</span>
+              <span className="text-xs text-muted-foreground font-mono">{t("hero.trusted")}</span>
               <div className="flex items-center gap-6">
                 <span className="text-muted-foreground font-mono text-sm">Google</span>
                 <span className="text-muted-foreground font-mono text-sm">OpenAI</span>

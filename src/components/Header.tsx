@@ -3,16 +3,19 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "/", label: "Accueil" },
-  { href: "/how-it-works", label: "Comment ça marche" },
-  { href: "/pricing", label: "Tarifs" },
-];
+import { useI18n } from "@/lib/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { t } = useI18n();
+
+  const navLinks = [
+    { href: "/", label: t("nav.home") },
+    { href: "/how-it-works", label: t("nav.how") },
+    { href: "/pricing", label: t("nav.pricing") },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -46,16 +49,17 @@ export const Header = () => {
             ))}
           </nav>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons & Language */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             <Link to="/auth">
               <Button variant="ghost" size="sm" className="text-sm font-mono text-muted-foreground hover:text-foreground">
-                Connexion
+                {t("nav.login")}
               </Button>
             </Link>
             <Link to="/auth?mode=signup">
               <Button size="sm" className="text-sm font-mono">
-                Essai gratuit
+                {t("nav.trial")}
               </Button>
             </Link>
           </div>
@@ -76,6 +80,9 @@ export const Header = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
+            <div className="flex justify-center mb-4">
+              <LanguageSwitcher />
+            </div>
             <nav className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
@@ -95,12 +102,12 @@ export const Header = () => {
               <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-border">
                 <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                   <Button variant="ghost" className="w-full text-sm font-mono">
-                    Connexion
+                    {t("nav.login")}
                   </Button>
                 </Link>
                 <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)}>
                   <Button className="w-full text-sm font-mono">
-                    Essai gratuit
+                    {t("nav.trial")}
                   </Button>
                 </Link>
               </div>

@@ -1,39 +1,42 @@
 import { Zap, Globe2, BarChart3, Shield, Clock, Bot } from "lucide-react";
-
-const features = [
-  {
-    icon: Zap,
-    title: "On-demand prerender",
-    description: "Smart cache that generates HTML on the fly for each page",
-  },
-  {
-    icon: Globe2,
-    title: "Multi-site support",
-    description: "Manage all your Lovable projects from one dashboard",
-  },
-  {
-    icon: BarChart3,
-    title: "Real-time bot stats",
-    description: "Track crawls from Google, Bing, ChatGPT, Claude",
-  },
-  {
-    icon: Shield,
-    title: "Free SSL & GDPR safe",
-    description: "Auto SSL certificate, no personal data stored",
-  },
-  {
-    icon: Clock,
-    title: "5-minute setup",
-    description: "Ultra-fast configuration without touching your code",
-  },
-  {
-    icon: Bot,
-    title: "AI Integration",
-    description: "AI analyzes and optimizes your SEO content",
-  },
-];
+import { useI18n } from "@/lib/i18n";
 
 export const FeaturesSection = () => {
+  const { t } = useI18n();
+
+  const features = [
+    {
+      icon: Zap,
+      title: t("feature.1.title"),
+      description: t("feature.1.desc"),
+    },
+    {
+      icon: Globe2,
+      title: t("feature.2.title"),
+      description: t("feature.2.desc"),
+    },
+    {
+      icon: BarChart3,
+      title: t("feature.3.title"),
+      description: t("feature.3.desc"),
+    },
+    {
+      icon: Shield,
+      title: t("feature.4.title"),
+      description: t("feature.4.desc"),
+    },
+    {
+      icon: Clock,
+      title: t("feature.5.title"),
+      description: t("feature.5.desc"),
+    },
+    {
+      icon: Bot,
+      title: t("feature.6.title"),
+      description: t("feature.6.desc"),
+    },
+  ];
+
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-card" />
@@ -43,13 +46,13 @@ export const FeaturesSection = () => {
           <h2 
             className="text-3xl md:text-4xl font-mono font-bold text-foreground mb-4 opacity-0 animate-fade-in"
           >
-            Everything you need
+            {t("features.title")}
           </h2>
           <p 
             className="text-muted-foreground font-mono max-w-xl mx-auto opacity-0 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Powerful features for perfect Lovable SEO
+            {t("features.subtitle")}
           </p>
         </div>
 
