@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Particles from "@/components/Particles";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowRight, Loader2, Crown, Zap, Building2 } from "lucide-react";
+import { Check, ArrowRight, Loader2, Crown, Zap, Building2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,21 +41,22 @@ const Upgrade = () => {
 
   const content = {
     fr: {
-      eyebrow: "Mise à niveau",
-      title: "Passez au niveau",
-      titleAccent: "supérieur",
-      subtitle: "Débloquez plus de fonctionnalités pour développer votre présence en ligne.",
-      currentPlan: "Plan actuel",
-      upgrade: "Passer à ce plan",
-      manage: "Gérer l'abonnement",
+      eyebrow: "Tarification",
+      title: "Choisissez votre",
+      titleAccent: "plan",
+      subtitle: "Des formules adaptées à chaque étape de votre croissance. Passez à l'échelle sans limites.",
+      currentPlan: "Votre plan",
+      upgrade: "Choisir ce plan",
+      manage: "Gérer",
+      guarantee: "Garantie satisfait ou remboursé 14 jours",
       plans: [
         {
           id: "starter",
           name: "Starter",
           price: "29",
           period: "/mois",
-          desc: "Pour les projets personnels",
-          features: ["1 site", "10k pages/mois", "Support email", "Rapports basiques"],
+          desc: "Idéal pour démarrer",
+          features: ["1 site web", "10 000 pages/mois", "Support par email", "Rapports basiques", "SSL inclus"],
           popular: false,
         },
         {
@@ -64,8 +64,8 @@ const Upgrade = () => {
           name: "Pro",
           price: "59",
           period: "/mois",
-          desc: "Pour les équipes en croissance",
-          features: ["5 sites", "Pages illimitées", "Analytics avancés", "Support prioritaire", "API access"],
+          desc: "Pour les équipes ambitieuses",
+          features: ["5 sites web", "Pages illimitées", "Analytics avancés", "Support prioritaire", "Accès API", "Webhooks"],
           popular: true,
         },
         {
@@ -73,28 +73,29 @@ const Upgrade = () => {
           name: "Business",
           price: "99",
           period: "/mois",
-          desc: "Pour les entreprises",
-          features: ["Sites illimités", "Rapports SEO", "Support 24/7", "Accès API complet", "Manager dédié"],
+          desc: "Solution entreprise",
+          features: ["Sites illimités", "Rapports SEO détaillés", "Support 24/7", "API complète", "Manager dédié", "SLA 99.9%"],
           popular: false,
         },
       ],
     },
     en: {
-      eyebrow: "Upgrade",
-      title: "Level up your",
-      titleAccent: "presence",
-      subtitle: "Unlock more features to grow your online presence.",
-      currentPlan: "Current plan",
-      upgrade: "Upgrade to this plan",
-      manage: "Manage subscription",
+      eyebrow: "Pricing",
+      title: "Choose your",
+      titleAccent: "plan",
+      subtitle: "Plans tailored to every stage of your growth. Scale without limits.",
+      currentPlan: "Your plan",
+      upgrade: "Choose this plan",
+      manage: "Manage",
+      guarantee: "14-day money-back guarantee",
       plans: [
         {
           id: "starter",
           name: "Starter",
           price: "29",
           period: "/mo",
-          desc: "For personal projects",
-          features: ["1 site", "10k pages/month", "Email support", "Basic reports"],
+          desc: "Perfect to get started",
+          features: ["1 website", "10,000 pages/month", "Email support", "Basic reports", "SSL included"],
           popular: false,
         },
         {
@@ -102,8 +103,8 @@ const Upgrade = () => {
           name: "Pro",
           price: "59",
           period: "/mo",
-          desc: "For growing teams",
-          features: ["5 sites", "Unlimited pages", "Advanced analytics", "Priority support", "API access"],
+          desc: "For ambitious teams",
+          features: ["5 websites", "Unlimited pages", "Advanced analytics", "Priority support", "API access", "Webhooks"],
           popular: true,
         },
         {
@@ -111,8 +112,8 @@ const Upgrade = () => {
           name: "Business",
           price: "99",
           period: "/mo",
-          desc: "For enterprises",
-          features: ["Unlimited sites", "SEO reports", "24/7 support", "Full API access", "Dedicated manager"],
+          desc: "Enterprise solution",
+          features: ["Unlimited sites", "Detailed SEO reports", "24/7 support", "Full API", "Dedicated manager", "99.9% SLA"],
           popular: false,
         },
       ],
@@ -129,7 +130,6 @@ const Upgrade = () => {
         return;
       }
       
-      // Check current subscription
       try {
         const { data, error } = await supabase.functions.invoke("check-subscription");
         if (!error && data) {
@@ -144,7 +144,6 @@ const Upgrade = () => {
 
     checkAuth();
 
-    // Handle payment canceled
     if (searchParams.get("payment") === "canceled") {
       toast({
         title: lang === "fr" ? "Paiement annulé" : "Payment canceled",
@@ -203,37 +202,51 @@ const Upgrade = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+          <p className="text-muted-foreground font-mono text-sm">Chargement...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background grain">
+    <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-32 pb-20">
+      
+      {/* Background effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/3 rounded-full blur-3xl" />
+      </div>
+
+      <main className="relative pt-32 pb-20">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <section className="relative overflow-hidden pb-20">
-            <Particles count={30} />
-            <div className="text-center relative z-10">
-              <p className="text-sm text-accent tracking-widest mb-6 font-mono uppercase animate-fade-up">
-                {t.eyebrow}
-              </p>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[0.95] mb-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
-                <span className="text-foreground">{t.title}</span>{" "}
-                <span className="font-mono text-accent animate-pulse-subtle">{t.titleAccent}</span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
-                {t.subtitle}
-              </p>
-              <div className="mt-8 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto animate-fade-up" style={{ animationDelay: "300ms" }} />
+          <section className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-8">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span className="text-sm font-mono text-accent">{t.eyebrow}</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
+              <span className="text-foreground">{t.title}</span>{" "}
+              <span className="text-accent">{t.titleAccent}</span>
+            </h1>
+            
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              {t.subtitle}
+            </p>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Check className="w-4 h-4 text-accent" />
+              <span>{t.guarantee}</span>
             </div>
           </section>
 
           {/* Pricing Cards */}
-          <section className="py-20 border-t border-border">
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <section className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
               {t.plans.map((plan, index) => {
                 const planConfig = PLANS[plan.id as keyof typeof PLANS];
                 const Icon = planConfig?.icon || Zap;
@@ -244,71 +257,104 @@ const Upgrade = () => {
                   <div
                     key={index}
                     className={cn(
-                      "relative p-8 rounded-xl border transition-all duration-500",
+                      "relative flex flex-col p-6 lg:p-8 rounded-2xl border transition-all duration-300",
                       plan.popular 
-                        ? "bg-foreground text-background border-foreground animate-glow-pulse" 
-                        : "bg-card border-border hover-lift border-glow",
-                      isCurrentPlan && "ring-2 ring-accent"
+                        ? "bg-accent text-accent-foreground border-accent scale-105 shadow-2xl shadow-accent/20" 
+                        : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5",
+                      isCurrentPlan && !plan.popular && "border-accent/50"
                     )}
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
+                    {/* Popular badge */}
                     {plan.popular && (
-                      <span className="absolute -top-3 left-6 bg-accent text-accent-foreground text-xs font-mono font-medium px-3 py-1 rounded-full">
-                        Populaire
-                      </span>
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span className="bg-background text-accent text-xs font-mono font-semibold px-4 py-1.5 rounded-full border border-accent/20 shadow-lg">
+                          Recommandé
+                        </span>
+                      </div>
                     )}
 
+                    {/* Current plan badge */}
                     {isCurrentPlan && (
-                      <span className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-mono font-medium px-3 py-1 rounded-full">
-                        {t.currentPlan}
-                      </span>
+                      <div className="absolute -top-4 right-4">
+                        <span className={cn(
+                          "text-xs font-mono font-semibold px-3 py-1.5 rounded-full",
+                          plan.popular 
+                            ? "bg-background text-accent" 
+                            : "bg-accent text-accent-foreground"
+                        )}>
+                          {t.currentPlan}
+                        </span>
+                      </div>
                     )}
 
-                    <div className="mb-8">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Icon className={cn(
-                          "w-5 h-5",
-                          plan.popular ? "text-background/80" : "text-accent"
-                        )} />
-                        <h3 className="text-lg font-medium font-mono">{plan.name}</h3>
+                    {/* Plan header */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center",
+                          plan.popular ? "bg-accent-foreground/10" : "bg-accent/10"
+                        )}>
+                          <Icon className={cn(
+                            "w-5 h-5",
+                            plan.popular ? "text-accent-foreground" : "text-accent"
+                          )} />
+                        </div>
+                        <h3 className="text-xl font-semibold">{plan.name}</h3>
                       </div>
                       <p className={cn(
-                        "text-sm mb-6",
-                        plan.popular ? "text-background/60" : "text-muted-foreground"
+                        "text-sm",
+                        plan.popular ? "text-accent-foreground/70" : "text-muted-foreground"
                       )}>
                         {plan.desc}
                       </p>
+                    </div>
+
+                    {/* Price */}
+                    <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="number-display text-5xl font-mono font-medium">{plan.price}</span>
+                        <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
                         <span className={cn(
-                          "text-2xl font-mono",
-                          plan.popular ? "text-background/60" : "text-muted-foreground"
+                          "text-xl",
+                          plan.popular ? "text-accent-foreground/70" : "text-muted-foreground"
                         )}>€</span>
                         <span className={cn(
-                          "text-sm ml-1 font-mono",
-                          plan.popular ? "text-background/60" : "text-muted-foreground"
+                          "text-sm ml-1",
+                          plan.popular ? "text-accent-foreground/60" : "text-muted-foreground"
                         )}>{plan.period}</span>
                       </div>
                     </div>
 
-                    <ul className="space-y-4 mb-8">
+                    {/* Features */}
+                    <ul className="space-y-3 mb-8 flex-grow">
                       {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-3">
-                          <Check className={cn(
-                            "w-4 h-4 mt-0.5 flex-shrink-0",
-                            plan.popular ? "text-background/80" : "text-accent"
-                          )} />
+                          <div className={cn(
+                            "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                            plan.popular ? "bg-accent-foreground/10" : "bg-accent/10"
+                          )}>
+                            <Check className={cn(
+                              "w-3 h-3",
+                              plan.popular ? "text-accent-foreground" : "text-accent"
+                            )} />
+                          </div>
                           <span className={cn(
                             "text-sm",
-                            plan.popular ? "text-background/80" : "text-muted-foreground"
+                            plan.popular ? "text-accent-foreground/80" : "text-muted-foreground"
                           )}>{feature}</span>
                         </li>
                       ))}
                     </ul>
 
+                    {/* CTA Button */}
                     {isCurrentPlan ? (
                       <Button 
-                        className="w-full group" 
-                        variant={plan.popular ? "secondary" : "outline"}
+                        className={cn(
+                          "w-full h-12 font-semibold group",
+                          plan.popular 
+                            ? "bg-accent-foreground text-accent hover:bg-accent-foreground/90" 
+                            : "bg-accent text-accent-foreground hover:bg-accent/90"
+                        )}
                         onClick={handleManageSubscription}
                         disabled={loadingPlan === "manage"}
                       >
@@ -323,8 +369,12 @@ const Upgrade = () => {
                       </Button>
                     ) : canUpgrade ? (
                       <Button 
-                        className="w-full group" 
-                        variant={plan.popular ? "secondary" : "outline"}
+                        className={cn(
+                          "w-full h-12 font-semibold group",
+                          plan.popular 
+                            ? "bg-accent-foreground text-accent hover:bg-accent-foreground/90" 
+                            : "bg-accent text-accent-foreground hover:bg-accent/90"
+                        )}
                         onClick={() => handleUpgrade(plan.id)}
                         disabled={loadingPlan === plan.id}
                       >
@@ -339,7 +389,7 @@ const Upgrade = () => {
                       </Button>
                     ) : (
                       <Button 
-                        className="w-full" 
+                        className="w-full h-12 font-semibold" 
                         variant="outline"
                         disabled
                       >
@@ -349,6 +399,24 @@ const Upgrade = () => {
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          {/* Trust indicators */}
+          <section className="mt-20 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-accent" />
+                <span className="text-sm">Paiement sécurisé</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-accent" />
+                <span className="text-sm">Annulation à tout moment</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-accent" />
+                <span className="text-sm">Support dédié</span>
+              </div>
             </div>
           </section>
         </div>
