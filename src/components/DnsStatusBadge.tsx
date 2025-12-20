@@ -56,9 +56,9 @@ export const DnsStatusBadge = ({
   const dnsStatus = getDnsStatus();
   const Icon = dnsStatus.icon;
 
-  // Extract domain from URL if not provided
+  // Nom de l'enregistrement TXT (la plupart des registrars ajoutent le domaine automatiquement)
   const displayDomain = domain || "votre-domaine.com";
-  const txtRecordName = `_seolovable.${displayDomain}`;
+  const txtRecordName = `_seolovable`;
 
   return (
     <div className="space-y-3">
@@ -73,7 +73,7 @@ export const DnsStatusBadge = ({
       {txtRecordToken && !dnsVerified && (
         <div className="p-4 rounded-lg bg-muted/50 border border-border space-y-3">
           <p className="text-sm font-mono text-muted-foreground">
-            Configurez votre DNS avec l'enregistrement TXT suivant :
+            Configurez votre DNS avec l'enregistrement TXT suivant (le nom/host doit être <code className="text-primary">_seolovable</code> — certains registrars demandent <code className="text-primary">_seolovable.{displayDomain}</code>) :
           </p>
           <div className="p-3 rounded bg-background border border-border font-mono text-sm space-y-2">
             <div className="flex flex-col gap-1">
