@@ -133,19 +133,20 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4">
           {/* Header */}
           <section className="relative overflow-hidden pb-20">
-            <Particles count={25} />
+            <Particles count={30} />
             <AnimatedSection>
-              <div className="max-w-3xl relative z-10">
-                <p className="text-sm text-muted-foreground tracking-wide mb-6 font-mono">
+              <div className="text-center relative z-10">
+                <p className="text-sm text-accent tracking-widest mb-6 font-mono uppercase animate-fade-up">
                   {t.eyebrow}
                 </p>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[0.95] mb-6">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[0.95] mb-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
                   <span className="text-foreground">{t.title}</span>{" "}
-                  <span className="font-mono text-accent">{t.titleAccent}</span>
+                  <span className="font-mono text-accent animate-pulse-subtle">{t.titleAccent}</span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-xl">
+                <p className="text-xl text-muted-foreground max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
                   {t.subtitle}
                 </p>
+                <div className="mt-8 w-24 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto animate-fade-up" style={{ animationDelay: "300ms" }} />
               </div>
             </AnimatedSection>
           </section>
