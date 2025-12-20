@@ -6,6 +6,7 @@ export const Footer = () => {
 
   return (
     <footer className="border-t border-border/70 bg-card/20 py-14">
+      <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8">
           <div>
             <Link to="/" className="font-semibold text-lg text-foreground">
