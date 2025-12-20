@@ -311,6 +311,22 @@ const Index = () => {
                   </div>
                 </div>
               </AnimatedSection>
+
+              {/* Logos Section */}
+              <AnimatedSection delay={550}>
+                <div className="mt-16 pt-12 border-t border-border">
+                  <p className="text-sm text-muted-foreground text-center mb-8 font-mono">
+                    {lang === "fr" ? "Compatible avec les crawlers IA leaders" : "Compatible with leading AI crawlers"}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-70 hover:opacity-100 transition-opacity duration-500">
+                    <img src="/logos/openai.svg" alt="OpenAI" className="h-6 md:h-8 brightness-0 invert" />
+                    <img src="/logos/google.svg" alt="Google" className="h-6 md:h-8 brightness-0 invert" />
+                    <img src="/logos/claude.svg" alt="Claude" className="h-6 md:h-8 brightness-0 invert" />
+                    <img src="/logos/gemini.svg" alt="Gemini" className="h-6 md:h-8 brightness-0 invert" />
+                    <img src="/logos/grok.svg" alt="Grok" className="h-6 md:h-8 brightness-0 invert" />
+                  </div>
+                </div>
+              </AnimatedSection>
             </div>
           </div>
         </section>
