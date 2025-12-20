@@ -53,8 +53,11 @@ export const TypeWriter = ({
     return () => clearTimeout(timeout);
   }, [currentText, isDeleting, currentWordIndex, words, typingSpeed, deletingSpeed, delayBetweenWords]);
 
+  // Calculate the longest word to reserve space
+  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b), "");
+
   return (
-    <span className={className}>
+    <span className={`${className} inline-block`} style={{ minWidth: `${longestWord.length}ch` }}>
       {currentText}
       <span 
         className={`inline-block w-[3px] h-[0.9em] bg-current ml-1 align-middle transition-opacity ${
