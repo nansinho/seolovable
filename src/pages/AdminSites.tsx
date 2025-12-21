@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 interface Site {
   id: string;
@@ -50,6 +51,7 @@ interface UserProfile {
 
 const AdminSites = () => {
   const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useAdminCheck(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
   const [users, setUsers] = useState<Record<string, UserProfile>>({});
@@ -60,43 +62,27 @@ const AdminSites = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [addSiteModalOpen, setAddSiteModalOpen] = useState(false);
 
-  useEffect(() => {
-    const checkAdminAndFetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
+  const fetchData = useCallback(async () => {
+    // Fetch all sites
+    const { data: sitesData, error: sitesError } = await supabase
+      .from("sites")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      // Check if user is admin
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+    if (sitesError) {
+      console.error("Error fetching sites:", sitesError);
+      toast.error("Erreur lors du chargement des sites");
+      setLoading(false);
+      return;
+    }
 
-      if (!roleData) {
-        toast.error("Accès refusé - Vous n'êtes pas administrateur");
-        navigate("/dashboard");
-        return;
-      }
+    if (sitesData) {
+      setSites(sitesData);
 
-      // Fetch all sites
-      const { data: sitesData, error: sitesError } = await supabase
-        .from("sites")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (sitesError) {
-        console.error("Error fetching sites:", sitesError);
-        toast.error("Erreur lors du chargement des sites");
-      } else if (sitesData) {
-        setSites(sitesData);
-
-        // Get unique user IDs
-        const userIds = [...new Set(sitesData.map(s => s.user_id))];
-        
+      // Get unique user IDs
+      const userIds = [...new Set(sitesData.map(s => s.user_id))];
+      
+      if (userIds.length > 0) {
         // Fetch user profiles
         const { data: profilesData } = await supabase
           .from("profiles")
@@ -111,12 +97,15 @@ const AdminSites = () => {
           setUsers(usersMap);
         }
       }
+    }
 
-      setLoading(false);
-    };
+    setLoading(false);
+  }, []);
 
-    checkAdminAndFetchData();
-  }, [navigate]);
+  useEffect(() => {
+    if (adminLoading || !isAdmin) return;
+    fetchData();
+  }, [adminLoading, isAdmin, fetchData]);
 
   const handleDeleteClick = (site: Site) => {
     setSiteToDelete(site);
@@ -161,13 +150,15 @@ const AdminSites = () => {
     return user.full_name || user.email;
   };
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground font-code">Chargement...</div>
       </div>
     );
   }
+
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-background flex">

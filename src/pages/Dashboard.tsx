@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -23,10 +23,10 @@ import { AddSiteModal } from "@/components/AddSiteModal";
 import { DeleteSiteDialog } from "@/components/DeleteSiteDialog";
 import { CrawlsChart } from "@/components/CrawlsChart";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 import { PendingSeoTestModal } from "@/components/PendingSeoTestModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Site {
   id: string;
@@ -93,6 +93,8 @@ interface UpcomingInvoiceData {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { userId, userEmail, loading: authLoading, isAuthenticated } = useAuth();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -110,8 +112,6 @@ const Dashboard = () => {
   const [hasStatsData, setHasStatsData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   
   // Pending SEO test from landing page
   const [pendingSeoTestOpen, setPendingSeoTestOpen] = useState(false);
@@ -123,18 +123,17 @@ const Dashboard = () => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoiceData | null>(null);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
 
-  const fetchSites = useCallback(async (userId?: string) => {
-    const targetUserId = userId || currentUserId;
-    if (!targetUserId) return;
+  const fetchSites = useCallback(async () => {
+    if (!userId) return;
     
     const { data: sitesData } = await supabase
       .from("sites")
       .select("*")
-      .eq("user_id", targetUserId)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
     
     if (sitesData) setSites(sitesData);
-  }, [currentUserId]);
+  }, [userId]);
 
   const handleDeleteClick = (site: Site) => {
     setSiteToDelete(site);
@@ -162,24 +161,10 @@ const Dashboard = () => {
     setSiteToDelete(null);
   };
 
-  const { checkIfBlocked } = useBlockedUserCheck();
-
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      
-      // Check if user is blocked
-      const isBlocked = await checkIfBlocked(session.user.id);
-      if (isBlocked) return;
-      
-      // Store user id and email
-      setCurrentUserId(session.user.id);
-      setCurrentUserEmail(session.user.email || null);
-      
+    if (authLoading || !isAuthenticated || !userId) return;
+
+    const fetchData = async () => {
       // Check for pending SEO test from landing page
       const pendingUrl = sessionStorage.getItem("pending_seo_test_url");
       if (pendingUrl) {
@@ -188,43 +173,40 @@ const Dashboard = () => {
         setPendingSeoTestOpen(true);
       }
       
-      // Fetch sites for current user only
-      await fetchSites(session.user.id);
+      // Fetch all data in parallel for better performance
+      const [sitesResult, planResult, activityResult, statsResult] = await Promise.all([
+        supabase
+          .from("sites")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("user_plans")
+          .select("plan_type, sites_limit")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("bot_activity")
+          .select("*")
+          .order("crawled_at", { ascending: false })
+          .limit(10),
+        supabase
+          .from("daily_stats")
+          .select("*")
+          .eq("date", new Date().toISOString().split("T")[0])
+          .maybeSingle(),
+      ]);
 
-      // Fetch user plan
-      const { data: planData } = await supabase
-        .from("user_plans")
-        .select("plan_type, sites_limit")
-        .eq("user_id", session.user.id)
-        .single();
+      if (sitesResult.data) setSites(sitesResult.data);
+      if (planResult.data) setUserPlan(planResult.data);
+      if (activityResult.data) setBotActivity(activityResult.data);
       
-      if (planData) {
-        setUserPlan(planData);
-      }
-
-      // Fetch bot activity (last 10)
-      const { data: activityData } = await supabase
-        .from("bot_activity")
-        .select("*")
-        .order("crawled_at", { ascending: false })
-        .limit(10);
-      
-      if (activityData) setBotActivity(activityData);
-
-      // Fetch today's stats
-      const today = new Date().toISOString().split("T")[0];
-      const { data: statsData } = await supabase
-        .from("daily_stats")
-        .select("*")
-        .eq("date", today)
-        .maybeSingle();
-      
-      if (statsData) {
+      if (statsResult.data) {
         setStats({
-          total_pages_rendered: statsData.total_pages_rendered,
-          total_bots: statsData.total_bots,
-          google_crawls: statsData.google_crawls,
-          ai_crawls: statsData.ai_crawls,
+          total_pages_rendered: statsResult.data.total_pages_rendered,
+          total_bots: statsResult.data.total_bots,
+          google_crawls: statsResult.data.google_crawls,
+          ai_crawls: statsResult.data.ai_crawls,
         });
         setHasStatsData(true);
       } else {
@@ -233,13 +215,13 @@ const Dashboard = () => {
 
       setLoading(false);
       
-      // Fetch invoices and subscription info
+      // Fetch invoices separately (edge function call)
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (currentSession?.access_token) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
           const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke("get-invoices", {
             headers: {
-              Authorization: `Bearer ${currentSession.access_token}`,
+              Authorization: `Bearer ${session.access_token}`,
             },
           });
           if (!invoiceError && invoiceData) {
@@ -255,8 +237,8 @@ const Dashboard = () => {
       }
     };
 
-    checkAuthAndFetchData();
-  }, [navigate, fetchSites, checkIfBlocked]);
+    fetchData();
+  }, [authLoading, isAuthenticated, userId]);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -310,12 +292,12 @@ const Dashboard = () => {
           />
 
           {/* Pending SEO Test Modal from landing page */}
-          {pendingSeoTestUrl && currentUserEmail && (
+          {pendingSeoTestUrl && userEmail && (
             <PendingSeoTestModal
               open={pendingSeoTestOpen}
               onOpenChange={setPendingSeoTestOpen}
               url={pendingSeoTestUrl}
-              userEmail={currentUserEmail}
+              userEmail={userEmail}
               onComplete={() => {
                 setPendingSeoTestUrl(null);
                 setAddSiteOpen(true); // Open add site modal after
