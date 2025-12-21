@@ -109,6 +109,33 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_tests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string
+          test_result: Json | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address: string
+          test_result?: Json | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string
+          test_result?: Json | null
+          url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

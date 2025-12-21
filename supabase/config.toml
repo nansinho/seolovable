@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.log-crawl]
 verify_jwt = false
+
+[functions.landing-test]
+verify_jwt = false

@@ -4,6 +4,7 @@ import { Terminal } from "@/components/Terminal";
 import { Globe3D } from "@/components/Globe3D";
 import { ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { LandingTestForm } from "./LandingTestForm";
 
 export const HeroSection = () => {
   const { t } = useI18n();
@@ -102,6 +103,14 @@ export const HeroSection = () => {
               </div>
             </Terminal>
           </div>
+        </div>
+
+        {/* Test Form Section */}
+        <div 
+          className="mt-16 opacity-0 animate-fade-in"
+          style={{ animationDelay: "0.6s" }}
+        >
+          <LandingTestForm />
         </div>
       </div>
     </section>
