@@ -86,16 +86,34 @@ export default function Analytics() {
         return;
       }
 
+      const userId = session.user.id;
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
-      const [activityResult, sitesResult] = await Promise.all([
-        supabase.from("bot_activity").select("*").gte("crawled_at", daysAgo.toISOString()).order("crawled_at", { ascending: false }),
-        supabase.from("sites").select("id, name"),
-      ]);
+      // First get user's sites
+      const { data: userSites } = await supabase
+        .from("sites")
+        .select("id, name")
+        .eq("user_id", userId);
 
-      if (activityResult.data) setBotActivity(activityResult.data);
-      if (sitesResult.data) setSites(sitesResult.data);
+      if (userSites) {
+        setSites(userSites);
+        
+        // Only fetch bot_activity for user's sites
+        const siteIds = userSites.map(s => s.id);
+        if (siteIds.length > 0) {
+          const { data: activity } = await supabase
+            .from("bot_activity")
+            .select("*")
+            .in("site_id", siteIds)
+            .gte("crawled_at", daysAgo.toISOString())
+            .order("crawled_at", { ascending: false });
+          
+          if (activity) setBotActivity(activity);
+        } else {
+          setBotActivity([]);
+        }
+      }
     } catch {
       toast.error(t("analytics.loadError"));
     } finally {
