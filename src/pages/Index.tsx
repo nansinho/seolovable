@@ -302,13 +302,6 @@ const Index = () => {
                 </div>
               </AnimatedSection>
 
-              {/* Test Form */}
-              <AnimatedSection delay={400}>
-                <div className="mt-16">
-                  <LandingTestForm />
-                </div>
-              </AnimatedSection>
-
             </div>
           </div>
         </section>
@@ -347,6 +340,15 @@ const Index = () => {
                   <img src="/logos/grok.svg" alt="Grok" className="h-17 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
+            </AnimatedSection>
+          </div>
+        </section>
+
+        {/* Test Form Section */}
+        <section className="py-20 border-t border-border relative">
+          <div className="container mx-auto px-4">
+            <AnimatedSection>
+              <LandingTestForm />
             </AnimatedSection>
           </div>
         </section>
