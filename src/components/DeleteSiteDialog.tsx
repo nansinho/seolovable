@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useI18n } from "@/lib/i18n";
 
 interface DeleteSiteDialogProps {
   open: boolean;
@@ -24,24 +25,26 @@ export function DeleteSiteDialog({
   onConfirm,
   isDeleting,
 }: DeleteSiteDialogProps) {
+  const { t } = useI18n();
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-code">Supprimer le site</AlertDialogTitle>
+          <AlertDialogTitle className="font-code">{t("deleteSite.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer <strong>{siteName}</strong> ? 
-            Cette action est irréversible.
+            {t("deleteSite.confirm")} <strong>{siteName}</strong> ? 
+            {t("deleteSite.irreversible")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="font-code">Annuler</AlertDialogCancel>
+          <AlertDialogCancel className="font-code">{t("deleteSite.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-code"
           >
-            {isDeleting ? "Suppression..." : "Supprimer"}
+            {isDeleting ? t("deleteSite.deleting") : t("deleteSite.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

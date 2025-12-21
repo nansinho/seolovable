@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Calendar, 
@@ -17,11 +16,12 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useI18n } from "@/lib/i18n";
 
 interface Invoice {
   id: string;
@@ -64,37 +64,6 @@ interface SubscriptionCardProps {
   isLoading?: boolean;
 }
 
-const PLAN_NAMES: Record<string, string> = {
-  starter: "Starter",
-  pro: "Pro",
-  business: "Business",
-  free: "Gratuit",
-};
-
-const formatCurrency = (amount: number, currency: string) => {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(amount / 100);
-};
-
-const getStatusBadge = (status: string | null) => {
-  switch (status) {
-    case "paid":
-      return <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/30">Payée</Badge>;
-    case "open":
-      return <Badge variant="secondary">En attente</Badge>;
-    case "draft":
-      return <Badge variant="outline">Brouillon</Badge>;
-    case "void":
-      return <Badge variant="destructive">Annulée</Badge>;
-    case "uncollectible":
-      return <Badge variant="destructive">Impayée</Badge>;
-    default:
-      return <Badge variant="outline">{status || "Inconnu"}</Badge>;
-  }
-};
-
 export const SubscriptionCard = ({ 
   subscription, 
   invoices, 
@@ -103,6 +72,40 @@ export const SubscriptionCard = ({
   isLoading = false 
 }: SubscriptionCardProps) => {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const { t, lang } = useI18n();
+
+  const dateLocale = lang === "en" ? enUS : fr;
+
+  const PLAN_NAMES: Record<string, string> = {
+    starter: "Starter",
+    pro: "Pro",
+    business: "Business",
+    free: t("subscription.free"),
+  };
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat(lang === "en" ? "en-US" : "fr-FR", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(amount / 100);
+  };
+
+  const getStatusBadge = (status: string | null) => {
+    switch (status) {
+      case "paid":
+        return <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/30">{t("subscription.paid")}</Badge>;
+      case "open":
+        return <Badge variant="secondary">{t("subscription.pending")}</Badge>;
+      case "draft":
+        return <Badge variant="outline">{t("subscription.draft")}</Badge>;
+      case "void":
+        return <Badge variant="destructive">{t("subscription.cancelled")}</Badge>;
+      case "uncollectible":
+        return <Badge variant="destructive">{t("subscription.unpaid")}</Badge>;
+      default:
+        return <Badge variant="outline">{status || t("subscription.unknown")}</Badge>;
+    }
+  };
 
   const handleManageSubscription = async () => {
     setIsOpeningPortal(true);
@@ -114,7 +117,7 @@ export const SubscriptionCard = ({
       }
     } catch (error) {
       console.error("Error opening portal:", error);
-      toast.error("Impossible d'ouvrir le portail de gestion");
+      toast.error(t("subscription.portalError"));
     } finally {
       setIsOpeningPortal(false);
     }
@@ -144,10 +147,10 @@ export const SubscriptionCard = ({
             <div>
               <CardTitle className="font-code text-foreground flex items-center gap-2 text-base">
                 <CreditCard className="w-5 h-5 text-accent" />
-                Abonnement
+                {t("subscription.title")}
               </CardTitle>
               <CardDescription className="font-code">
-                {subscription ? "Détails de votre abonnement actif" : "Aucun abonnement actif"}
+                {subscription ? t("subscription.details") : t("subscription.noActive")}
               </CardDescription>
             </div>
             <Badge variant="outline" className="font-code px-3 py-1 capitalize">
@@ -162,19 +165,19 @@ export const SubscriptionCard = ({
                 <div className="p-4 rounded-lg bg-muted/50 border border-border">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-xs font-code">Début période</span>
+                    <span className="text-xs font-code">{t("subscription.periodStart")}</span>
                   </div>
                   <p className="font-code font-medium">
-                    {format(new Date(subscription.currentPeriodStart), "d MMMM yyyy", { locale: fr })}
+                    {format(new Date(subscription.currentPeriodStart), "d MMMM yyyy", { locale: dateLocale })}
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-muted/50 border border-border">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Clock className="w-4 h-4" />
-                    <span className="text-xs font-code">Prochain renouvellement</span>
+                    <span className="text-xs font-code">{t("subscription.nextRenewal")}</span>
                   </div>
                   <p className="font-code font-medium">
-                    {format(new Date(subscription.currentPeriodEnd), "d MMMM yyyy", { locale: fr })}
+                    {format(new Date(subscription.currentPeriodEnd), "d MMMM yyyy", { locale: dateLocale })}
                   </p>
                 </div>
               </div>
@@ -184,8 +187,8 @@ export const SubscriptionCard = ({
                   <div className="flex items-center gap-2 text-destructive">
                     <AlertCircle className="w-4 h-4" />
                     <span className="text-sm font-code">
-                      Votre abonnement sera annulé le{" "}
-                      {format(new Date(subscription.currentPeriodEnd), "d MMMM yyyy", { locale: fr })}
+                      {t("subscription.cancelledOn")}{" "}
+                      {format(new Date(subscription.currentPeriodEnd), "d MMMM yyyy", { locale: dateLocale })}
                     </span>
                   </div>
                 </div>
@@ -195,13 +198,13 @@ export const SubscriptionCard = ({
                 <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-code text-muted-foreground mb-1">Prochaine facture</p>
+                      <p className="text-xs font-code text-muted-foreground mb-1">{t("subscription.nextInvoice")}</p>
                       <p className="font-code font-semibold text-lg text-foreground">
                         {formatCurrency(upcomingInvoice.amountDue, upcomingInvoice.currency)}
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground font-code">
-                      le {format(new Date(upcomingInvoice.periodEnd), "d MMMM", { locale: fr })}
+                      {t("subscription.on")} {format(new Date(upcomingInvoice.periodEnd), "d MMMM", { locale: dateLocale })}
                     </p>
                   </div>
                 </div>
@@ -219,12 +222,12 @@ export const SubscriptionCard = ({
                   ) : (
                     <ExternalLink className="w-4 h-4 mr-2" />
                   )}
-                  Gérer l'abonnement
+                  {t("subscription.manage")}
                 </Button>
                 <Link to="/upgrade" className="flex-1">
                   <Button variant="default" className="font-code w-full">
                     <ArrowUpRight className="w-4 h-4 mr-2" />
-                    Changer de plan
+                    {t("subscription.changePlan")}
                   </Button>
                 </Link>
               </div>
@@ -232,12 +235,12 @@ export const SubscriptionCard = ({
           ) : (
             <div className="text-center py-6">
               <p className="text-muted-foreground font-code text-sm mb-4">
-                Vous n'avez pas d'abonnement actif
+                {t("subscription.noSubscription")}
               </p>
               <Link to="/upgrade">
                 <Button className="font-code">
                   <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Découvrir nos offres
+                  {t("subscription.discover")}
                 </Button>
               </Link>
             </div>
@@ -250,16 +253,16 @@ export const SubscriptionCard = ({
         <CardHeader>
           <CardTitle className="font-code text-foreground flex items-center gap-2 text-base">
             <FileText className="w-5 h-5 text-accent" />
-            Historique des factures
+            {t("subscription.invoiceHistory")}
           </CardTitle>
           <CardDescription className="font-code">
-            Vos {invoices.length} dernières factures
+            {invoices.length} {t("subscription.lastInvoices")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (
             <p className="text-center text-muted-foreground font-code py-8">
-              Aucune facture disponible
+              {t("subscription.noInvoices")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -281,10 +284,10 @@ export const SubscriptionCard = ({
                     </div>
                     <div>
                       <p className="font-code font-medium text-sm">
-                        {invoice.number || `Facture ${invoice.id.slice(-8)}`}
+                        {invoice.number || `${t("subscription.invoice")} ${invoice.id.slice(-8)}`}
                       </p>
                       <p className="text-xs text-muted-foreground font-code">
-                        {format(new Date(invoice.createdAt), "d MMM yyyy", { locale: fr })}
+                        {format(new Date(invoice.createdAt), "d MMM yyyy", { locale: dateLocale })}
                       </p>
                     </div>
                   </div>

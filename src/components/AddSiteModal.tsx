@@ -23,22 +23,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, AlertCircle, Copy, CheckCircle, Globe, Settings, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useI18n } from "@/lib/i18n";
 
-const siteSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Le nom du site est requis")
-    .max(100, "Le nom doit faire moins de 100 caractères"),
-  url: z
-    .string()
-    .trim()
-    .min(1, "L'URL est requise")
-    .url("L'URL doit être valide (ex: https://example.com)")
-    .max(255, "L'URL doit faire moins de 255 caractères"),
-});
-
-type SiteFormData = z.infer<typeof siteSchema>;
+type SiteFormData = {
+  name: string;
+  url: string;
+};
 
 interface AddSiteModalProps {
   open: boolean;
@@ -68,6 +58,21 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
   const [loading, setLoading] = useState(true);
   const [newSiteData, setNewSiteData] = useState<{ txtToken: string; txtRecordName: string; domain: string } | null>(null);
   const [copied, setCopied] = useState<"name" | "value" | null>(null);
+  const { t } = useI18n();
+
+  const siteSchema = z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t("addSite.siteNameRequired"))
+      .max(100, t("addSite.siteNameMax")),
+    url: z
+      .string()
+      .trim()
+      .min(1, t("addSite.urlRequired"))
+      .url(t("addSite.urlInvalid"))
+      .max(255, t("addSite.urlMax")),
+  });
 
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
@@ -122,7 +127,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
 
   const onSubmit = async (data: SiteFormData) => {
     if (!canAddSite) {
-      toast.error("Vous avez atteint la limite de sites pour votre plan");
+      toast.error(t("addSite.limitReached") + " " + userPlan?.sites_limit + " " + t("addSite.siteFor"));
       return;
     }
 
@@ -132,7 +137,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
-        toast.error("Vous devez être connecté pour ajouter un site");
+        toast.error(t("addSite.loginRequired"));
         return;
       }
 
@@ -165,18 +170,18 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
 
       if (error) {
         console.error("Error adding site:", error);
-        toast.error("Erreur lors de l'ajout du site");
+        toast.error(t("addSite.error"));
         return;
       }
 
       // Show TXT record instructions
       setNewSiteData({ txtToken, txtRecordName, domain });
-      toast.success("Site ajouté avec succès");
+      toast.success(t("addSite.success"));
       form.reset();
       onSiteAdded();
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Une erreur est survenue");
+      toast.error(t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +191,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
     if (newSiteData) {
       await navigator.clipboard.writeText(`_seolovable`);
       setCopied("name");
-      toast.success("Nom copié !");
+      toast.success(t("addSite.nameCopied"));
       setTimeout(() => setCopied(null), 2000);
     }
   };
@@ -195,7 +200,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
     if (newSiteData?.txtToken) {
       await navigator.clipboard.writeText(newSiteData.txtToken);
       setCopied("value");
-      toast.success("Token copié !");
+      toast.success(t("addSite.tokenCopied"));
       setTimeout(() => setCopied(null), 2000);
     }
   };
@@ -214,19 +219,19 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             {newSiteData ? (
               <>
                 <Settings className="w-5 h-5" />
-                Configuration DNS requise
+                {t("addSite.dnsTitle")}
               </>
             ) : (
               <>
                 <Globe className="w-5 h-5" />
-                Ajouter un site
+                {t("addSite.title")}
               </>
             )}
           </DialogTitle>
           <DialogDescription>
             {newSiteData 
-              ? "Suivez ces 3 étapes pour vérifier votre domaine"
-              : "Ajoutez un nouveau site à surveiller pour le SEO dynamique."
+              ? t("addSite.dnsDescription")
+              : t("addSite.description")
             }
           </DialogDescription>
         </DialogHeader>
@@ -244,9 +249,9 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   1
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-2">Accédez à votre gestionnaire DNS</h4>
+                  <h4 className="font-semibold text-foreground mb-2">{t("addSite.step1Title")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Connectez-vous au panneau de contrôle de votre registrar (OVH, Cloudflare, Gandi, etc.)
+                    {t("addSite.step1Desc")}
                   </p>
                 </div>
               </div>
@@ -259,14 +264,14 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   2
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-3">Créez un enregistrement TXT</h4>
+                  <h4 className="font-semibold text-foreground mb-3">{t("addSite.step2Title")}</h4>
                   
                   <div className="space-y-3">
                     {/* Type */}
                     <div className="p-3 rounded-lg bg-muted/50 border border-border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-muted-foreground block mb-1">Type</span>
+                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.type")}</span>
                           <span className="font-mono font-bold text-primary text-lg">TXT</span>
                         </div>
                       </div>
@@ -276,7 +281,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                     <div className="p-3 rounded-lg bg-primary/5 border-2 border-primary/30">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-muted-foreground block mb-1">Nom / Host</span>
+                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.name")}</span>
                           <code className="font-mono font-bold text-primary text-base break-all">_seolovable</code>
                         </div>
                         <Button
@@ -298,7 +303,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                     <div className="p-3 rounded-lg bg-secondary/10 border-2 border-secondary/30">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-muted-foreground block mb-1">Valeur</span>
+                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.value")}</span>
                           <code className="font-mono font-bold text-secondary text-sm break-all">{newSiteData.txtToken}</code>
                         </div>
                         <Button
@@ -327,10 +332,9 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   3
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-2">Sauvegardez et patientez</h4>
+                  <h4 className="font-semibold text-foreground mb-2">{t("addSite.step3Title")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    La propagation DNS peut prendre <span className="text-primary font-medium">jusqu'à 48h</span>. 
-                    Nous vérifierons automatiquement votre configuration.
+                    {t("addSite.step3Desc")}
                   </p>
                 </div>
               </div>
@@ -340,22 +344,22 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
               <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
-                <span className="text-foreground font-medium">Pourquoi cette vérification ?</span><br />
-                L'enregistrement TXT prouve que vous êtes le propriétaire du domaine <span className="text-primary font-mono">{newSiteData.domain}</span>
+                <span className="text-foreground font-medium">{t("addSite.whyVerify")}</span><br />
+                {t("addSite.whyVerifyDesc")} <span className="text-primary font-mono">{newSiteData.domain}</span>
               </p>
             </div>
 
             <Button onClick={handleClose} className="w-full font-code glow-green">
               <CheckCircle className="w-4 h-4 mr-2" />
-              J'ai configuré mon DNS
+              {t("addSite.dnsConfigured")}
             </Button>
           </div>
         ) : !canAddSite ? (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Vous avez atteint la limite de {userPlan?.sites_limit} site(s) pour votre plan {userPlan?.plan_type}.
-              Passez à un plan supérieur pour ajouter plus de sites.
+              {t("addSite.limitReached")} {userPlan?.sites_limit} {t("addSite.siteFor")} {userPlan?.plan_type}.
+              {t("addSite.upgradePrompt")}
             </AlertDescription>
           </Alert>
         ) : (
@@ -363,9 +367,9 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="text-sm text-muted-foreground font-code mb-2">
                 {remainingSites === Infinity ? (
-                  <span className="text-primary">∞ sites disponibles (illimité)</span>
+                  <span className="text-primary">∞ {t("addSite.unlimited")}</span>
                 ) : (
-                  <span>{remainingSites} site(s) restant(s) sur votre plan</span>
+                  <span>{remainingSites} {t("addSite.remaining")}</span>
                 )}
               </div>
               
@@ -374,10 +378,10 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-code">Nom du site</FormLabel>
+                    <FormLabel className="font-code">{t("addSite.siteName")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Mon site web"
+                        placeholder={t("addSite.siteNamePlaceholder")}
                         className="font-code"
                         {...field}
                       />
@@ -392,7 +396,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                 name="url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-code">URL</FormLabel>
+                    <FormLabel className="font-code">{t("addSite.url")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://example.com"
@@ -412,7 +416,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   onClick={handleClose}
                   className="font-code"
                 >
-                  Annuler
+                  {t("addSite.cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -420,7 +424,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   className="font-code glow-green"
                 >
                   {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Ajouter
+                  {t("addSite.add")}
                 </Button>
               </div>
             </form>
