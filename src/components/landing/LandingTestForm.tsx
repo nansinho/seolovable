@@ -29,12 +29,22 @@ export const LandingTestForm = () => {
   const [result, setResult] = useState<TestResult | null>(null);
   const [remainingTests, setRemainingTests] = useState<number | null>(null);
   const [rateLimited, setRateLimited] = useState(false);
+  const [step, setStep] = useState<"url" | "email" | "result">("url");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) {
+      toast.error("Veuillez entrer l'URL de votre site");
+      return;
+    }
+    setStep("email");
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !url) {
-      toast.error("Veuillez remplir tous les champs");
+    if (!email) {
+      toast.error("Veuillez entrer votre email");
       return;
     }
 
@@ -51,6 +61,7 @@ export const LandingTestForm = () => {
 
       if (data.rateLimited) {
         setRateLimited(true);
+        setStep("result");
         toast.error(data.error);
         return;
       }
@@ -58,6 +69,7 @@ export const LandingTestForm = () => {
       if (data.success) {
         setResult(data.result);
         setRemainingTests(data.remainingTests);
+        setStep("result");
         toast.success("Test terminé !");
       } else {
         toast.error(data.error || "Erreur lors du test");
@@ -92,16 +104,9 @@ export const LandingTestForm = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Input
-              type="email"
-              placeholder="votre@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="font-code bg-background"
-              required
-            />
+        {/* Étape 1: URL seulement */}
+        {step === "url" && (
+          <form onSubmit={handleUrlSubmit} className="space-y-4">
             <Input
               type="text"
               placeholder="https://votresite.com"
@@ -110,28 +115,66 @@ export const LandingTestForm = () => {
               className="font-code bg-background"
               required
             />
-          </div>
-          <Button
-            type="submit"
-            disabled={isLoading || rateLimited}
-            className="w-full font-code"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Analyse en cours...
-              </>
-            ) : (
-              <>
-                Analyser mon site
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full font-code"
+              size="lg"
+            >
+              Analyser mon site
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </form>
+        )}
 
-        {rateLimited && (
+        {/* Étape 2: Demande d'email */}
+        {step === "email" && (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div className="p-4 rounded-lg bg-accent/10 border border-accent/30 text-center mb-4">
+              <p className="text-sm font-code text-foreground">
+                Entrez votre email pour recevoir votre analyse SEO
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Site: {url}
+              </p>
+            </div>
+            <Input
+              type="email"
+              placeholder="votre@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="font-code bg-background"
+              required
+              autoFocus
+            />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full font-code"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analyse en cours...
+                </>
+              ) : (
+                <>
+                  Voir mon analyse
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setStep("url")}
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Modifier l'URL
+            </button>
+          </form>
+        )}
+
+        {step === "result" && rateLimited && (
           <div className="mt-6 p-4 rounded-lg bg-accent/10 border border-accent/30 text-center">
             <AlertTriangle className="w-6 h-6 text-accent mx-auto mb-2" />
             <p className="text-sm font-code text-foreground mb-3">
