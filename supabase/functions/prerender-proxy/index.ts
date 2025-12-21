@@ -60,10 +60,10 @@ serve(async (req) => {
     const requestUrl = new URL(req.url);
     const targetUrl = requestUrl.searchParams.get('url');
     
-    // Get User-Agent from header or query param
-    const userAgent = req.headers.get('user-agent') || 
+    // Get User-Agent from query param first (for testing), then headers
+    const userAgent = requestUrl.searchParams.get('ua') ||
                       req.headers.get('x-original-user-agent') ||
-                      requestUrl.searchParams.get('ua') || 
+                      req.headers.get('user-agent') || 
                       'Unknown Bot';
 
     logStep('Received request', { 
