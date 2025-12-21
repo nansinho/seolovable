@@ -8,10 +8,12 @@ import {
   LogOut,
   X,
   Menu,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
 interface DashboardSidebarProps {
   mobileOpen?: boolean;
@@ -29,6 +31,24 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      setIsAdmin(!!roleData);
+    };
+    checkAdmin();
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -60,7 +80,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-background border-r border-border flex-col transform transition-transform lg:transform-none",
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-background border-r border-border flex-col transform transition-transform lg:transform-none",
           mobileOpen ? "translate-x-0 flex" : "-translate-x-full lg:translate-x-0 hidden lg:flex"
         )}
       >
@@ -80,7 +100,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -101,8 +121,24 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
           </ul>
         </nav>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-border">
+        {/* Admin button + Logout */}
+        <div className="p-4 border-t border-border space-y-2">
+          {isAdmin && (
+            <Link to="/admin">
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start gap-3 font-code text-sm",
+                  currentPath.startsWith("/admin")
+                    ? "bg-accent/20 text-accent border-accent"
+                    : "text-muted-foreground hover:text-accent hover:border-accent"
+                )}
+              >
+                <Shield className="w-4 h-4" />
+                Administration
+              </Button>
+            </Link>
+          )}
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 font-code text-sm text-muted-foreground hover:text-foreground"
