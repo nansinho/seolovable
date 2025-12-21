@@ -2,12 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const logStep = (step: string, details?: any) => {
+// Stripe webhooks don't need CORS - they come from Stripe servers
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
@@ -35,6 +31,7 @@ const getValidPlanType = (productId: string): { planType: string; sitesLimit: nu
 };
 
 // Helper function to find user by stripe_customer_id first, then email as fallback
+// deno-lint-ignore no-explicit-any
 const findUserByCustomer = async (
   supabase: any,
   customerId: string,
@@ -72,8 +69,9 @@ const findUserByCustomer = async (
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  // Stripe webhooks should only be POST
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
   }
 
   const supabase = createClient(
@@ -143,7 +141,7 @@ serve(async (req) => {
             if (error) {
               logStep("Error updating user plan", { error: error.message });
             } else {
-              logStep("User plan updated", { userId, planType: planInfo.planType });
+              logStep("User plan updated", { planType: planInfo.planType });
             }
           }
         }
@@ -176,7 +174,7 @@ serve(async (req) => {
               updated_at: new Date().toISOString()
             }, { onConflict: "user_id" });
 
-          logStep("Subscription status updated", { userId, status: subscription.status });
+          logStep("Subscription status updated", { status: subscription.status });
         }
         break;
       }
@@ -201,7 +199,7 @@ serve(async (req) => {
             })
             .eq("user_id", userId);
 
-          logStep("User downgraded to free plan", { userId });
+          logStep("User downgraded to free plan");
         }
         break;
       }
@@ -211,14 +209,14 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       status: 400,
     });
   }

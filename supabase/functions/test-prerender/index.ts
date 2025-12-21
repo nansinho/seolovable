@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, validateUrlSafe } from "../_shared/security.ts";
 
 const PRERENDER_URL = "http://prerender.seolovable.cloud:3000";
 
@@ -23,6 +19,9 @@ function decodeHtmlEntities(text: string): string {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,12 +36,11 @@ serve(async (req) => {
       );
     }
 
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch {
+    // Validate URL with SSRF protection
+    const urlValidation = validateUrlSafe(url);
+    if (!urlValidation.valid) {
       return new Response(
-        JSON.stringify({ success: false, error: "Invalid URL format" }),
+        JSON.stringify({ success: false, error: urlValidation.error || "Invalid URL format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -106,7 +104,7 @@ serve(async (req) => {
         success: false,
         error: error instanceof Error ? error.message : "Failed to test prerender",
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(null), "Content-Type": "application/json" } }
     );
   }
 });

@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, validateUrlSafe } from "../_shared/security.ts";
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
@@ -80,6 +76,9 @@ function detectBotType(userAgent: string): { botName: string; botType: string } 
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -100,7 +99,7 @@ serve(async (req) => {
       throw new Error("Either siteId or url is required");
     }
 
-    logStep("Request received", { siteId, url, userAgent: userAgent?.substring(0, 50) });
+    logStep("Request received", { siteId, userAgent: userAgent?.substring(0, 50) });
 
     // Detect bot from user agent
     const botInfo = userAgent ? detectBotType(userAgent) : null;
@@ -131,40 +130,47 @@ serve(async (req) => {
       if (error || !data) throw new Error("Site not found");
       site = data;
     } else if (url) {
-      // Try to find site by URL (partial match on hostname)
-      try {
-        const urlObj = new URL(url);
-        const hostname = urlObj.hostname;
-        
-        const { data, error } = await supabaseClient
-          .from("sites")
-          .select("id, user_id, pages_rendered")
-          .ilike("url", `%${hostname}%`)
-          .limit(1)
-          .maybeSingle();
-        
-        if (error || !data) {
-          logStep("Site not found for URL", { hostname });
-          return new Response(
-            JSON.stringify({
-              success: true,
-              logged: false,
-              reason: "Site not registered",
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        site = data;
-      } catch {
-        throw new Error("Invalid URL format");
+      // Validate URL with SSRF protection before processing
+      const urlValidation = validateUrlSafe(url);
+      if (!urlValidation.valid || !urlValidation.url) {
+        logStep("Invalid URL provided", { error: urlValidation.error });
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: urlValidation.error || "Invalid URL format",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
+
+      const hostname = urlValidation.url.hostname;
+      
+      const { data, error } = await supabaseClient
+        .from("sites")
+        .select("id, user_id, pages_rendered")
+        .ilike("url", `%${hostname}%`)
+        .limit(1)
+        .maybeSingle();
+      
+      if (error || !data) {
+        logStep("Site not found for URL", { hostname });
+        return new Response(
+          JSON.stringify({
+            success: true,
+            logged: false,
+            reason: "Site not registered",
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      site = data;
     }
 
     if (!site) {
       throw new Error("Could not determine site");
     }
 
-    logStep("Site found", { siteId: site.id, userId: site.user_id });
+    logStep("Site found", { siteId: site.id });
 
     // Insert bot activity
     const { error: activityError } = await supabaseClient
@@ -273,7 +279,7 @@ serve(async (req) => {
       JSON.stringify({ success: false, error: errorMessage }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(null), "Content-Type": "application/json" },
       }
     );
   }

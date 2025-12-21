@@ -1,20 +1,34 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, validateUrlSafe, validateEmail } from "../_shared/security.ts";
 
 const RATE_LIMIT = 3; // Max tests per day per IP
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, url } = await req.json();
+    const body = await req.json();
+    const { email, url, website } = body; // 'website' is honeypot field
+
+    // Honeypot detection - if 'website' field is filled, it's a bot
+    if (website) {
+      console.log("Honeypot triggered - bot detected");
+      // Return fake success to not alert the bot
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          result: { score: 85, needsPrerender: false },
+          remainingTests: 2
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Validate inputs
     if (!email || !url) {
@@ -24,11 +38,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Validate email with enhanced checks
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
       return new Response(
-        JSON.stringify({ success: false, error: "Email invalide" }),
+        JSON.stringify({ success: false, error: emailValidation.error || "Email invalide" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -39,12 +53,11 @@ Deno.serve(async (req) => {
       formattedUrl = `https://${formattedUrl}`;
     }
 
-    // Validate URL
-    try {
-      new URL(formattedUrl);
-    } catch {
+    // Validate URL with SSRF protection
+    const urlValidation = validateUrlSafe(formattedUrl);
+    if (!urlValidation.valid) {
       return new Response(
-        JSON.stringify({ success: false, error: "URL invalide" }),
+        JSON.stringify({ success: false, error: urlValidation.error || "URL invalide" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -55,7 +68,7 @@ Deno.serve(async (req) => {
       || req.headers.get("x-real-ip")
       || "unknown";
 
-    console.log(`Landing test request from IP: ${ip}, email: ${email}, url: ${formattedUrl}`);
+    console.log(`Landing test request from IP: ${ip.substring(0, 8)}***, url: ${formattedUrl}`);
 
     // Create Supabase client with service role
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -80,7 +93,7 @@ Deno.serve(async (req) => {
     }
 
     if ((count || 0) >= RATE_LIMIT) {
-      console.log(`Rate limit exceeded for IP: ${ip}`);
+      console.log(`Rate limit exceeded for IP`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -91,11 +104,30 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Also check for same email used more than 5 times today (exponential limit)
+    const { count: emailCount } = await supabase
+      .from("landing_tests")
+      .select("*", { count: "exact", head: true })
+      .eq("email", email)
+      .gte("created_at", oneDayAgo);
+
+    if ((emailCount || 0) >= 5) {
+      console.log(`Email limit exceeded`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Limite atteinte pour cette adresse email.",
+          rateLimited: true 
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Perform the prerender test
     console.log(`Testing URL: ${formattedUrl}`);
     
     const testStartTime = Date.now();
-    let testResult: any = { success: false };
+    let testResult: Record<string, unknown> = { success: false };
 
     try {
       // Simple fetch test to check if URL is accessible
@@ -141,13 +173,16 @@ Deno.serve(async (req) => {
       };
     }
 
-    // Save the test result and capture the lead
+    // Hash IP for privacy before storing
+    const hashedIp = await hashIp(ip);
+
+    // Save the test result with hashed IP
     const { error: insertError } = await supabase
       .from("landing_tests")
       .insert({
         email,
         url: formattedUrl,
-        ip_address: ip,
+        ip_address: hashedIp,
         test_result: testResult,
       });
 
@@ -156,7 +191,7 @@ Deno.serve(async (req) => {
       // Continue anyway, the test was successful
     }
 
-    console.log(`Test completed for ${formattedUrl}:`, testResult);
+    console.log(`Test completed for ${formattedUrl}`);
 
     return new Response(
       JSON.stringify({ 
@@ -171,7 +206,16 @@ Deno.serve(async (req) => {
     console.error("Error in landing-test:", error);
     return new Response(
       JSON.stringify({ success: false, error: "Erreur serveur" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(null), "Content-Type": "application/json" } }
     );
   }
 });
+
+// Hash IP address for privacy
+async function hashIp(ip: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(ip + Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.substring(0, 16));
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("");
+}

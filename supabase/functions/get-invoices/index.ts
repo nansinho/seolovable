@@ -1,18 +1,17 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { getCorsHeaders } from "../_shared/security.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GET-INVOICES] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -29,7 +28,6 @@ serve(async (req) => {
     logStep("Function started");
 
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-    logStep("Auth header check", { hasHeader: !!authHeader });
     if (!authHeader) throw new Error("No authorization header provided");
     
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -40,7 +38,7 @@ serve(async (req) => {
     
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -77,11 +75,10 @@ serve(async (req) => {
         try {
           if (typeof unixSeconds !== "number" || !Number.isFinite(unixSeconds)) return null;
           return new Date(unixSeconds * 1000).toISOString();
-        } catch (e) {
+        } catch {
           logStep("Error parsing subscription date", {
             label,
             subscriptionId: subscription.id,
-            value: unixSeconds,
           });
           return null;
         }
@@ -116,7 +113,7 @@ serve(async (req) => {
         if (invoice.created && typeof invoice.created === 'number') {
           createdAt = new Date(invoice.created * 1000).toISOString();
         }
-      } catch (e) {
+      } catch {
         logStep("Error parsing invoice created date", { invoiceId: invoice.id });
       }
       
@@ -124,7 +121,7 @@ serve(async (req) => {
         if (invoice.status_transitions?.paid_at && typeof invoice.status_transitions.paid_at === 'number') {
           paidAt = new Date(invoice.status_transitions.paid_at * 1000).toISOString();
         }
-      } catch (e) {
+      } catch {
         logStep("Error parsing invoice paid_at date", { invoiceId: invoice.id });
       }
       
@@ -163,7 +160,7 @@ serve(async (req) => {
           if (upcoming.period_end && typeof upcoming.period_end === 'number') {
             periodEnd = new Date(upcoming.period_end * 1000).toISOString();
           }
-        } catch (e) {
+        } catch {
           logStep("Error parsing upcoming invoice dates");
         }
         
