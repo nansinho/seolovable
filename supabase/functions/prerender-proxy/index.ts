@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, user-agent',
 };
 
-const PRERENDER_SERVICE_URL = "http://prerender.seolovable.cloud:3000";
+const PRERENDER_SERVICE_URL = "https://prerender.seolovable.cloud";
 
 function logStep(step: string, details?: unknown) {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
