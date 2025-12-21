@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import SiteDetails from "./pages/SiteDetails";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSites from "./pages/AdminSites";
 import Analytics from "./pages/Analytics";
 import MentionsLegales from "./pages/MentionsLegales";
 import Confidentialite from "./pages/Confidentialite";
@@ -41,6 +42,8 @@ const App = () => (
             <Route path="/dashboard/analytics" element={<Analytics />} />
             <Route path="/dashboard/settings" element={<Settings />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/sites" element={<AdminSites />} />
+            <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/confidentialite" element={<Confidentialite />} />

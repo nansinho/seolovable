@@ -428,6 +428,12 @@ const AdminDashboard = () => {
             <Globe2 className="w-4 h-4 mr-2" />
             Tous les sites
           </Button>
+          <Link to="/admin/sites">
+            <Button variant="outline" className="font-code">
+              <Globe2 className="w-4 h-4 mr-2" />
+              Vue complète sites
+            </Button>
+          </Link>
         </div>
 
         {/* Search */}
