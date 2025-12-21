@@ -6,14 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  TrendingUp,
-  Bot,
-  Search,
-  Calendar,
-  RefreshCw,
-  BarChart3,
-} from "lucide-react";
+import { TrendingUp, Bot, Search, Calendar, RefreshCw, BarChart3 } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -33,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
+import { useI18n } from "@/lib/i18n";
 
 interface BotActivity {
   id: string;
@@ -48,26 +42,22 @@ interface Site {
   name: string;
 }
 
-const PERIODS = [
-  { value: "7", label: "7 derniers jours" },
-  { value: "14", label: "14 derniers jours" },
-  { value: "30", label: "30 derniers jours" },
-  { value: "90", label: "90 derniers jours" },
-];
-
 const BOT_COLORS: Record<string, string> = {
   Googlebot: "hsl(var(--primary))",
   Bingbot: "hsl(210, 100%, 50%)",
   YandexBot: "hsl(0, 80%, 50%)",
-  "GPTBot": "hsl(160, 60%, 45%)",
-  "ClaudeBot": "hsl(30, 90%, 55%)",
+  GPTBot: "hsl(160, 60%, 45%)",
+  ClaudeBot: "hsl(30, 90%, 55%)",
   "ChatGPT-User": "hsl(160, 60%, 55%)",
-  "Anthropic": "hsl(25, 85%, 55%)",
-  "Other": "hsl(var(--muted-foreground))",
+  Anthropic: "hsl(25, 85%, 55%)",
+  Other: "hsl(var(--muted-foreground))",
 };
 
 export default function Analytics() {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
+  const dateLocale = lang === "en" ? "en-US" : "fr-FR";
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState("30");
   const [selectedSite, setSelectedSite] = useState<string>("all");
@@ -76,9 +66,21 @@ export default function Analytics() {
   const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
 
+  const PERIODS = useMemo(
+    () => [
+      { value: "7", label: t("analytics.days7") },
+      { value: "14", label: t("analytics.days14") },
+      { value: "30", label: t("analytics.days30") },
+      { value: "90", label: t("analytics.days90") },
+    ],
+    [t]
+  );
+
   const fetchData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -88,18 +90,14 @@ export default function Analytics() {
       daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
       const [activityResult, sitesResult] = await Promise.all([
-        supabase
-          .from("bot_activity")
-          .select("*")
-          .gte("crawled_at", daysAgo.toISOString())
-          .order("crawled_at", { ascending: false }),
+        supabase.from("bot_activity").select("*").gte("crawled_at", daysAgo.toISOString()).order("crawled_at", { ascending: false }),
         supabase.from("sites").select("id, name"),
       ]);
 
       if (activityResult.data) setBotActivity(activityResult.data);
       if (sitesResult.data) setSites(sitesResult.data);
-    } catch (error) {
-      toast.error("Erreur lors du chargement des données");
+    } catch {
+      toast.error(t("analytics.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -108,6 +106,7 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
   const handleRefresh = async () => {
@@ -120,38 +119,31 @@ export default function Analytics() {
     return botActivity.filter((a) => a.site_id === selectedSite);
   }, [botActivity, selectedSite]);
 
-  // Chart data by date
   const chartDataByDate = useMemo(() => {
     const grouped: Record<string, { date: string; google: number; ai: number; total: number }> = {};
 
     filteredActivity.forEach((activity) => {
-      const date = new Date(activity.crawled_at).toLocaleDateString("fr-FR", {
+      const date = new Date(activity.crawled_at).toLocaleDateString(dateLocale, {
         day: "2-digit",
         month: "short",
       });
 
-      if (!grouped[date]) {
-        grouped[date] = { date, google: 0, ai: 0, total: 0 };
-      }
+      if (!grouped[date]) grouped[date] = { date, google: 0, ai: 0, total: 0 };
 
-      if (activity.bot_type === "search") {
-        grouped[date].google += activity.pages_crawled;
-      } else {
-        grouped[date].ai += activity.pages_crawled;
-      }
+      if (activity.bot_type === "search") grouped[date].google += activity.pages_crawled;
+      else grouped[date].ai += activity.pages_crawled;
+
       grouped[date].total += activity.pages_crawled;
     });
 
     return Object.values(grouped).reverse();
-  }, [filteredActivity]);
+  }, [filteredActivity, dateLocale]);
 
-  // Chart data by bot
   const chartDataByBot = useMemo(() => {
     const grouped: Record<string, number> = {};
 
     filteredActivity.forEach((activity) => {
-      const name = activity.bot_name;
-      grouped[name] = (grouped[name] || 0) + activity.pages_crawled;
+      grouped[activity.bot_name] = (grouped[activity.bot_name] || 0) + activity.pages_crawled;
     });
 
     return Object.entries(grouped)
@@ -163,29 +155,20 @@ export default function Analytics() {
       .sort((a, b) => b.value - a.value);
   }, [filteredActivity]);
 
-  // Stats summary
   const stats = useMemo(() => {
     const totalCrawls = filteredActivity.reduce((acc, a) => acc + a.pages_crawled, 0);
-    const searchCrawls = filteredActivity
-      .filter((a) => a.bot_type === "search")
-      .reduce((acc, a) => acc + a.pages_crawled, 0);
-    const aiCrawls = filteredActivity
-      .filter((a) => a.bot_type === "ai")
-      .reduce((acc, a) => acc + a.pages_crawled, 0);
+    const searchCrawls = filteredActivity.filter((a) => a.bot_type === "search").reduce((acc, a) => acc + a.pages_crawled, 0);
+    const aiCrawls = filteredActivity.filter((a) => a.bot_type === "ai").reduce((acc, a) => acc + a.pages_crawled, 0);
     const uniqueBots = new Set(filteredActivity.map((a) => a.bot_name)).size;
 
     return { totalCrawls, searchCrawls, aiCrawls, uniqueBots };
   }, [filteredActivity]);
 
-  // Recent activity table
-  const recentActivity = useMemo(() => {
-    return filteredActivity.slice(0, 20);
-  }, [filteredActivity]);
+  const recentActivity = useMemo(() => filteredActivity.slice(0, 20), [filteredActivity]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex">
-        {/* Sidebar skeleton */}
         <aside className="hidden lg:flex w-64 border-r border-border flex-col p-4">
           <Skeleton className="h-8 w-32 mb-8" />
           <div className="space-y-2">
@@ -194,7 +177,6 @@ export default function Analytics() {
             ))}
           </div>
         </aside>
-        {/* Main content skeleton */}
         <main className="flex-1 p-8">
           <Skeleton className="h-10 w-48 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -210,13 +192,8 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <DashboardSidebar
-        mobileOpen={sidebarOpen}
-        onMobileClose={() => setSidebarOpen(false)}
-      />
+      <DashboardSidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="p-6 lg:p-8">
           {/* Header */}
@@ -224,19 +201,17 @@ export default function Analytics() {
             <div className="flex items-center gap-4">
               <MobileMenuButton onClick={() => setSidebarOpen(true)} />
               <div>
-                <h1 className="text-2xl font-bold font-code">Analytics</h1>
-                <p className="text-muted-foreground text-sm">
-                  Statistiques détaillées de crawl par bot et période
-                </p>
+                <h1 className="text-2xl font-bold font-code">{t("analytics.title")}</h1>
+                <p className="text-muted-foreground text-sm">{t("analytics.subtitle")}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Select value={selectedSite} onValueChange={setSelectedSite}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Tous les sites" />
+                  <SelectValue placeholder={t("analytics.allSites")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les sites</SelectItem>
+                  <SelectItem value="all">{t("analytics.allSites")}</SelectItem>
                   {sites.map((site) => (
                     <SelectItem key={site.id} value={site.id}>
                       {site.name}
@@ -273,7 +248,7 @@ export default function Analytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold font-code">{stats.totalCrawls}</p>
-                    <p className="text-xs text-muted-foreground">Total crawls</p>
+                    <p className="text-xs text-muted-foreground">{t("analytics.totalCrawls")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -286,7 +261,7 @@ export default function Analytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold font-code">{stats.searchCrawls}</p>
-                    <p className="text-xs text-muted-foreground">Crawls moteurs</p>
+                    <p className="text-xs text-muted-foreground">{t("analytics.engineCrawls")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -299,7 +274,7 @@ export default function Analytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold font-code">{stats.aiCrawls}</p>
-                    <p className="text-xs text-muted-foreground">Crawls IA</p>
+                    <p className="text-xs text-muted-foreground">{t("analytics.aiCrawls")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -312,7 +287,7 @@ export default function Analytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold font-code">{stats.uniqueBots}</p>
-                    <p className="text-xs text-muted-foreground">Bots uniques</p>
+                    <p className="text-xs text-muted-foreground">{t("analytics.uniqueBots")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -322,24 +297,20 @@ export default function Analytics() {
           {/* Charts */}
           <Tabs defaultValue="timeline" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="timeline">Chronologie</TabsTrigger>
-              <TabsTrigger value="bots">Par Bot</TabsTrigger>
-              <TabsTrigger value="table">Détails</TabsTrigger>
+              <TabsTrigger value="timeline">{t("analytics.timeline")}</TabsTrigger>
+              <TabsTrigger value="bots">{t("analytics.byBot")}</TabsTrigger>
+              <TabsTrigger value="table">{t("analytics.details")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="timeline">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-code">Crawls par jour</CardTitle>
-                  <CardDescription>
-                    Évolution des crawls Google vs IA sur la période sélectionnée
-                  </CardDescription>
+                  <CardTitle className="font-code">{t("analytics.crawlsByDay")}</CardTitle>
+                  <CardDescription>{t("analytics.crawlsByDayDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {chartDataByDate.length === 0 ? (
-                    <div className="flex items-center justify-center h-80 text-muted-foreground">
-                      Aucune donnée pour cette période
-                    </div>
+                    <div className="flex items-center justify-center h-80 text-muted-foreground">{t("analytics.noDataPeriod")}</div>
                   ) : (
                     <ResponsiveContainer width="100%" height={350}>
                       <AreaChart data={chartDataByDate} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -354,15 +325,8 @@ export default function Analytics() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                          axisLine={{ stroke: "hsl(var(--border))" }}
-                        />
-                        <YAxis
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                          axisLine={{ stroke: "hsl(var(--border))" }}
-                        />
+                        <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} />
+                        <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
@@ -371,24 +335,8 @@ export default function Analytics() {
                           }}
                         />
                         <Legend />
-                        <Area
-                          type="monotone"
-                          dataKey="google"
-                          name="Moteurs de recherche"
-                          stroke="hsl(var(--primary))"
-                          fillOpacity={1}
-                          fill="url(#colorGoogle)"
-                          strokeWidth={2}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="ai"
-                          name="Bots IA"
-                          stroke="hsl(160, 60%, 45%)"
-                          fillOpacity={1}
-                          fill="url(#colorAI)"
-                          strokeWidth={2}
-                        />
+                        <Area type="monotone" dataKey="google" name={t("analytics.searchEngines")} stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorGoogle)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="ai" name={t("analytics.aiBots")} stroke="hsl(160, 60%, 45%)" fillOpacity={1} fill="url(#colorAI)" strokeWidth={2} />
                       </AreaChart>
                     </ResponsiveContainer>
                   )}
@@ -400,26 +348,16 @@ export default function Analytics() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="font-code">Répartition par bot</CardTitle>
-                    <CardDescription>Pages crawlées par chaque bot</CardDescription>
+                    <CardTitle className="font-code">{t("analytics.botDistribution")}</CardTitle>
+                    <CardDescription>{t("analytics.pagesCrawledByBot")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {chartDataByBot.length === 0 ? (
-                      <div className="flex items-center justify-center h-80 text-muted-foreground">
-                        Aucune donnée pour cette période
-                      </div>
+                      <div className="flex items-center justify-center h-80 text-muted-foreground">{t("analytics.noDataPeriod")}</div>
                     ) : (
                       <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                          <Pie
-                            data={chartDataByBot}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
-                            paddingAngle={2}
-                            dataKey="value"
-                          >
+                          <Pie data={chartDataByBot} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
                             {chartDataByBot.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
@@ -440,25 +378,18 @@ export default function Analytics() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="font-code">Top bots</CardTitle>
-                    <CardDescription>Classement par nombre de crawls</CardDescription>
+                    <CardTitle className="font-code">{t("analytics.topBots")}</CardTitle>
+                    <CardDescription>{t("analytics.rankingByCrawls")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {chartDataByBot.length === 0 ? (
-                      <div className="flex items-center justify-center h-80 text-muted-foreground">
-                        Aucune donnée pour cette période
-                      </div>
+                      <div className="flex items-center justify-center h-80 text-muted-foreground">{t("analytics.noDataPeriod")}</div>
                     ) : (
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartDataByBot.slice(0, 8)} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                          <YAxis
-                            type="category"
-                            dataKey="name"
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                            width={100}
-                          />
+                          <YAxis type="category" dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} width={100} />
                           <Tooltip
                             contentStyle={{
                               backgroundColor: "hsl(var(--card))",
@@ -466,7 +397,7 @@ export default function Analytics() {
                               borderRadius: "8px",
                             }}
                           />
-                          <Bar dataKey="value" name="Pages crawlées" radius={[0, 4, 4, 0]}>
+                          <Bar dataKey="value" name={t("analytics.pagesCrawled")} radius={[0, 4, 4, 0]}>
                             {chartDataByBot.slice(0, 8).map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
@@ -482,22 +413,20 @@ export default function Analytics() {
             <TabsContent value="table">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-code">Activité récente</CardTitle>
-                  <CardDescription>Les 20 derniers crawls détectés</CardDescription>
+                  <CardTitle className="font-code">{t("analytics.recentActivity")}</CardTitle>
+                  <CardDescription>{t("analytics.last20crawls")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {recentActivity.length === 0 ? (
-                    <div className="flex items-center justify-center h-40 text-muted-foreground">
-                      Aucune activité récente
-                    </div>
+                    <div className="flex items-center justify-center h-40 text-muted-foreground">{t("analytics.noRecentActivity")}</div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Bot</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Pages</TableHead>
-                          <TableHead>Date</TableHead>
+                          <TableHead>{t("analytics.bot")}</TableHead>
+                          <TableHead>{t("analytics.type")}</TableHead>
+                          <TableHead>{t("analytics.pages")}</TableHead>
+                          <TableHead>{t("analytics.date")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -508,17 +437,15 @@ export default function Analytics() {
                               <span
                                 className={cn(
                                   "px-2 py-1 rounded text-xs font-medium",
-                                  activity.bot_type === "search"
-                                    ? "bg-primary/10 text-primary"
-                                    : "bg-emerald-500/10 text-emerald-600"
+                                  activity.bot_type === "search" ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"
                                 )}
                               >
-                                {activity.bot_type === "search" ? "Moteur" : "IA"}
+                                {activity.bot_type === "search" ? t("analytics.engine") : t("analytics.ai")}
                               </span>
                             </TableCell>
                             <TableCell className="font-code">{activity.pages_crawled}</TableCell>
                             <TableCell className="text-muted-foreground">
-                              {new Date(activity.crawled_at).toLocaleString("fr-FR", {
+                              {new Date(activity.crawled_at).toLocaleString(dateLocale, {
                                 day: "2-digit",
                                 month: "short",
                                 hour: "2-digit",
