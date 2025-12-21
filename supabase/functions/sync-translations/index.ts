@@ -16,13 +16,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const LIBRETRANSLATE_URL = Deno.env.get("LIBRETRANSLATE_URL");
-    if (!LIBRETRANSLATE_URL) {
-      return new Response(
-        JSON.stringify({ error: "LIBRETRANSLATE_URL not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
 
     // Get all French translations (source)
     const { data: frTranslations, error: frError } = await supabase
