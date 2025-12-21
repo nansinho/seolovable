@@ -11,6 +11,8 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  Users,
+  Globe2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +34,11 @@ const navItems = [
   { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
   { icon: CreditCard, label: "Abonnement", href: "/upgrade" },
   { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
+];
+
+const adminItems = [
+  { icon: Users, label: "Utilisateurs", href: "/admin" },
+  { icon: Globe2, label: "Tous les sites", href: "/admin/sites" },
 ];
 
 export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebarProps) {
@@ -62,6 +69,9 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
     if (href === "/dashboard") {
       return currentPath === "/dashboard";
     }
+    if (href === "/admin") {
+      return currentPath === "/admin";
+    }
     return currentPath.startsWith(href);
   };
 
@@ -73,6 +83,51 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
     }
     toast.success("Déconnexion réussie");
     navigate("/");
+  };
+
+  const renderNavItem = (item: { icon: any; label: string; href: string }, isAdminItem = false) => {
+    const ItemIcon = item.icon;
+    const active = isActive(item.href);
+    const activeClass = isAdminItem
+      ? "bg-accent/10 text-accent"
+      : "bg-primary/10 text-primary";
+    const hoverClass = isAdminItem
+      ? "text-muted-foreground hover:bg-accent/10 hover:text-accent"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground";
+
+    if (collapsed) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <Link
+              to={item.href}
+              className={cn(
+                "flex items-center justify-center p-3 rounded-lg transition-colors",
+                active ? activeClass : hoverClass
+              )}
+            >
+              <ItemIcon className="w-5 h-5" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-code">
+            {item.label}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return (
+      <Link
+        to={item.href}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors font-code",
+          active ? activeClass : hoverClass
+        )}
+      >
+        <ItemIcon className="w-4 h-4 flex-shrink-0" />
+        <span className="truncate">{item.label}</span>
+      </Link>
+    );
   };
 
   return (
@@ -128,89 +183,44 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
 
         {/* Navigation */}
         <nav className="flex-1 p-2 overflow-y-auto">
+          {/* Main nav */}
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.href}>
-                {collapsed ? (
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        to={item.href}
-                        className={cn(
-                          "flex items-center justify-center p-3 rounded-lg transition-colors",
-                          isActive(item.href)
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )}
-                      >
-                        <item.icon className="w-5 h-5" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="font-code">
-                      {item.label}
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors font-code",
-                      isActive(item.href)
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                )}
+                {renderNavItem(item)}
               </li>
             ))}
           </ul>
+
+          {/* Admin section */}
+          {isAdmin && (
+            <div className="mt-6">
+              {!collapsed && (
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <Shield className="w-4 h-4 text-accent" />
+                  <span className="text-xs font-code text-accent uppercase tracking-wider">
+                    Administration
+                  </span>
+                </div>
+              )}
+              {collapsed && (
+                <div className="flex justify-center py-2">
+                  <div className="w-8 h-px bg-accent/30" />
+                </div>
+              )}
+              <ul className="space-y-1">
+                {adminItems.map((item) => (
+                  <li key={item.href}>
+                    {renderNavItem(item, true)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </nav>
 
-        {/* Admin button + Logout */}
-        <div className="p-2 border-t border-border space-y-1">
-          {isAdmin && (
-            collapsed ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Link to="/admin" className="block">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className={cn(
-                        "w-full",
-                        currentPath.startsWith("/admin")
-                          ? "bg-accent/20 text-accent border-accent"
-                          : "text-muted-foreground hover:text-accent hover:border-accent"
-                      )}
-                    >
-                      <Shield className="w-5 h-5" />
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="font-code">
-                  Administration
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <Link to="/admin">
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start gap-3 font-code text-sm",
-                    currentPath.startsWith("/admin")
-                      ? "bg-accent/20 text-accent border-accent"
-                      : "text-muted-foreground hover:text-accent hover:border-accent"
-                  )}
-                >
-                  <Shield className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Administration</span>
-                </Button>
-              </Link>
-            )
-          )}
+        {/* Logout */}
+        <div className="p-2 border-t border-border">
           {collapsed ? (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
