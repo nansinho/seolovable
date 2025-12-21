@@ -11,11 +11,14 @@ import {
   AlertTriangle,
   Trash2,
   User,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
+import { AdminAddSiteModal } from "@/components/AdminAddSiteModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +57,7 @@ const AdminSites = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [addSiteModalOpen, setAddSiteModalOpen] = useState(false);
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
@@ -195,9 +199,9 @@ const AdminSites = () => {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
+          {/* Search and Add button */}
+          <div className="mb-6 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Rechercher par site, URL ou propriétaire..."
@@ -206,6 +210,13 @@ const AdminSites = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            <Button
+              onClick={() => setAddSiteModalOpen(true)}
+              className="font-code glow-green"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un site
+            </Button>
           </div>
 
           {/* Sites List */}
@@ -218,6 +229,7 @@ const AdminSites = () => {
                     <th className="text-left p-4 font-code text-sm text-muted-foreground">Propriétaire</th>
                     <th className="text-left p-4 font-code text-sm text-muted-foreground">Status</th>
                     <th className="text-left p-4 font-code text-sm text-muted-foreground">Pages</th>
+                    <th className="text-left p-4 font-code text-sm text-muted-foreground">Créé le</th>
                     <th className="text-left p-4 font-code text-sm text-muted-foreground">Dernier crawl</th>
                     <th className="text-right p-4 font-code text-sm text-muted-foreground">Actions</th>
                   </tr>
@@ -225,7 +237,7 @@ const AdminSites = () => {
                 <tbody>
                   {filteredSites.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-muted-foreground font-code">
+                      <td colSpan={7} className="p-8 text-center text-muted-foreground font-code">
                         Aucun site trouvé
                       </td>
                     </tr>
@@ -277,6 +289,14 @@ const AdminSites = () => {
                           <span className="text-sm font-code text-foreground">
                             {site.pages_rendered.toLocaleString()}
                           </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-code text-muted-foreground">
+                              {new Date(site.created_at).toLocaleDateString("fr-FR")}
+                            </span>
+                          </div>
                         </td>
                         <td className="p-4">
                           <span className="text-sm font-code text-muted-foreground">
@@ -343,6 +363,21 @@ const AdminSites = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Site Modal */}
+      <AdminAddSiteModal
+        open={addSiteModalOpen}
+        onOpenChange={setAddSiteModalOpen}
+        onSiteAdded={async () => {
+          // Refresh sites list
+          const { data: sitesData } = await supabase
+            .from("sites")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (sitesData) setSites(sitesData);
+        }}
+        users={Object.values(users).map(u => ({ id: u.id, email: u.email }))}
+      />
     </div>
   );
 };
