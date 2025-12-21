@@ -80,8 +80,8 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-background border-r border-border flex-col transform transition-transform lg:transform-none",
-          mobileOpen ? "translate-x-0 flex" : "-translate-x-full lg:translate-x-0 hidden lg:flex"
+          "fixed lg:sticky top-0 left-0 z-50 w-64 h-screen bg-background border-r border-border flex flex-col transform transition-transform lg:transform-none",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Logo */}
