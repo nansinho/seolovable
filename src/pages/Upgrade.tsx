@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, ArrowDown, Loader2, Crown, Zap, Building2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UpgradePreviewModal } from "@/components/UpgradePreviewModal";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 const PLANS = {
   starter: {
@@ -82,6 +81,7 @@ const Upgrade = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string>("free");
   const [isLoading, setIsLoading] = useState(true);
@@ -94,10 +94,8 @@ const Upgrade = () => {
 
   const content = {
     fr: {
-      eyebrow: "Tarification",
-      title: "Choisissez votre",
-      titleAccent: "plan",
-      subtitle: "Des formules adaptées à chaque étape de votre croissance. Passez à l'échelle sans limites.",
+      title: "Abonnement",
+      subtitle: "Gérez votre plan et passez à la vitesse supérieure",
       currentPlan: "Plan actuel",
       upgrade: "Passer à ce plan",
       downgrade: "Rétrograder",
@@ -134,10 +132,8 @@ const Upgrade = () => {
       ],
     },
     en: {
-      eyebrow: "Pricing",
-      title: "Choose your",
-      titleAccent: "plan",
-      subtitle: "Plans tailored to every stage of your growth. Scale without limits.",
+      title: "Subscription",
+      subtitle: "Manage your plan and scale up",
       currentPlan: "Current plan",
       upgrade: "Upgrade to this plan",
       downgrade: "Downgrade",
@@ -347,226 +343,197 @@ const Upgrade = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      {/* Background effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/3 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
-      <main className="relative pt-32 pb-20">
-        <div className="container mx-auto px-4">
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
           {/* Header */}
-          <section className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-8">
-              <Sparkles className="w-4 h-4 text-accent" />
-              <span className="text-sm font-mono text-accent">{t.eyebrow}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <div>
+                <h1 className="text-2xl font-bold font-code">{t.title}</h1>
+                <p className="text-muted-foreground text-sm">
+                  {t.subtitle}
+                </p>
+              </div>
             </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
-              <span className="text-foreground">{t.title}</span>{" "}
-              <span className="text-accent">{t.titleAccent}</span>
-            </h1>
-            
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              {t.subtitle}
-            </p>
-
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Check className="w-4 h-4 text-accent" />
               <span>{t.guarantee}</span>
             </div>
-          </section>
+          </div>
 
           {/* Pricing Cards */}
-          <section className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-              {t.plans.map((plan, index) => {
-                const planConfig = PLANS[plan.id as keyof typeof PLANS];
-                const planColors = PLAN_COLORS[plan.id as keyof typeof PLAN_COLORS];
-                const Icon = planConfig?.icon || Zap;
-                const isCurrentPlan = currentPlan === plan.id;
-                const isPlanUpgrade = isUpgrade(plan.id);
-                const isPlanDowngrade = isDowngrade(plan.id);
-                const isPopular = plan.id === "pro";
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl">
+            {t.plans.map((plan, index) => {
+              const planConfig = PLANS[plan.id as keyof typeof PLANS];
+              const planColors = PLAN_COLORS[plan.id as keyof typeof PLAN_COLORS];
+              const Icon = planConfig?.icon || Zap;
+              const isCurrentPlan = currentPlan === plan.id;
+              const isPlanUpgrade = isUpgrade(plan.id);
+              const isPlanDowngrade = isDowngrade(plan.id);
+              const isPopular = plan.id === "pro";
 
-                return (
-                  <div
-                    key={index}
-                    className={cn(
-                      "relative flex flex-col p-6 lg:p-8 rounded-2xl border transition-all duration-300",
-                      isCurrentPlan
-                        ? cn("bg-card border-2", planColors.borderActive, "shadow-lg", planColors.shadow)
-                        : isPopular
-                          ? "bg-card border-accent/50 shadow-lg shadow-accent/10 scale-105"
-                          : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30"
-                    )}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    {/* Current plan badge */}
-                    {isCurrentPlan && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className={cn(
-                          "text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg",
-                          planColors.badge
-                        )}>
-                          {t.currentPlan}
-                        </span>
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "relative flex flex-col p-6 lg:p-8 rounded-2xl border transition-all duration-300",
+                    isCurrentPlan
+                      ? cn("bg-card border-2", planColors.borderActive, "shadow-lg", planColors.shadow)
+                      : isPopular
+                        ? "bg-card border-accent/50 shadow-lg shadow-accent/10"
+                        : "bg-card/50 backdrop-blur-sm border-border hover:border-accent/30"
+                  )}
+                >
+                  {/* Current plan badge */}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className={cn(
+                        "text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg",
+                        planColors.badge
+                      )}>
+                        {t.currentPlan}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Popular badge (only if not current) */}
+                  {isPopular && !isCurrentPlan && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-accent text-accent-foreground text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg">
+                        Recommandé
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Plan header */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
+                        planColors.bgLight
+                      )}>
+                        <Icon className={cn("w-5 h-5", planColors.text)} />
                       </div>
-                    )}
+                      <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{plan.desc}</p>
+                  </div>
 
-                    {/* Popular badge (only if not current) */}
-                    {isPopular && !isCurrentPlan && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className="bg-accent text-accent-foreground text-xs font-mono font-semibold px-4 py-1.5 rounded-full shadow-lg">
-                          Recommandé
-                        </span>
-                      </div>
-                    )}
+                  {/* Price */}
+                  <div className="mb-8">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-5xl font-bold tracking-tight text-foreground">{plan.price}</span>
+                      <span className="text-xl text-muted-foreground">€</span>
+                      <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
+                    </div>
+                  </div>
 
-                    {/* Plan header */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-3 mb-3">
+                  {/* Features */}
+                  <ul className="space-y-3 mb-8 flex-grow">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-3">
                         <div className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center",
+                          "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
                           planColors.bgLight
                         )}>
-                          <Icon className={cn("w-5 h-5", planColors.text)} />
+                          <Check className={cn("w-3 h-3", planColors.text)} />
                         </div>
-                        <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{plan.desc}</p>
-                    </div>
+                        <span className="text-sm text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                    {/* Price */}
-                    <div className="mb-8">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-bold tracking-tight text-foreground">{plan.price}</span>
-                        <span className="text-xl text-muted-foreground">€</span>
-                        <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
-                      </div>
-                    </div>
+                  {/* CTA Button */}
+                  {isCurrentPlan ? (
+                    <Button 
+                      className={cn("w-full h-12 font-semibold", planColors.button)}
+                      onClick={handleManageSubscription}
+                      disabled={loadingPlan === "manage"}
+                    >
+                      {loadingPlan === "manage" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        t.manage
+                      )}
+                    </Button>
+                  ) : isPlanUpgrade ? (
+                    <Button 
+                      className={cn("w-full h-12 font-semibold group", planColors.button)}
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={loadingPlan === plan.id}
+                    >
+                      {loadingPlan === plan.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          {t.upgrade}
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </Button>
+                  ) : isPlanDowngrade ? (
+                    <Button 
+                      variant="outline"
+                      className="w-full h-12 font-semibold group"
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={loadingPlan === plan.id}
+                    >
+                      {loadingPlan === plan.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          {t.downgrade}
+                          <ArrowDown className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button 
+                      className={cn("w-full h-12 font-semibold group", planColors.button)}
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={loadingPlan === plan.id}
+                    >
+                      {loadingPlan === plan.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          {t.upgrade}
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-                    {/* Features */}
-                    <ul className="space-y-3 mb-8 flex-grow">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <div className={cn(
-                            "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-                            planColors.bgLight
-                          )}>
-                            <Check className={cn("w-3 h-3", planColors.text)} />
-                          </div>
-                          <span className="text-sm text-muted-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA Button */}
-                    {isCurrentPlan ? (
-                      <Button 
-                        className={cn("w-full h-12 font-semibold", planColors.button)}
-                        onClick={handleManageSubscription}
-                        disabled={loadingPlan === "manage"}
-                      >
-                        {loadingPlan === "manage" ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          t.manage
-                        )}
-                      </Button>
-                    ) : isPlanUpgrade ? (
-                      <Button 
-                        className={cn("w-full h-12 font-semibold group", planColors.button)}
-                        onClick={() => handleUpgrade(plan.id)}
-                        disabled={loadingPlan === plan.id}
-                      >
-                        {loadingPlan === plan.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            {t.upgrade}
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </Button>
-                    ) : isPlanDowngrade ? (
-                      <Button 
-                        variant="outline"
-                        className="w-full h-12 font-semibold group"
-                        onClick={() => handleUpgrade(plan.id)}
-                        disabled={loadingPlan === plan.id}
-                      >
-                        {loadingPlan === plan.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            {t.downgrade}
-                            <ArrowDown className="w-4 h-4 ml-2 group-hover:translate-y-1 transition-transform" />
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <Button 
-                        className={cn("w-full h-12 font-semibold group", planColors.button)}
-                        onClick={() => handleUpgrade(plan.id)}
-                        disabled={loadingPlan === plan.id}
-                      >
-                        {loadingPlan === plan.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            {t.upgrade}
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Note about proration */}
-            <p className="text-center text-sm text-muted-foreground mt-8">
-              {t.changePlanNote}
-            </p>
-          </section>
-
-          {/* Trust indicators */}
-          <section className="mt-20 text-center">
-            <div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-accent" />
-                <span className="text-sm">Paiement sécurisé</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-accent" />
-                <span className="text-sm">Sans engagement</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-accent" />
-                <span className="text-sm">Support réactif</span>
-              </div>
-            </div>
-          </section>
+          {/* Proration note */}
+          <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
+            {t.changePlanNote}
+          </p>
         </div>
       </main>
 
-      {/* Proration Preview Modal */}
+      {/* Upgrade Preview Modal */}
       <UpgradePreviewModal
         isOpen={showPreviewModal}
         onClose={() => setShowPreviewModal(false)}
-        onConfirm={handleConfirmUpgrade}
-        preview={prorationPreview}
         isLoading={isLoadingPreview}
         isConfirming={isConfirmingUpgrade}
+        preview={prorationPreview}
+        onConfirm={handleConfirmUpgrade}
         lang={lang}
       />
-
-      <Footer />
     </div>
   );
 };
