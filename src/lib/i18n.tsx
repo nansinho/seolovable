@@ -1,23 +1,22 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Language = "fr" | "en";
 
-interface Translations {
-  [key: string]: {
-    fr: string;
-    en: string;
-  };
+interface TranslationRow {
+  key: string;
+  lang: string;
+  value: string;
 }
 
-export const translations: Translations = {
-  // Header
+// Fallback static translations
+const staticTranslations: Record<string, Record<Language, string>> = {
   "nav.home": { fr: "Accueil", en: "Home" },
   "nav.how": { fr: "Comment ça marche", en: "How it works" },
   "nav.pricing": { fr: "Tarifs", en: "Pricing" },
   "nav.login": { fr: "Connexion", en: "Login" },
   "nav.trial": { fr: "Essai gratuit", en: "Free trial" },
-
-  // Hero
   "hero.tag": { fr: "// Prerender pour Lovable", en: "// Prerender for Lovable" },
   "hero.title1": { fr: "Soyez visible partout où vos clients", en: "Be found everywhere your audience" },
   "hero.title2": { fr: "cherchent", en: "searches" },
@@ -25,16 +24,12 @@ export const translations: Translations = {
   "hero.cta": { fr: "Démarrer l'essai gratuit", en: "Start free trial" },
   "hero.cta2": { fr: "Comment ça marche", en: "How it works" },
   "hero.trusted": { fr: "Compatible avec:", en: "Trusted by:" },
-
-  // Problem
   "problem.title1": { fr: "Vos Apps IA sont", en: "Your AI-Built Apps Are" },
   "problem.title2": { fr: "Invisibles", en: "Invisible" },
   "problem.subtitle": { fr: "Google et les réseaux sociaux ne voient pas ce que vous avez créé - juste des pages vides.", en: "Google and social media can't see what you built - just empty pages." },
   "problem.desc": { fr: "Quand vous partagez votre lien sur les réseaux sociaux, l'aperçu est cassé. Quand Google essaie d'indexer vos pages, il ne voit rien. C'est parce que votre contenu se charge avec JavaScript - et les bots n'attendent pas.", en: "When you share your app link on any social media platform, it looks broken. When Google tries to index your pages, it sees nothing. That's because your content loads with JavaScript - and bots don't wait around." },
   "problem.bots": { fr: "Ce que les bots voient:", en: "What bots see:" },
   "problem.indexed": { fr: "Ce qui devrait être indexé:", en: "What should be indexed:" },
-
-  // Solution
   "solution.tag": { fr: "// Comment ça marche", en: "// How it works" },
   "solution.title": { fr: "4 étapes vers la visibilité SEO", en: "4 steps to SEO visibility" },
   "step.1.title": { fr: "Inscription", en: "Sign up" },
@@ -45,8 +40,6 @@ export const translations: Translations = {
   "step.3.desc": { fr: "Notre système valide votre configuration", en: "Our system validates your configuration" },
   "step.4.title": { fr: "Vous êtes en ligne", en: "You're live" },
   "step.4.desc": { fr: "Votre site est maintenant indexable par tous les bots", en: "Your site is now indexable by all bots" },
-
-  // Features
   "features.title": { fr: "Tout ce dont vous avez besoin", en: "Everything you need" },
   "features.subtitle": { fr: "Des fonctionnalités puissantes pour un SEO Lovable parfait", en: "Powerful features for perfect Lovable SEO" },
   "feature.1.title": { fr: "Prerender à la demande", en: "On-demand prerender" },
@@ -61,8 +54,6 @@ export const translations: Translations = {
   "feature.5.desc": { fr: "Configuration ultra-rapide sans toucher à votre code", en: "Ultra-fast configuration without touching your code" },
   "feature.6.title": { fr: "Intégration IA", en: "AI Integration" },
   "feature.6.desc": { fr: "L'IA analyse et optimise votre contenu SEO", en: "AI analyzes and optimizes your SEO content" },
-
-  // Pricing
   "pricing.title": { fr: "Tarifs simples", en: "Simple pricing" },
   "pricing.subtitle": { fr: "Promo lancement - Offre limitée", en: "Launch promo - Limited time" },
   "pricing.popular": { fr: "Populaire", en: "Popular" },
@@ -70,7 +61,6 @@ export const translations: Translations = {
   "pricing.cancel": { fr: "Annulez quand vous voulez", en: "Cancel anytime" },
   "pricing.refund": { fr: "Remboursement 30 jours", en: "30-day refund" },
   "pricing.trial": { fr: "14 jours d'essai gratuit", en: "14-day free trial" },
-  
   "plan.starter": { fr: "Starter", en: "Starter" },
   "plan.starter.desc": { fr: "Idéal pour démarrer", en: "Perfect to get started" },
   "plan.starter.f1": { fr: "1 site web", en: "1 website" },
@@ -78,7 +68,6 @@ export const translations: Translations = {
   "plan.starter.f3": { fr: "Support par email", en: "Email support" },
   "plan.starter.f4": { fr: "Rapports basiques", en: "Basic reports" },
   "plan.starter.f5": { fr: "SSL inclus", en: "SSL included" },
-  
   "plan.pro": { fr: "Pro", en: "Pro" },
   "plan.pro.desc": { fr: "Pour les équipes ambitieuses", en: "For ambitious teams" },
   "plan.pro.f1": { fr: "5 sites web", en: "5 websites" },
@@ -87,7 +76,6 @@ export const translations: Translations = {
   "plan.pro.f4": { fr: "Support prioritaire", en: "Priority support" },
   "plan.pro.f5": { fr: "Accès API", en: "API access" },
   "plan.pro.f6": { fr: "Webhooks", en: "Webhooks" },
-  
   "plan.business": { fr: "Business", en: "Business" },
   "plan.business.desc": { fr: "Solution entreprise", en: "Enterprise solution" },
   "plan.business.f1": { fr: "Sites illimités", en: "Unlimited sites" },
@@ -96,8 +84,6 @@ export const translations: Translations = {
   "plan.business.f4": { fr: "API complète", en: "Full API" },
   "plan.business.f5": { fr: "Manager dédié", en: "Dedicated manager" },
   "plan.business.f6": { fr: "SLA 99.9%", en: "99.9% SLA" },
-
-  // Footer
   "footer.desc": { fr: "Prerender pour sites Lovable. Rendez votre contenu visible pour Google et les AI crawlers.", en: "Prerender for Lovable sites. Make your content visible to Google and AI crawlers." },
   "footer.product": { fr: "Produit", en: "Product" },
   "footer.legal": { fr: "Légal", en: "Legal" },
@@ -110,19 +96,57 @@ interface I18nContextType {
   lang: Language;
   setLang: (lang: Language) => void;
   t: (key: string) => string;
+  isLoading: boolean;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
+const STORAGE_KEY = "seolovable-lang";
+
+async function fetchTranslations(): Promise<TranslationRow[]> {
+  const { data, error } = await supabase
+    .from("translations")
+    .select("key, lang, value");
+  
+  if (error) {
+    console.error("Error fetching translations:", error);
+    return [];
+  }
+  return data || [];
+}
+
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
-  const [lang, setLang] = useState<Language>("fr");
+  const [lang, setLangState] = useState<Language>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "fr" || saved === "en") return saved;
+    const browserLang = navigator.language.substring(0, 2);
+    return browserLang === "en" ? "en" : "fr";
+  });
+
+  const { data: dbTranslations, isLoading } = useQuery({
+    queryKey: ["translations"],
+    queryFn: fetchTranslations,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+
+  const setLang = (newLang: Language) => {
+    setLangState(newLang);
+    localStorage.setItem(STORAGE_KEY, newLang);
+  };
 
   const t = (key: string): string => {
-    return translations[key]?.[lang] || key;
+    // First try database translations
+    if (dbTranslations) {
+      const dbValue = dbTranslations.find((t) => t.key === key && t.lang === lang);
+      if (dbValue) return dbValue.value;
+    }
+    // Fallback to static translations
+    return staticTranslations[key]?.[lang] || key;
   };
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={{ lang, setLang, t, isLoading }}>
       {children}
     </I18nContext.Provider>
   );
@@ -135,3 +159,6 @@ export const useI18n = () => {
   }
   return context;
 };
+
+// Export static translations for admin interface
+export { staticTranslations };

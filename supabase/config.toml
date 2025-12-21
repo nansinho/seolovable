@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.landing-test]
 verify_jwt = false
+
+[functions.translate]
+verify_jwt = false
+
+[functions.sync-translations]
+verify_jwt = false
