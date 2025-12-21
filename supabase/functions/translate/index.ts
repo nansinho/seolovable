@@ -21,14 +21,7 @@ serve(async (req) => {
       );
     }
 
-    const LIBRETRANSLATE_URL = Deno.env.get("LIBRETRANSLATE_URL");
-    if (!LIBRETRANSLATE_URL) {
-      console.error("LIBRETRANSLATE_URL not configured");
-      return new Response(
-        JSON.stringify({ error: "Translation service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
 
     console.log(`Translating from ${sourceLang} to ${targetLang}: "${text.substring(0, 50)}..."`);
 
