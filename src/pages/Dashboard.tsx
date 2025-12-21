@@ -25,6 +25,7 @@ import { CrawlsChart } from "@/components/CrawlsChart";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
+import { PendingSeoTestModal } from "@/components/PendingSeoTestModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 interface Site {
@@ -110,6 +111,11 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  
+  // Pending SEO test from landing page
+  const [pendingSeoTestOpen, setPendingSeoTestOpen] = useState(false);
+  const [pendingSeoTestUrl, setPendingSeoTestUrl] = useState<string | null>(null);
   
   // Subscription & invoices state
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
@@ -170,8 +176,17 @@ const Dashboard = () => {
       const isBlocked = await checkIfBlocked(session.user.id);
       if (isBlocked) return;
       
-      // Store user id
+      // Store user id and email
       setCurrentUserId(session.user.id);
+      setCurrentUserEmail(session.user.email || null);
+      
+      // Check for pending SEO test from landing page
+      const pendingUrl = sessionStorage.getItem("pending_seo_test_url");
+      if (pendingUrl) {
+        sessionStorage.removeItem("pending_seo_test_url");
+        setPendingSeoTestUrl(pendingUrl);
+        setPendingSeoTestOpen(true);
+      }
       
       // Fetch sites for current user only
       await fetchSites(session.user.id);
@@ -293,6 +308,20 @@ const Dashboard = () => {
             open={prerenderTestOpen}
             onOpenChange={setPrerenderTestOpen}
           />
+
+          {/* Pending SEO Test Modal from landing page */}
+          {pendingSeoTestUrl && currentUserEmail && (
+            <PendingSeoTestModal
+              open={pendingSeoTestOpen}
+              onOpenChange={setPendingSeoTestOpen}
+              url={pendingSeoTestUrl}
+              userEmail={currentUserEmail}
+              onComplete={() => {
+                setPendingSeoTestUrl(null);
+                setAddSiteOpen(true); // Open add site modal after
+              }}
+            />
+          )}
 
           <DeleteSiteDialog
             open={deleteDialogOpen}
