@@ -130,17 +130,35 @@ const AdminTranslations = () => {
     ...(translations?.map((t) => t.key) || []),
   ]), [translations]);
 
-  // Get all unique pages with counts
+  // Get all unique pages with counts and missing counts
   const pagesWithCounts = useMemo(() => {
     const counts: Record<string, number> = {};
+    const missingCounts: Record<string, number> = {};
+    
     allKeys.forEach((key) => {
       const page = getPageFromKey(key);
       counts[page] = (counts[page] || 0) + 1;
+      
+      // Check for missing translations (FR or EN)
+      const frTranslation = translations?.find((t) => t.key === key && t.lang === "fr");
+      const enTranslation = translations?.find((t) => t.key === key && t.lang === "en");
+      const frValue = frTranslation?.value || staticTranslations[key]?.fr;
+      const enValue = enTranslation?.value || staticTranslations[key]?.en;
+      
+      if (!frValue || !enValue) {
+        missingCounts[page] = (missingCounts[page] || 0) + 1;
+      }
     });
+    
     return Object.entries(counts)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([page, count]) => ({ page, count }));
-  }, [allKeys]);
+      .map(([page, count]) => ({ page, count, missing: missingCounts[page] || 0 }));
+  }, [allKeys, translations]);
+
+  // Total missing count
+  const totalMissing = useMemo(() => {
+    return pagesWithCounts.reduce((acc, { missing }) => acc + missing, 0);
+  }, [pagesWithCounts]);
 
   const getTranslation = (key: string, lang: Language): TranslationRow | undefined => {
     return translations?.find((t) => t.key === key && t.lang === lang);
@@ -244,26 +262,39 @@ const AdminTranslations = () => {
                 <button
                   onClick={() => setSelectedPage("all")}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm font-code transition-colors",
+                    "w-full text-left px-3 py-2 rounded-md text-sm font-code transition-colors flex items-center justify-between",
                     selectedPage === "all" 
                       ? "bg-primary text-primary-foreground" 
                       : "hover:bg-muted"
                   )}
                 >
-                  Toutes ({allKeys.size})
+                  <span>Toutes ({allKeys.size})</span>
+                  {totalMissing > 0 && (
+                    <Badge variant="destructive" className="text-xs ml-2">
+                      {totalMissing}
+                    </Badge>
+                  )}
                 </button>
-                {pagesWithCounts.map(({ page, count }) => (
+                {pagesWithCounts.map(({ page, count, missing }) => (
                   <button
                     key={page}
                     onClick={() => setSelectedPage(page)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-md text-sm font-code transition-colors",
+                      "w-full text-left px-3 py-2 rounded-md text-sm font-code transition-colors flex items-center justify-between",
                       selectedPage === page 
                         ? "bg-primary text-primary-foreground" 
                         : "hover:bg-muted"
                     )}
                   >
-                    {PAGE_LABELS[page] || page} ({count})
+                    <span>{PAGE_LABELS[page] || page} ({count})</span>
+                    {missing > 0 && (
+                      <Badge 
+                        variant={selectedPage === page ? "secondary" : "destructive"} 
+                        className="text-xs ml-2"
+                      >
+                        {missing}
+                      </Badge>
+                    )}
                   </button>
                 ))}
               </div>
