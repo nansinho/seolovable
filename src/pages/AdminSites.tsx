@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { AdminTableSkeleton, StatsSkeleton } from "@/components/DashboardSkeleton";
 
 interface Site {
   id: string;
@@ -150,15 +151,42 @@ const AdminSites = () => {
     return user.full_name || user.email;
   };
 
-  if (adminLoading || loading) {
+  if (adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground font-code">Chargement...</div>
+        <div className="animate-pulse text-muted-foreground font-code">Vérification des droits...</div>
       </div>
     );
   }
 
   if (!isAdmin) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex">
+        <DashboardSidebar
+          mobileOpen={sidebarOpen}
+          onMobileClose={() => setSidebarOpen(false)}
+        />
+        <main className="flex-1 overflow-auto">
+          <div className="p-6 lg:p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <div>
+                <div className="h-8 w-40 bg-muted animate-pulse rounded mb-2" />
+                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+            <div className="mb-6 flex gap-4">
+              <div className="h-10 flex-1 max-w-md bg-muted animate-pulse rounded" />
+              <div className="h-10 w-36 bg-muted animate-pulse rounded" />
+            </div>
+            <AdminTableSkeleton />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">

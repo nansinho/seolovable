@@ -27,6 +27,7 @@ import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 import { PendingSeoTestModal } from "@/components/PendingSeoTestModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { DashboardContentSkeleton } from "@/components/DashboardSkeleton";
 
 interface Site {
   id: string;
@@ -313,8 +314,13 @@ const Dashboard = () => {
             isDeleting={isDeleting}
           />
 
-          {/* Plan Quota Indicator */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+          {/* Loading Skeleton */}
+          {loading ? (
+            <DashboardContentSkeleton />
+          ) : (
+            <>
+              {/* Plan Quota Indicator */}
+              <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
                 <Globe2 className="w-5 h-5 text-accent" />
@@ -551,6 +557,8 @@ const Dashboard = () => {
             currentPlan={userPlan.plan_type}
             isLoading={invoicesLoading}
           />
+            </>
+          )}
         </div>
       </main>
     </div>
