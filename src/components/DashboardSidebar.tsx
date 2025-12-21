@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Users,
   Globe2,
+  Languages,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,23 +25,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAdminCheck, clearAdminCache } from "@/hooks/useAdminCheck";
+import { useI18n } from "@/lib/i18n";
 
 interface DashboardSidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
-
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
-  { icon: CreditCard, label: "Abonnement", href: "/upgrade" },
-  { icon: Settings, label: "Paramètres", href: "/dashboard/settings" },
-];
-
-const adminItems = [
-  { icon: Users, label: "Utilisateurs", href: "/admin" },
-  { icon: Globe2, label: "Tous les sites", href: "/admin/sites" },
-];
 
 export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebarProps) {
   const location = useLocation();
@@ -48,6 +38,20 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   const currentPath = location.pathname;
   const { isAdmin } = useAdminCheck(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useI18n();
+
+  const navItems = [
+    { icon: LayoutDashboard, label: t("sidebar.dashboard"), href: "/dashboard" },
+    { icon: BarChart3, label: t("sidebar.analytics"), href: "/dashboard/analytics" },
+    { icon: CreditCard, label: t("sidebar.subscription"), href: "/upgrade" },
+    { icon: Settings, label: t("sidebar.settings"), href: "/dashboard/settings" },
+  ];
+
+  const adminItems = [
+    { icon: Users, label: t("sidebar.users"), href: "/admin" },
+    { icon: Globe2, label: t("sidebar.allSites"), href: "/admin/sites" },
+    { icon: Languages, label: t("sidebar.translations"), href: "/admin/translations" },
+  ];
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -63,10 +67,10 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
     clearAdminCache();
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error("Erreur lors de la déconnexion");
+      toast.error(t("toast.logoutError"));
       return;
     }
-    toast.success("Déconnexion réussie");
+    toast.success(t("toast.logoutSuccess"));
     navigate("/");
   };
 
@@ -184,7 +188,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
                 <div className="flex items-center gap-2 px-3 py-2">
                   <Shield className="w-4 h-4 text-accent" />
                   <span className="text-xs font-code text-accent uppercase tracking-wider">
-                    Administration
+                    {t("sidebar.admin")}
                   </span>
                 </div>
               )}
@@ -219,7 +223,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right" className="font-code">
-                Déconnexion
+                {t("sidebar.logout")}
               </TooltipContent>
             </Tooltip>
           ) : (
@@ -229,7 +233,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Déconnexion</span>
+              <span className="truncate">{t("sidebar.logout")}</span>
             </Button>
           )}
         </div>

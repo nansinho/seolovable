@@ -28,6 +28,7 @@ import { PendingSeoTestModal } from "@/components/PendingSeoTestModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardContentSkeleton } from "@/components/DashboardSkeleton";
+import { useI18n } from "@/lib/i18n";
 
 interface Site {
   id: string;
@@ -95,6 +96,7 @@ interface UpcomingInvoiceData {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { userId, userEmail, loading: authLoading, isAuthenticated } = useAuth();
+  const { t, lang } = useI18n();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
@@ -151,9 +153,9 @@ const Dashboard = () => {
       .eq("id", siteToDelete.id);
 
     if (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("toast.deleteError"));
     } else {
-      toast.success("Site supprimé");
+      toast.success(t("toast.deleteSuccess"));
       fetchSites();
     }
     
@@ -241,6 +243,8 @@ const Dashboard = () => {
     fetchData();
   }, [authLoading, isAuthenticated, userId]);
 
+  const dateLocale = lang === "en" ? "en-US" : "fr-FR";
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -257,9 +261,9 @@ const Dashboard = () => {
             <div className="flex items-center gap-4">
               <MobileMenuButton onClick={() => setSidebarOpen(true)} />
               <div>
-                <h1 className="text-2xl font-bold font-code">Dashboard</h1>
+                <h1 className="text-2xl font-bold font-code">{t("dashboard.title")}</h1>
                 <p className="text-muted-foreground text-sm">
-                  Vue d'ensemble de vos sites et statistiques
+                  {t("dashboard.subtitle")}
                 </p>
               </div>
             </div>
@@ -271,11 +275,11 @@ const Dashboard = () => {
                 onClick={() => setPrerenderTestOpen(true)}
               >
                 <Play className="w-4 h-4 mr-2" />
-                Test Prerender
+                {t("dashboard.testPrerender")}
               </Button>
               <Button className="font-code" size="sm" onClick={() => setAddSiteOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un site
+                {t("dashboard.addSite")}
               </Button>
             </div>
           </div>
@@ -324,16 +328,16 @@ const Dashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
                 <Globe2 className="w-5 h-5 text-accent" />
-                <h3 className="font-code font-semibold text-foreground">Quota de sites</h3>
+                <h3 className="font-code font-semibold text-foreground">{t("dashboard.siteQuota")}</h3>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-code px-2 py-1 rounded bg-accent/20 text-accent capitalize">
-                  Plan {userPlan.plan_type}
+                  {t("dashboard.plan")} {userPlan.plan_type}
                 </span>
                 {userPlan.plan_type === "free" ? (
                   <Link to="/upgrade">
                     <Button size="sm" variant="outline" className="font-code text-xs gap-1">
-                      Passer au supérieur
+                      {t("dashboard.upgrade")}
                       <ArrowUpRight className="w-3 h-3" />
                     </Button>
                   </Link>
@@ -341,7 +345,7 @@ const Dashboard = () => {
                   <Link to="/upgrade">
                     <Button size="sm" variant="outline" className="font-code text-xs gap-1">
                       <Settings className="w-3 h-3" />
-                      Gérer mon abonnement
+                      {t("dashboard.manageSub")}
                     </Button>
                   </Link>
                 )}
@@ -351,17 +355,17 @@ const Dashboard = () => {
               <div className="flex items-center gap-2">
                 <Infinity className="w-5 h-5 text-accent" />
                 <span className="text-sm font-code text-muted-foreground">
-                  Sites illimités • {sites.length} site(s) créé(s)
+                  {t("dashboard.unlimitedSites")} • {sites.length} {t("dashboard.sitesCreated")}
                 </span>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-code text-muted-foreground">
-                    {sites.length} / {userPlan.sites_limit} sites utilisés
+                    {sites.length} / {userPlan.sites_limit} {t("dashboard.sitesUsed")}
                   </span>
                   <span className="text-sm font-code text-accent">
-                    {userPlan.sites_limit - sites.length} restant(s)
+                    {userPlan.sites_limit - sites.length} {t("dashboard.remaining")}
                   </span>
                 </div>
                 <Progress 
@@ -378,31 +382,31 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
                 <AlertTriangle className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-code text-muted-foreground">
-                  Aucune donnée disponible pour aujourd'hui
+                  {t("dashboard.noDataToday")}
                 </span>
               </div>
             )}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">Pages rendues</p>
+                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.pagesRendered")}</p>
                 <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.total_pages_rendered.toLocaleString()}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">Bots aujourd'hui</p>
+                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.botsToday")}</p>
                 <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.total_bots}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">Google crawls</p>
+                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.googleCrawls")}</p>
                 <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.google_crawls}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">AI crawls</p>
+                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.aiCrawls")}</p>
                 <p className="text-2xl font-semibold font-code text-foreground">
                   {stats.ai_crawls}
                 </p>
@@ -413,9 +417,9 @@ const Dashboard = () => {
           {/* Charts Section */}
           <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-base font-semibold font-code text-foreground">Évolution des crawls</h2>
+              <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.crawlsEvolution")}</h2>
               <span className="text-xs text-muted-foreground font-code">
-                7 derniers jours
+                {t("dashboard.last7days")}
               </span>
             </div>
             <CrawlsChart botActivity={botActivity} />
@@ -425,16 +429,16 @@ const Dashboard = () => {
             {/* Sites List */}
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold font-code text-foreground">Mes sites</h2>
+                <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.mySites")}</h2>
                 <span className="text-xs text-muted-foreground font-code">
-                  {sites.length} sites
+                  {sites.length} {t("dashboard.sites")}
                 </span>
               </div>
 
               <div className="space-y-3">
                 {sites.length === 0 ? (
                   <p className="text-sm text-muted-foreground font-code text-center py-8">
-                    Aucun site ajouté. Cliquez sur "Ajouter un site" pour commencer.
+                    {t("dashboard.noSites")}
                   </p>
                 ) : (
                   sites.map((site) => (
@@ -481,14 +485,14 @@ const Dashboard = () => {
                           )}
                           <span className="text-xs text-muted-foreground font-code">
                             {site.status === "active"
-                              ? "Actif"
+                              ? t("dashboard.active")
                               : site.status === "pending"
-                              ? "En attente"
-                              : "Erreur"}
+                              ? t("dashboard.pending")
+                              : t("dashboard.error")}
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground font-code">
-                          {site.pages_rendered.toLocaleString()} pages • {site.last_crawl ? new Date(site.last_crawl).toLocaleString("fr-FR") : "Jamais"}
+                          {site.pages_rendered.toLocaleString()} pages • {site.last_crawl ? new Date(site.last_crawl).toLocaleString(dateLocale) : t("dashboard.never")}
                         </span>
                       </div>
                     </div>
@@ -500,16 +504,16 @@ const Dashboard = () => {
             {/* Bot Activity */}
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold font-code text-foreground">Activité des bots</h2>
+                <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.recentActivity")}</h2>
                 <span className="text-xs text-muted-foreground font-code">
-                  Dernières activités
+                  {t("dashboard.recentActivity")}
                 </span>
               </div>
 
               <div className="space-y-2">
                 {botActivity.length === 0 ? (
                   <p className="text-sm text-muted-foreground font-code text-center py-8">
-                    Aucune activité de bot détectée.
+                    {t("dashboard.noRecentActivity")}
                   </p>
                 ) : (
                   botActivity.slice(0, 5).map((activity) => (
@@ -532,7 +536,7 @@ const Dashboard = () => {
                           {activity.pages_crawled} pages
                         </span>
                         <span className="text-xs text-muted-foreground font-code">
-                          {new Date(activity.crawled_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(activity.crawled_at).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     </div>
@@ -543,7 +547,7 @@ const Dashboard = () => {
               {botActivity.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-accent">
                   <Bot className="w-4 h-4" />
-                  <span className="text-xs font-code">+23% de crawls vs. hier</span>
+                  <span className="text-xs font-code">+23% vs. {lang === "en" ? "yesterday" : "hier"}</span>
                 </div>
               )}
             </div>
