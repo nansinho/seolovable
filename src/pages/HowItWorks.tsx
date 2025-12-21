@@ -197,7 +197,7 @@ const HowItWorks = () => {
                     <p className="text-muted-foreground"># CNAME record</p>
                     <p><span className="text-muted-foreground">Type:</span> <span className="text-accent">CNAME</span></p>
                     <p><span className="text-muted-foreground">Name:</span> <span className="text-accent">www</span></p>
-                    <p><span className="text-muted-foreground">Value:</span> <span className="text-accent">proxy.seo-lovable.com</span></p>
+                    <p><span className="text-muted-foreground">Value:</span> <span className="text-accent">proxy.votredomaine.com</span></p>
                   </div>
                 </div>
 
