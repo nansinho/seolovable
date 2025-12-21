@@ -76,6 +76,42 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          allowed_domains: string[]
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          plan: string
+          prerender_token: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_domains?: string[]
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          plan?: string
+          prerender_token?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_domains?: string[]
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          plan?: string
+          prerender_token?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       daily_stats: {
         Row: {
           ai_crawls: number
@@ -135,6 +171,47 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      prerender_logs: {
+        Row: {
+          cached: boolean
+          client_id: string | null
+          created_at: string | null
+          domain: string
+          id: number
+          token: string
+          url: string
+          user_agent: string
+        }
+        Insert: {
+          cached?: boolean
+          client_id?: string | null
+          created_at?: string | null
+          domain: string
+          id?: number
+          token: string
+          url: string
+          user_agent: string
+        }
+        Update: {
+          cached?: boolean
+          client_id?: string | null
+          created_at?: string | null
+          domain?: string
+          id?: number
+          token?: string
+          url?: string
+          user_agent?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prerender_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

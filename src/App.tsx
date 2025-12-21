@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminSites from "./pages/AdminSites";
 import AdminTranslations from "./pages/AdminTranslations";
+import AdminClients from "./pages/AdminClients";
 import Analytics from "./pages/Analytics";
 import MentionsLegales from "./pages/MentionsLegales";
 import Confidentialite from "./pages/Confidentialite";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/sites" element={<AdminSites />} />
             <Route path="/admin/translations" element={<AdminTranslations />} />
+            <Route path="/admin/clients" element={<AdminClients />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
