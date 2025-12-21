@@ -109,6 +109,7 @@ const Dashboard = () => {
   const [hasStatsData, setHasStatsData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan_type: "free", sites_limit: 1 });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   // Subscription & invoices state
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
@@ -116,14 +117,18 @@ const Dashboard = () => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoiceData | null>(null);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
 
-  const fetchSites = useCallback(async () => {
+  const fetchSites = useCallback(async (userId?: string) => {
+    const targetUserId = userId || currentUserId;
+    if (!targetUserId) return;
+    
     const { data: sitesData } = await supabase
       .from("sites")
       .select("*")
+      .eq("user_id", targetUserId)
       .order("created_at", { ascending: false });
     
     if (sitesData) setSites(sitesData);
-  }, []);
+  }, [currentUserId]);
 
   const handleDeleteClick = (site: Site) => {
     setSiteToDelete(site);
@@ -165,8 +170,11 @@ const Dashboard = () => {
       const isBlocked = await checkIfBlocked(session.user.id);
       if (isBlocked) return;
       
-      // Fetch sites
-      await fetchSites();
+      // Store user id
+      setCurrentUserId(session.user.id);
+      
+      // Fetch sites for current user only
+      await fetchSites(session.user.id);
 
       // Fetch user plan
       const { data: planData } = await supabase
@@ -277,7 +285,7 @@ const Dashboard = () => {
           <AddSiteModal 
             open={addSiteOpen} 
             onOpenChange={setAddSiteOpen} 
-            onSiteAdded={fetchSites}
+            onSiteAdded={() => fetchSites()}
             currentSitesCount={sites.length}
           />
 
