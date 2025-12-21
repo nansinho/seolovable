@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { staticTranslations, Language } from "@/lib/i18n";
+import { staticTranslations, Language, useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Languages, RefreshCw, Search, Save, Check, X, Loader2 } from "lucide-react";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { Languages, RefreshCw, Search, Check, X, Loader2, Crown } from "lucide-react";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 interface TranslationRow {
   id: string;
@@ -21,6 +20,9 @@ interface TranslationRow {
 }
 
 const AdminTranslations = () => {
+  const { isAdmin, loading: adminLoading } = useAdminCheck(true);
+  const { t } = useI18n();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "auto" | "manual" | "missing">("all");
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -38,6 +40,7 @@ const AdminTranslations = () => {
       if (error) throw error;
       return data as TranslationRow[];
     },
+    enabled: isAdmin,
   });
 
   const syncMutation = useMutation({
@@ -138,152 +141,187 @@ const AdminTranslations = () => {
     saveMutation.mutate({ key, lang: editLang, value: editValue });
   };
 
+  if (adminLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-primary font-code">{t("common.checkingAdmin")}</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <DashboardSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <Languages className="h-8 w-8" />
-                  Gestion des traductions
+                <h1 className="text-2xl font-bold font-code flex items-center gap-2">
+                  <Languages className="w-6 h-6 text-accent" />
+                  {t("admin.translations.title")}
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  {translations?.length || 0} traductions en base · {allKeys.size} clés uniques
+                <p className="text-muted-foreground text-sm">
+                  {translations?.length || 0} {t("admin.translations.count")} · {allKeys.size} {t("admin.translations.keys")}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => importStaticMutation.mutate()}
-                  disabled={importStaticMutation.isPending}
-                >
-                  {importStaticMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
-                  Importer statiques
-                </Button>
-                <Button
-                  onClick={() => syncMutation.mutate()}
-                  disabled={syncMutation.isPending}
-                >
-                  {syncMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
-                  Traduire manquantes
-                </Button>
-              </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Badge className="font-code bg-accent text-accent-foreground self-start sm:self-auto">
+                <Crown className="w-3 h-3 mr-1" />
+                ADMIN
+              </Badge>
+            </div>
+          </div>
 
-            <Card>
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Rechercher une clé..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
-                    <TabsList>
-                      <TabsTrigger value="all">Toutes</TabsTrigger>
-                      <TabsTrigger value="auto">Auto</TabsTrigger>
-                      <TabsTrigger value="manual">Manuelles</TabsTrigger>
-                      <TabsTrigger value="missing">Manquantes</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          {/* Actions Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder={t("admin.translations.searchKey")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 font-code"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => importStaticMutation.mutate()}
+                disabled={importStaticMutation.isPending}
+                className="font-code"
+              >
+                {importStaticMutation.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                )}
+                {t("admin.translations.importStatic")}
+              </Button>
+              <Button
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+                className="font-code"
+              >
+                {syncMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {t("admin.translations.translateMissing")}
+              </Button>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="mb-6">
+            <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+              <TabsList className="font-code">
+                <TabsTrigger value="all">{t("admin.translations.all")}</TabsTrigger>
+                <TabsTrigger value="auto">{t("admin.translations.auto")}</TabsTrigger>
+                <TabsTrigger value="manual">{t("admin.translations.manual")}</TabsTrigger>
+                <TabsTrigger value="missing">{t("admin.translations.missing")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Content */}
+          <div className="rounded-lg border border-border bg-card overflow-hidden">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {filteredKeys.length === 0 ? (
+                  <div className="text-center text-muted-foreground font-code py-12">
+                    Aucune traduction trouvée
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {filteredKeys.map((key) => (
-                      <div key={key} className="border rounded-lg p-4 space-y-3">
-                        <div className="font-mono text-sm text-muted-foreground">{key}</div>
-                        <div className="grid grid-cols-2 gap-4">
-                          {(["fr", "en"] as Language[]).map((lang) => {
-                            const translation = getTranslation(key, lang);
-                            const isEditing = editingKey === `${key}:${lang}`;
-                            const value = translation?.value || staticTranslations[key]?.[lang];
-                            const isFromDb = !!translation;
+                  filteredKeys.map((key) => (
+                    <div key={key} className="p-4 hover:bg-muted/30 transition-colors">
+                      <div className="font-mono text-xs text-muted-foreground mb-3">{key}</div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {(["fr", "en"] as Language[]).map((lang) => {
+                          const translation = getTranslation(key, lang);
+                          const isEditing = editingKey === `${key}:${lang}`;
+                          const value = translation?.value || staticTranslations[key]?.[lang];
+                          const isFromDb = !!translation;
 
-                            return (
-                              <div key={lang} className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant={lang === "fr" ? "default" : "secondary"}>
-                                    {lang.toUpperCase()}
+                          return (
+                            <div key={lang} className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={lang === "fr" ? "default" : "secondary"} className="font-code text-xs">
+                                  {lang.toUpperCase()}
+                                </Badge>
+                                {isFromDb && (
+                                  <Badge variant={translation.is_auto ? "outline" : "default"} className="text-xs">
+                                    {translation.is_auto ? t("admin.translations.auto") : "Manuel"}
                                   </Badge>
-                                  {isFromDb && (
-                                    <Badge variant={translation.is_auto ? "outline" : "default"} className="text-xs">
-                                      {translation.is_auto ? "Auto" : "Manuel"}
-                                    </Badge>
-                                  )}
-                                  {!isFromDb && value && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Statique
-                                    </Badge>
-                                  )}
-                                  {!value && (
-                                    <Badge variant="destructive" className="text-xs">
-                                      Manquant
-                                    </Badge>
-                                  )}
-                                </div>
-                                {isEditing ? (
-                                  <div className="flex gap-2">
-                                    <Input
-                                      value={editValue}
-                                      onChange={(e) => setEditValue(e.target.value)}
-                                      className="flex-1"
-                                    />
-                                    <Button
-                                      size="sm"
-                                      onClick={() => saveEdit(key)}
-                                      disabled={saveMutation.isPending}
-                                    >
-                                      <Check className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setEditingKey(null)}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <div
-                                    className="text-sm p-2 bg-muted/50 rounded cursor-pointer hover:bg-muted transition-colors"
-                                    onClick={() => startEdit(key, lang)}
-                                  >
-                                    {value || <span className="text-destructive italic">Non défini</span>}
-                                  </div>
+                                )}
+                                {!isFromDb && value && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {t("admin.translations.static")}
+                                  </Badge>
+                                )}
+                                {!value && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    {t("admin.translations.missing")}
+                                  </Badge>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
+                              {isEditing ? (
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="flex-1 font-code text-sm"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => saveEdit(key)}
+                                    disabled={saveMutation.isPending}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingKey(null)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div
+                                  className="text-sm font-code p-3 bg-background rounded-lg border border-border cursor-pointer hover:border-accent/50 transition-colors"
+                                  onClick={() => startEdit(key, lang)}
+                                >
+                                  {value || <span className="text-destructive italic">{t("admin.translations.notDefined")}</span>}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            )}
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+        </div>
+      </main>
+    </div>
   );
 };
 
