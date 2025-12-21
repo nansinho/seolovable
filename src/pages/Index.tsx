@@ -4,6 +4,7 @@ import Particles from "@/components/Particles";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import TypeWriter from "@/components/TypeWriter";
 import IntegrationLogos from "@/components/IntegrationLogos";
+import { LandingTestForm } from "@/components/landing/LandingTestForm";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
@@ -298,6 +299,13 @@ const Index = () => {
               <AnimatedSection delay={350}>
                 <div className="mt-12">
                   <IntegrationLogos lang={lang} />
+                </div>
+              </AnimatedSection>
+
+              {/* Test Form */}
+              <AnimatedSection delay={400}>
+                <div className="mt-16">
+                  <LandingTestForm />
                 </div>
               </AnimatedSection>
 
