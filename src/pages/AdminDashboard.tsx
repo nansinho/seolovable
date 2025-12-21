@@ -86,7 +86,7 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"users" | "sites">("users");
+  // Removed activeTab - only users tab now, sites are in /admin/sites
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
@@ -410,28 +410,16 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-border pb-4">
-          <Button
-            variant={activeTab === "users" ? "default" : "ghost"}
-            onClick={() => setActiveTab("users")}
-            className="font-code"
-          >
-            <Users className="w-4 h-4 mr-2" />
+        {/* Header with navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <h2 className="text-xl font-bold font-code flex items-center gap-2">
+            <Users className="w-5 h-5 text-accent" />
             Utilisateurs
-          </Button>
-          <Button
-            variant={activeTab === "sites" ? "default" : "ghost"}
-            onClick={() => setActiveTab("sites")}
-            className="font-code"
-          >
-            <Globe2 className="w-4 h-4 mr-2" />
-            Tous les sites
-          </Button>
+          </h2>
           <Link to="/admin/sites">
             <Button variant="outline" className="font-code">
               <Globe2 className="w-4 h-4 mr-2" />
-              Vue complète sites
+              Tous les sites
             </Button>
           </Link>
         </div>
@@ -441,27 +429,17 @@ const AdminDashboard = () => {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder={activeTab === "users" ? "Rechercher un utilisateur..." : "Rechercher un site..."}
+              placeholder="Rechercher un utilisateur..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 font-code"
             />
           </div>
-          {activeTab === "sites" && (
-            <Button
-              onClick={() => setAddSiteModalOpen(true)}
-              className="font-code glow-green"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un site
-            </Button>
-          )}
         </div>
 
-        {/* Users Tab */}
-        {activeTab === "users" && (
-          <div className="rounded-lg border border-border overflow-hidden">
-            <Table>
+        {/* Users Table */}
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="font-code">Email</TableHead>
@@ -627,77 +605,8 @@ const AdminDashboard = () => {
                   ))
                 )}
               </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {/* Sites Tab */}
-        {activeTab === "sites" && (
-          <div className="rounded-lg border border-border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-code">Site</TableHead>
-                  <TableHead className="font-code">URL</TableHead>
-                  <TableHead className="font-code">Statut</TableHead>
-                  <TableHead className="font-code">Pages</TableHead>
-                  <TableHead className="font-code">Créé le</TableHead>
-                  <TableHead className="font-code text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSites.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground font-code py-8">
-                      Aucun site trouvé
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredSites.map((site) => (
-                    <TableRow key={site.id}>
-                      <TableCell className="font-code font-medium">
-                        <div className="flex items-center gap-2">
-                          <Globe2 className="w-4 h-4 text-primary" />
-                          {site.name}
-                          {isUserAdmin(site.user_id) && (
-                            <Badge variant="outline" className="text-xs">Admin</Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-code text-muted-foreground">
-                        {site.url || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={site.status === "active" ? "default" : "secondary"}>
-                          {site.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-code">
-                        {site.pages_rendered.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="font-code text-muted-foreground">
-                        {new Date(site.created_at).toLocaleDateString("fr-FR")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSiteToDelete(site);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+          </Table>
+        </div>
       </main>
 
       {/* Delete Dialog */}
