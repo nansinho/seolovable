@@ -31,6 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { StatsSkeleton, AdminTableSkeleton } from "@/components/DashboardSkeleton";
 
 interface AdminUser {
   id: string;
@@ -266,7 +267,7 @@ const AdminDashboard = () => {
     return sites.filter(s => s.user_id === userId).length;
   };
 
-  if (adminLoading || loading) {
+  if (adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-primary font-code">Vérification des droits admin...</div>
@@ -275,6 +276,33 @@ const AdminDashboard = () => {
   }
 
   if (!isAdmin) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex">
+        <DashboardSidebar
+          mobileOpen={sidebarOpen}
+          onMobileClose={() => setSidebarOpen(false)}
+        />
+        <main className="flex-1 overflow-auto">
+          <div className="p-6 lg:p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <div>
+                <div className="h-8 w-40 bg-muted animate-pulse rounded mb-2" />
+                <div className="h-4 w-60 bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+            <StatsSkeleton />
+            <div className="mb-6 mt-8">
+              <div className="h-10 w-64 bg-muted animate-pulse rounded" />
+            </div>
+            <AdminTableSkeleton />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
