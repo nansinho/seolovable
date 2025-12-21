@@ -1,13 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { getCorsHeaders } from "../_shared/security.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[UPGRADE-SUBSCRIPTION] ${step}${detailsStr}`);
 };
@@ -49,6 +45,9 @@ const isDowngrade = (currentPriceId: string, newPlanId: string): boolean => {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -68,7 +67,7 @@ serve(async (req) => {
     }
 
     const newPlan = PLANS[planId as keyof typeof PLANS];
-    logStep("Plan selected", { planId, priceId: newPlan.priceId, preview });
+    logStep("Plan selected", { planId, preview });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -79,7 +78,7 @@ serve(async (req) => {
     
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -125,10 +124,6 @@ serve(async (req) => {
     
     logStep("Found active subscription", { 
       subscriptionId: subscription.id,
-      currentPriceId,
-      itemId: subscriptionItem.id,
-      billingCycleAnchor: new Date(subscription.billing_cycle_anchor * 1000).toISOString(),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
     });
 
     // Check if trying to switch to the same plan
@@ -167,10 +162,7 @@ serve(async (req) => {
       const renewalDate = new Date(subscription.current_period_end * 1000).toISOString();
 
       logStep("Proration preview calculated", { 
-        creditAmount: creditAmount / 100,
-        debitAmount: debitAmount / 100,
         amountDue: amountDue / 100,
-        renewalDate
       });
 
       return new Response(JSON.stringify({
@@ -208,14 +200,12 @@ serve(async (req) => {
         planType: newPlan.planType,
         sitesLimit: newPlan.sitesLimit.toString(),
         changedAt: new Date().toISOString(),
-        previousPriceId: currentPriceId,
         changeType: downgrade ? "downgrade" : "upgrade",
       }
     });
 
     logStep("Subscription updated successfully", { 
       subscriptionId: updatedSubscription.id,
-      newPriceId: newPlan.priceId,
       status: updatedSubscription.status,
       changeType: downgrade ? "downgrade" : "upgrade"
     });

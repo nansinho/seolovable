@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/security.ts";
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,7 +22,7 @@ serve(async (req) => {
 
     const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
 
-    console.log(`Translating from ${sourceLang} to ${targetLang}: "${text.substring(0, 50)}..."`);
+    console.log(`Translating from ${sourceLang} to ${targetLang}`);
 
     // Call LibreTranslate
     const translateResponse = await fetch(`${LIBRETRANSLATE_URL}/translate`, {
@@ -40,7 +39,7 @@ serve(async (req) => {
       const errorText = await translateResponse.text();
       console.error(`LibreTranslate error: ${translateResponse.status} - ${errorText}`);
       return new Response(
-        JSON.stringify({ error: "Translation service error", details: errorText }),
+        JSON.stringify({ error: "Translation service error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -48,7 +47,7 @@ serve(async (req) => {
     const translateResult = await translateResponse.json();
     const translatedText = translateResult.translatedText;
 
-    console.log(`Translation result: "${translatedText.substring(0, 50)}..."`);
+    console.log(`Translation completed`);
 
     // If a key is provided, save to database
     if (key) {
@@ -84,7 +83,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(null), "Content-Type": "application/json" } }
     );
   }
 });

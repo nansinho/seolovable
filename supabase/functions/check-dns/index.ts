@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/security.ts";
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
@@ -12,6 +8,9 @@ const logStep = (step: string, details?: unknown) => {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -30,13 +29,11 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
     logStep("Auth header received", {
       hasAuthHeader: !!authHeader,
-      authHeaderPrefix: authHeader?.slice(0, 12) ?? null,
     });
 
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    logStep("Token parsed", { tokenLength: token.length });
     if (!token) throw new Error("Empty token");
 
     // Create auth client WITH the user's token in global headers
@@ -84,7 +81,7 @@ serve(async (req) => {
 
     // Check user owns the site or is admin (use has_role with user_id since service_role has no auth context)
     const { data: isAdmin } = await supabaseAdmin.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    logStep("Authorization check", { siteUserId: site.user_id, currentUserId: user.id, isAdmin });
+    logStep("Authorization check", { isAdmin });
     
     if (site.user_id !== user.id && !isAdmin) {
       throw new Error("Not authorized to check this site");
@@ -115,7 +112,7 @@ serve(async (req) => {
     // Certains registrars attendent _seolovable (et ajoutent automatiquement le domaine),
     // d'autres demandent _seolovable.<domaine>. On teste les deux.
     const candidates = [`_seolovable.${domain}`, `_seolovable`];
-    logStep("Checking TXT record", { candidates, expectedToken: site.txt_record_token });
+    logStep("Checking TXT record", { candidates });
 
     let verified = false;
     let message = "";
@@ -147,7 +144,7 @@ serve(async (req) => {
           if (verified) break;
 
           if (!verified && txtRecords.length > 0 && !message) {
-            message = `TXT record trouvé mais ne correspond pas. Attendu: ${site.txt_record_token}`;
+            message = `TXT record trouvé mais ne correspond pas.`;
           }
         }
       }
@@ -196,7 +193,7 @@ serve(async (req) => {
       JSON.stringify({ success: false, error: errorMessage }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(null), "Content-Type": "application/json" },
       }
     );
   }

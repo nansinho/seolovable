@@ -1,13 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { getCorsHeaders } from "../_shared/security.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
@@ -28,6 +24,9 @@ const getValidPlanType = (productId: string): { planType: string; sitesLimit: nu
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -52,7 +51,7 @@ serve(async (req) => {
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -99,14 +98,12 @@ serve(async (req) => {
     if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
     } else {
-      logStep("Warning: current_period_end is invalid", { value: subscription.current_period_end });
+      logStep("Warning: current_period_end is invalid");
     }
 
     logStep("Active subscription found", { 
       subscriptionId: subscription.id,
-      productId,
       planType: planInfo.planType,
-      endDate: subscriptionEnd 
     });
 
     // Update user_plans in database

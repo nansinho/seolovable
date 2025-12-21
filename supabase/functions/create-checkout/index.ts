@@ -1,13 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { getCorsHeaders, ALLOWED_ORIGINS } from "../_shared/security.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
@@ -35,6 +31,9 @@ const PLANS = {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -53,14 +52,14 @@ serve(async (req) => {
     }
 
     const plan = PLANS[planId as keyof typeof PLANS];
-    logStep("Plan selected", { planId, priceId: plan.priceId });
+    logStep("Plan selected", { planId });
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -82,7 +81,6 @@ serve(async (req) => {
       if (existingSubscriptions.data.length > 0) {
         logStep("Found existing subscriptions to cancel", { 
           count: existingSubscriptions.data.length,
-          subscriptions: existingSubscriptions.data.map((s: Stripe.Subscription) => s.id)
         });
 
         // Cancel all existing subscriptions
@@ -95,7 +93,10 @@ serve(async (req) => {
       }
     }
 
-    const origin = req.headers.get("origin") || "https://dcjurgffzjpjxqpmqtkd.lovableproject.com";
+    // Use allowed origin for redirect URLs
+    const requestOrigin = origin && ALLOWED_ORIGINS.some(allowed => 
+      origin === allowed || origin.endsWith('.lovableproject.com')
+    ) ? origin : ALLOWED_ORIGINS[0];
     
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -107,8 +108,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/payment-success`,
-      cancel_url: `${origin}/upgrade?payment=canceled`,
+      success_url: `${requestOrigin}/payment-success`,
+      cancel_url: `${requestOrigin}/upgrade?payment=canceled`,
       metadata: {
         userId: user.id,
         planId: planId,
@@ -117,7 +118,7 @@ serve(async (req) => {
       }
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { sessionId: session.id });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
