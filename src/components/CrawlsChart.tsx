@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   AreaChart,
   Area,
@@ -23,36 +24,33 @@ interface CrawlsChartProps {
 }
 
 export function CrawlsChart({ botActivity }: CrawlsChartProps) {
+  const { t, lang } = useI18n();
+  const dateLocale = lang === "en" ? "en-US" : "fr-FR";
+
   const chartData = useMemo(() => {
-    // Group by date
     const grouped: Record<string, { date: string; google: number; ai: number; total: number }> = {};
 
     botActivity.forEach((activity) => {
-      const date = new Date(activity.crawled_at).toLocaleDateString("fr-FR", {
+      const date = new Date(activity.crawled_at).toLocaleDateString(dateLocale, {
         day: "2-digit",
         month: "short",
       });
 
-      if (!grouped[date]) {
-        grouped[date] = { date, google: 0, ai: 0, total: 0 };
-      }
+      if (!grouped[date]) grouped[date] = { date, google: 0, ai: 0, total: 0 };
 
-      if (activity.bot_type === "search") {
-        grouped[date].google += activity.pages_crawled;
-      } else {
-        grouped[date].ai += activity.pages_crawled;
-      }
+      if (activity.bot_type === "search") grouped[date].google += activity.pages_crawled;
+      else grouped[date].ai += activity.pages_crawled;
+
       grouped[date].total += activity.pages_crawled;
     });
 
-    // Convert to array and sort by date
     return Object.values(grouped).reverse();
-  }, [botActivity]);
+  }, [botActivity, dateLocale]);
 
   if (chartData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground font-code text-sm">
-        Aucune donnée disponible
+        {t("dashboard.chart.noData")}
       </div>
     );
   }
@@ -70,6 +68,7 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
             <stop offset="95%" stopColor="hsl(var(--secondary))" stopOpacity={0} />
           </linearGradient>
         </defs>
+
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis
           dataKey="date"
@@ -82,6 +81,7 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
           axisLine={{ stroke: "hsl(var(--border))" }}
           tickLine={{ stroke: "hsl(var(--border))" }}
         />
+
         <Tooltip
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
@@ -91,13 +91,12 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
           }}
           labelStyle={{ color: "hsl(var(--foreground))" }}
         />
-        <Legend
-          wrapperStyle={{ fontFamily: "monospace", fontSize: "12px" }}
-        />
+        <Legend wrapperStyle={{ fontFamily: "monospace", fontSize: "12px" }} />
+
         <Area
           type="monotone"
           dataKey="google"
-          name="Google"
+          name={t("dashboard.chart.google")}
           stroke="hsl(var(--primary))"
           fillOpacity={1}
           fill="url(#colorGoogle)"
@@ -106,7 +105,7 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
         <Area
           type="monotone"
           dataKey="ai"
-          name="IA"
+          name={t("dashboard.chart.ai")}
           stroke="hsl(var(--secondary))"
           fillOpacity={1}
           fill="url(#colorAI)"
