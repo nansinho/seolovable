@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,8 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 interface AdminUser {
   id: string;
@@ -63,10 +62,8 @@ interface UserPlan {
 }
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading, currentUserId } = useAdminCheck(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
@@ -83,15 +80,33 @@ const AdminDashboard = () => {
     totalCrawls: 0,
   });
 
-  const fetchData = async () => {
-    // Fetch all profiles (users with real emails)
-    const { data: profilesData } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, created_at")
-      .order("created_at", { ascending: false });
+  const fetchData = useCallback(async () => {
+    // Fetch all data in parallel for better performance
+    const [profilesResult, sitesResult, rolesResult, blockedResult, plansResult, crawlCountResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, email, full_name, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("sites")
+        .select("id, user_id, pages_rendered")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("user_roles")
+        .select("*"),
+      supabase
+        .from("blocked_users")
+        .select("*"),
+      supabase
+        .from("user_plans")
+        .select("user_id, plan_type, sites_limit"),
+      supabase
+        .from("bot_activity")
+        .select("*", { count: "exact", head: true }),
+    ]);
 
-    if (profilesData) {
-      const userList: AdminUser[] = profilesData.map(p => ({
+    if (profilesResult.data) {
+      const userList: AdminUser[] = profilesResult.data.map(p => ({
         id: p.id,
         email: p.email,
         created_at: p.created_at,
@@ -99,88 +114,29 @@ const AdminDashboard = () => {
       setUsers(userList);
     }
 
-    // Fetch all sites
-    const { data: sitesData } = await supabase
-      .from("sites")
-      .select("id, user_id, pages_rendered")
-      .order("created_at", { ascending: false });
-
-    if (sitesData) setSites(sitesData);
-
-    // Fetch user roles
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("*");
-
-    if (rolesData) setUserRoles(rolesData);
-
-    // Fetch blocked users
-    const { data: blockedData } = await supabase
-      .from("blocked_users")
-      .select("*");
-
-    if (blockedData) setBlockedUsers(blockedData);
-
-    // Fetch user plans
-    const { data: plansData } = await supabase
-      .from("user_plans")
-      .select("user_id, plan_type, sites_limit");
-
-    if (plansData) setUserPlans(plansData);
+    if (sitesResult.data) setSites(sitesResult.data);
+    if (rolesResult.data) setUserRoles(rolesResult.data);
+    if (blockedResult.data) setBlockedUsers(blockedResult.data);
+    if (plansResult.data) setUserPlans(plansResult.data);
 
     // Calculate stats
-    const totalSites = sitesData?.length || 0;
-    const totalPages = sitesData?.reduce((sum, s) => sum + s.pages_rendered, 0) || 0;
-
-    const { count: crawlCount } = await supabase
-      .from("bot_activity")
-      .select("*", { count: "exact", head: true });
+    const totalSites = sitesResult.data?.length || 0;
+    const totalPages = sitesResult.data?.reduce((sum, s) => sum + s.pages_rendered, 0) || 0;
 
     setStats({
-      totalUsers: profilesData?.length || 0,
+      totalUsers: profilesResult.data?.length || 0,
       totalSites,
       totalPages,
-      totalCrawls: crawlCount || 0,
+      totalCrawls: crawlCountResult.count || 0,
     });
-  };
-
-  const { checkIfBlocked } = useBlockedUserCheck();
+    
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    const checkAdminAndFetch = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      // Check if user is blocked first
-      const isBlocked = await checkIfBlocked(session.user.id);
-      if (isBlocked) return;
-
-      setCurrentUserId(session.user.id);
-
-      // Check if user is admin
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (!roleData) {
-        toast.error("Accès refusé - Admin uniquement");
-        navigate("/dashboard");
-        return;
-      }
-
-      setIsAdmin(true);
-      await fetchData();
-      setLoading(false);
-    };
-
-    checkAdminAndFetch();
-  }, [navigate, checkIfBlocked]);
+    if (adminLoading || !isAdmin) return;
+    fetchData();
+  }, [adminLoading, isAdmin, fetchData]);
 
   const isUserAdmin = (userId: string) => {
     return userRoles.some(r => r.user_id === userId && r.role === "admin");
@@ -310,7 +266,7 @@ const AdminDashboard = () => {
     return sites.filter(s => s.user_id === userId).length;
   };
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-primary font-code">Vérification des droits admin...</div>

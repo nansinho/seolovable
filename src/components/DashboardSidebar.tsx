@@ -17,12 +17,13 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAdminCheck, clearAdminCache } from "@/hooks/useAdminCheck";
 
 interface DashboardSidebarProps {
   mobileOpen?: boolean;
@@ -45,25 +46,8 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin } = useAdminCheck(false);
   const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      
-      setIsAdmin(!!roleData);
-    };
-    checkAdmin();
-  }, []);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -76,6 +60,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   };
 
   const handleLogout = async () => {
+    clearAdminCache();
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Erreur lors de la déconnexion");
