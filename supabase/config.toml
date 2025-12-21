@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.sync-translations]
 verify_jwt = false
+
+[functions.prerender-proxy]
+verify_jwt = false
