@@ -493,7 +493,14 @@ interface I18nContextType {
   isLoading: boolean;
 }
 
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
+const defaultContext: I18nContextType = {
+  lang: "fr",
+  setLang: () => {},
+  t: (key: string) => staticTranslations[key]?.fr || key,
+  isLoading: false,
+};
+
+const I18nContext = createContext<I18nContextType>(defaultContext);
 
 const STORAGE_KEY = "seolovable-lang";
 
@@ -547,11 +554,7 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useI18n = () => {
-  const context = useContext(I18nContext);
-  if (!context) {
-    throw new Error("useI18n must be used within an I18nProvider");
-  }
-  return context;
+  return useContext(I18nContext);
 };
 
 // Export static translations for admin interface
