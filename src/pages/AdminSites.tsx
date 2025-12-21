@@ -11,14 +11,15 @@ import {
   AlertTriangle,
   Trash2,
   User,
-  ArrowLeft,
   Plus,
-  Calendar
+  Calendar,
+  Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { AdminAddSiteModal } from "@/components/AdminAddSiteModal";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -181,22 +182,20 @@ const AdminSites = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
               <MobileMenuButton onClick={() => setSidebarOpen(true)} />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate("/admin")}
-                className="font-code"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour Admin
-              </Button>
+              <div>
+                <h1 className="text-2xl font-bold font-code flex items-center gap-2">
+                  <Globe2 className="w-6 h-6 text-accent" />
+                  Tous les sites
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {sites.length} sites au total
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold font-code">Tous les sites</h1>
-              <p className="text-muted-foreground text-sm">
-                {sites.length} sites au total
-              </p>
-            </div>
+            <Badge className="font-code bg-accent text-accent-foreground self-start sm:self-auto">
+              <Crown className="w-3 h-3 mr-1" />
+              ADMIN
+            </Badge>
           </div>
 
           {/* Search and Add button */}

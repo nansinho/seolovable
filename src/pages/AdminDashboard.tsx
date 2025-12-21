@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft,
   Users,
-  Globe2,
-  Shield,
-  Trash2,
-  Plus,
   Search,
   Ban,
   Crown,
@@ -28,16 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -45,8 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AdminAddSiteModal } from "@/components/AdminAddSiteModal";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
+import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 
 interface AdminUser {
   id: string;
@@ -56,12 +41,8 @@ interface AdminUser {
 
 interface Site {
   id: string;
-  name: string;
-  url: string | null;
-  status: string;
-  pages_rendered: number;
   user_id: string;
-  created_at: string;
+  pages_rendered: number;
 }
 
 interface UserRole {
@@ -83,19 +64,16 @@ interface UserPlan {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  // Removed activeTab - only users tab now, sites are in /admin/sites
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [userPlans, setUserPlans] = useState<UserPlan[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
-  const [addSiteModalOpen, setAddSiteModalOpen] = useState(false);
 
   // Stats
   const [stats, setStats] = useState({
@@ -124,7 +102,7 @@ const AdminDashboard = () => {
     // Fetch all sites
     const { data: sitesData } = await supabase
       .from("sites")
-      .select("*")
+      .select("id, user_id, pages_rendered")
       .order("created_at", { ascending: false });
 
     if (sitesData) setSites(sitesData);
@@ -165,6 +143,7 @@ const AdminDashboard = () => {
       totalCrawls: crawlCount || 0,
     });
   };
+
   const { checkIfBlocked } = useBlockedUserCheck();
 
   useEffect(() => {
@@ -203,25 +182,6 @@ const AdminDashboard = () => {
     checkAdminAndFetch();
   }, [navigate, checkIfBlocked]);
 
-  const handleDeleteSite = async () => {
-    if (!siteToDelete) return;
-
-    const { error } = await supabase
-      .from("sites")
-      .delete()
-      .eq("id", siteToDelete.id);
-
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-    } else {
-      toast.success("Site supprimé");
-      setSites(sites.filter(s => s.id !== siteToDelete.id));
-    }
-
-    setDeleteDialogOpen(false);
-    setSiteToDelete(null);
-  };
-
   const isUserAdmin = (userId: string) => {
     return userRoles.some(r => r.user_id === userId && r.role === "admin");
   };
@@ -235,7 +195,6 @@ const AdminDashboard = () => {
   };
 
   const handleChangePlan = async (userId: string, planType: string) => {
-    // Map plan types to sites_limit (business = 999 sites as "unlimited" equivalent)
     const planLimits: Record<string, number> = {
       free: 1,
       starter: 1,
@@ -342,17 +301,11 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredSites = sites.filter(site =>
-    site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    site.url?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const filteredUsers = users.filter(user =>
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get site count per user
   const getSiteCount = (userId: string) => {
     return sites.filter(s => s.user_id === userId).length;
   };
@@ -368,78 +321,72 @@ const AdminDashboard = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-8">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-accent/20 border border-accent flex items-center justify-center">
-              <Shield className="w-4 h-4 text-accent" />
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <DashboardSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+              <div>
+                <h1 className="text-2xl font-bold font-code flex items-center gap-2">
+                  <Users className="w-6 h-6 text-accent" />
+                  Utilisateurs
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  Gestion des utilisateurs et des rôles
+                </p>
+              </div>
             </div>
-            <span className="font-code font-bold text-accent">Admin</span>
+            <Badge className="font-code bg-accent text-accent-foreground self-start sm:self-auto">
+              <Crown className="w-3 h-3 mr-1" />
+              ADMIN
+            </Badge>
           </div>
-        </div>
-        <Badge className="font-code bg-accent text-accent-foreground">
-          <Crown className="w-3 h-3 mr-1" />
-          ADMIN
-        </Badge>
-      </header>
 
-      {/* Content */}
-      <main className="p-4 lg:p-8 max-w-7xl mx-auto space-y-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Utilisateurs</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalUsers}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Utilisateurs</p>
+              <p className="text-2xl font-bold font-code text-accent">{stats.totalUsers}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Sites totaux</p>
+              <p className="text-2xl font-bold font-code text-accent">{stats.totalSites}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Pages rendues</p>
+              <p className="text-2xl font-bold font-code text-accent">{stats.totalPages.toLocaleString()}</p>
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-xs text-muted-foreground font-code mb-1">Total crawls</p>
+              <p className="text-2xl font-bold font-code text-accent">{stats.totalCrawls.toLocaleString()}</p>
+            </div>
           </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Sites totaux</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalSites}</p>
-          </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Pages rendues</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalPages.toLocaleString()}</p>
-          </div>
-          <div className="p-4 lg:p-6 rounded-lg border border-accent/30 bg-card">
-            <p className="text-xs text-muted-foreground font-code mb-2">Total crawls</p>
-            <p className="text-2xl lg:text-3xl font-bold font-code text-accent">{stats.totalCrawls.toLocaleString()}</p>
-          </div>
-        </div>
 
-        {/* Header with navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-          <h2 className="text-xl font-bold font-code flex items-center gap-2">
-            <Users className="w-5 h-5 text-accent" />
-            Utilisateurs
-          </h2>
-          <Link to="/admin/sites">
-            <Button variant="outline" className="font-code">
-              <Globe2 className="w-4 h-4 mr-2" />
-              Tous les sites
-            </Button>
-          </Link>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un utilisateur..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 font-code"
-            />
+          {/* Search */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un utilisateur..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 font-code"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Users Table */}
-        <div className="rounded-lg border border-border overflow-hidden">
-          <Table>
+          {/* Users Table */}
+          <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="font-code">Email</TableHead>
@@ -605,39 +552,10 @@ const AdminDashboard = () => {
                   ))
                 )}
               </TableBody>
-          </Table>
+            </Table>
+          </div>
         </div>
       </main>
-
-      {/* Delete Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-code">Supprimer le site</AlertDialogTitle>
-            <AlertDialogDescription>
-              Voulez-vous vraiment supprimer <strong>{siteToDelete?.name}</strong> ? 
-              Cette action est irréversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="font-code">Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteSite}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-code"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Add Site Modal */}
-      <AdminAddSiteModal
-        open={addSiteModalOpen}
-        onOpenChange={setAddSiteModalOpen}
-        onSiteAdded={fetchData}
-        users={users}
-      />
     </div>
   );
 };
