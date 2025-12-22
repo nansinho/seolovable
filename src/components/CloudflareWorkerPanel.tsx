@@ -22,8 +22,9 @@ export function CloudflareWorkerPanel({ prerenderToken, siteUrl }: CloudflareWor
     domain = siteUrl;
   }
 
-  // Get Supabase URL from env
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  // Backend base URL + public key (safe to expose)
+  const backendUrl = import.meta.env.VITE_SUPABASE_URL;
+  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   const workerCode = `// SEOLovable Cloudflare Worker - Prerender avec tracking
 // Site: ${siteUrl}
@@ -45,7 +46,8 @@ const PRERENDER_SERVICE = 'https://prerender.seolovable.fr';
 
 // Token et config
 const PRERENDER_TOKEN = '${prerenderToken}';
-const LOG_ENDPOINT = '${supabaseUrl}/functions/v1/log-prerender';
+const LOG_ENDPOINT = '${backendUrl}/functions/v1/log-prerender';
+const API_KEY = '${publishableKey}';
 
 const IGNORE_EXTENSIONS = [
   '.js', '.css', '.xml', '.less', '.png', '.jpg', '.jpeg', '.gif', '.pdf',
@@ -59,15 +61,19 @@ async function logPrerender(url, userAgent, cached, renderTimeMs) {
     const domain = new URL(url).hostname;
     await fetch(LOG_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Supabase functions still expect an API key even when verify_jwt=false
+        'apikey': API_KEY,
+      },
       body: JSON.stringify({
         token: PRERENDER_TOKEN,
         domain,
         url,
         cached,
         user_agent: userAgent,
-        render_time_ms: renderTimeMs
-      })
+        render_time_ms: renderTimeMs,
+      }),
     });
   } catch (e) {
     console.error('Log error:', e);
