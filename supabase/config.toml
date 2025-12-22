@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.log-prerender]
 verify_jwt = false
+
+[functions.translate-single]
+verify_jwt = false
