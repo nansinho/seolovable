@@ -25,10 +25,9 @@ export function CloudflareWorkerPanel({ prerenderToken, siteUrl }: CloudflareWor
   // Get Supabase URL from env
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-  const workerCode = `// SEOLovable Cloudflare Worker - Prerender avec tracking fiable
+  const workerCode = `// SEOLovable Cloudflare Worker - Prerender avec tracking
 // Site: ${siteUrl}
 // Token: ${prerenderToken}
-// Version: 2.0 - URL encoding + fallback + waitUntil logging
 
 const BOT_AGENTS = [
   'googlebot', 'bingbot', 'yandex', 'baiduspider', 'facebookexternalhit',
@@ -42,11 +41,10 @@ const BOT_AGENTS = [
 ];
 
 // URL du service de prerendering
-const PRERENDER_SERVICE = 'https://prerender.seolovable.cloud';
+const PRERENDER_SERVICE = 'https://prerender.seolovable.fr';
 
 // Token et config
 const PRERENDER_TOKEN = '${prerenderToken}';
-const SITE_URL = '${siteUrl}';
 const LOG_ENDPOINT = '${supabaseUrl}/functions/v1/log-prerender';
 
 const IGNORE_EXTENSIONS = [
@@ -56,11 +54,10 @@ const IGNORE_EXTENSIONS = [
   '.woff2', '.ttf', '.svg', '.eot', '.webp', '.webm', '.mp4', '.m4a', '.swf'
 ];
 
-// Logging fiable avec waitUntil
-async function logPrerender(url, userAgent, cached, renderTimeMs, source) {
+async function logPrerender(url, userAgent, cached, renderTimeMs) {
   try {
     const domain = new URL(url).hostname;
-    const response = await fetch(LOG_ENDPOINT, {
+    await fetch(LOG_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,35 +66,18 @@ async function logPrerender(url, userAgent, cached, renderTimeMs, source) {
         url,
         cached,
         user_agent: userAgent,
-        render_time_ms: renderTimeMs,
-        source: source // Pour debug: quel format a fonctionné
+        render_time_ms: renderTimeMs
       })
     });
-    if (!response.ok) {
-      console.error('Log failed:', response.status, await response.text());
-    }
   } catch (e) {
     console.error('Log error:', e);
   }
 }
 
-// Tente un format d'URL prerender
-async function tryPrerender(prerenderUrl, userAgent) {
-  const response = await fetch(prerenderUrl, {
-    headers: {
-      'User-Agent': userAgent,
-      'X-Prerender-Token': PRERENDER_TOKEN
-    },
-    cf: { cacheTtl: 0 } // Pas de cache CF pour le debug
-  });
-  return response;
-}
-
-async function handleRequest(request, ctx) {
+async function handleRequest(request) {
   const url = new URL(request.url);
   const userAgent = request.headers.get('User-Agent') || '';
   const pathname = url.pathname.toLowerCase();
-  const isDebug = url.searchParams.has('__prerender_debug');
 
   // Ignore static files
   for (const ext of IGNORE_EXTENSIONS) {
@@ -111,105 +91,46 @@ async function handleRequest(request, ctx) {
     userAgent.toLowerCase().includes(bot.toLowerCase())
   );
 
-  if (!isBot && !isDebug) {
+  if (!isBot) {
     return fetch(request);
   }
 
+  // Prerender for bots
   const startTime = Date.now();
-  const fullUrl = url.toString();
+  const prerenderUrl = \`\${PRERENDER_SERVICE}/\${encodeURIComponent(url.toString())}?token=\${PRERENDER_TOKEN}\`;
   
-  // Format A: URL encodée (recommandé)
-  const encodedUrl = encodeURIComponent(fullUrl);
-  const prerenderUrlA = PRERENDER_SERVICE + '/' + encodedUrl;
-  
-  // Format B: Token + path (fallback legacy)
-  const prerenderUrlB = PRERENDER_SERVICE + '/' + PRERENDER_TOKEN + url.pathname + url.search;
-
-  let response = null;
-  let source = 'none';
-  let lastError = null;
-
-  // Essayer Format A d'abord
   try {
-    response = await tryPrerender(prerenderUrlA, userAgent);
-    if (response.ok || response.status === 304) {
-      source = 'encodedUrl';
-    } else {
-      console.log('Format A failed:', response.status);
-      response = null;
-    }
-  } catch (e) {
-    console.error('Format A error:', e);
-    lastError = e;
-  }
-
-  // Fallback Format B si A a échoué
-  if (!response) {
-    try {
-      response = await tryPrerender(prerenderUrlB, userAgent);
-      if (response.ok || response.status === 304) {
-        source = 'tokenPath';
-      } else {
-        console.log('Format B failed:', response.status);
-        response = null;
-      }
-    } catch (e) {
-      console.error('Format B error:', e);
-      lastError = e;
-    }
-  }
-
-  // Si les deux ont échoué, retourner la page originale
-  if (!response) {
-    console.error('All prerender formats failed, serving original');
-    const originalResponse = await fetch(request);
-    return new Response(originalResponse.body, {
-      status: originalResponse.status,
+    const response = await fetch(prerenderUrl, {
       headers: {
-        ...Object.fromEntries(originalResponse.headers),
-        'X-Prerender-Status': 'fallback',
-        'X-Prerender-Error': lastError ? lastError.message : 'All formats failed'
-      }
+        'User-Agent': userAgent,
+        'X-Prerender-Token': PRERENDER_TOKEN
+      },
     });
+    
+    const renderTimeMs = Date.now() - startTime;
+    const cached = response.headers.get('X-Prerender-Cache') === 'HIT';
+    
+    // Log the prerender (non-blocking)
+    logPrerender(url.toString(), userAgent, cached, renderTimeMs);
+    
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'X-Prerender-Status': 'rendered',
+        'X-Prerender-Time': renderTimeMs.toString() + 'ms',
+        'X-Prerender-Cache': cached ? 'HIT' : 'MISS'
+      },
+    });
+  } catch (error) {
+    console.error('Prerender error:', error);
+    return fetch(request);
   }
-  
-  const renderTimeMs = Date.now() - startTime;
-  const cached = response.headers.get('X-Prerender-Cache') === 'HIT';
-  
-  // Log avec waitUntil pour fiabilité (non-blocking mais garanti)
-  if (ctx && ctx.waitUntil) {
-    ctx.waitUntil(logPrerender(fullUrl, userAgent, cached, renderTimeMs, source));
-  } else {
-    // Fallback si pas de ctx
-    logPrerender(fullUrl, userAgent, cached, renderTimeMs, source);
-  }
-  
-  // Headers de debug
-  const responseHeaders = {
-    'Content-Type': 'text/html; charset=utf-8',
-    'X-Prerender-Status': 'rendered',
-    'X-Prerender-Source': source,
-    'X-Prerender-Time': renderTimeMs + 'ms',
-    'X-Prerender-Cache': cached ? 'HIT' : 'MISS'
-  };
-  
-  if (isDebug) {
-    responseHeaders['X-Prerender-Debug'] = 'true';
-    responseHeaders['X-Prerender-URL-A'] = prerenderUrlA;
-    responseHeaders['X-Prerender-URL-B'] = prerenderUrlB;
-  }
-  
-  return new Response(response.body, {
-    status: response.status,
-    headers: responseHeaders
-  });
 }
 
-export default {
-  async fetch(request, env, ctx) {
-    return handleRequest(request, ctx);
-  }
-};`;
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});`;
 
   const handleCopyWorker = async () => {
     await navigator.clipboard.writeText(workerCode);
