@@ -79,30 +79,29 @@ export const config = {
   const handleCopyToken = async () => {
     await navigator.clipboard.writeText(prerenderToken);
     setCopiedToken(true);
-    toast.success(t("integration.tokenCopied") || "Token copié");
+    toast.success(t("integration.tokenCopied"));
     setTimeout(() => setCopiedToken(false), 2000);
   };
 
   const handleCopyCode = async () => {
     await navigator.clipboard.writeText(middlewareCode);
     setCopiedCode(true);
-    toast.success(t("integration.codeCopied") || "Code copié");
+    toast.success(t("integration.codeCopied"));
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
   return (
-    <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+    <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
       <div className="flex items-center gap-2 mb-4">
         <Code className="w-5 h-5 text-accent" />
         <h3 className="text-base font-semibold font-code text-foreground">
-          {t("integration.title") || "Intégration Prerender"}
+          {t("integration.title")}
         </h3>
       </div>
 
-      {/* Token Section */}
       <div className="mb-4">
         <label className="text-xs text-muted-foreground font-code block mb-2">
-          {t("integration.yourToken") || "Votre token Prerender"}
+          {t("integration.yourToken")}
         </label>
         <div className="flex items-center gap-2">
           <code className="flex-1 px-3 py-2 rounded bg-muted font-mono text-sm text-foreground break-all">
@@ -129,12 +128,12 @@ export const config = {
             {copiedCode ? (
               <>
                 <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
-                {t("integration.copied") || "Copié"}
+                {t("integration.copied")}
               </>
             ) : (
               <>
                 <Copy className="w-3 h-3 mr-1" />
-                {t("integration.copyCode") || "Copier le code"}
+                {t("integration.copyCode")}
               </>
             )}
           </Button>
@@ -147,13 +146,12 @@ export const config = {
       </div>
 
       {/* Instructions */}
-      <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+      <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
         <p className="text-xs text-muted-foreground font-code">
           <span className="text-foreground font-medium">
-            {t("integration.instructions") || "Instructions :"}
+            {t("integration.instructions")} :
           </span>{" "}
-          {t("integration.instructionsDetail") || 
-            "Copiez ce fichier middleware.ts à la racine de votre projet Next.js. Il détectera automatiquement les bots et servira le contenu prérendu."}
+          {t("integration.instructionsDetail")}
         </p>
       </div>
     </div>

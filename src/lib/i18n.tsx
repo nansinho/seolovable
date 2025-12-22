@@ -12,6 +12,34 @@ interface TranslationRow {
 
 // Fallback static translations
 const staticTranslations: Record<string, Record<Language, string>> = {
+  // Integration Panel
+  "integration.title": { fr: "Intégration Prerender", en: "Prerender Integration" },
+  "integration.yourToken": { fr: "Votre token Prerender", en: "Your Prerender token" },
+  "integration.tokenCopied": { fr: "Token copié !", en: "Token copied!" },
+  "integration.copied": { fr: "Copié", en: "Copied" },
+  "integration.copy": { fr: "Copier", en: "Copy" },
+  "integration.copyCode": { fr: "Copier le code", en: "Copy code" },
+  "integration.codeCopied": { fr: "Code copié !", en: "Code copied!" },
+  "integration.instructions": { fr: "Instructions", en: "Instructions" },
+  "integration.instructionsDetail": { fr: "Copiez ce fichier middleware.ts à la racine de votre projet Next.js. Il détectera automatiquement les bots et servira le contenu prérendu.", en: "Copy this middleware.ts file to the root of your Next.js project. It will automatically detect bots and serve prerendered content." },
+  "integration.middlewareTitle": { fr: "Middleware Next.js", en: "Next.js Middleware" },
+
+  // Prerender Stats
+  "prerenderStats.title": { fr: "Statistiques Prerender", en: "Prerender Statistics" },
+  "prerenderStats.total": { fr: "Total rendus", en: "Total renders" },
+  "prerenderStats.cached": { fr: "Cache", en: "Cached" },
+  "prerenderStats.fresh": { fr: "Frais", en: "Fresh" },
+  "prerenderStats.cacheRate": { fr: "Taux de cache", en: "Cache rate" },
+  "prerenderStats.last6months": { fr: "6 derniers mois", en: "Last 6 months" },
+  "prerenderStats.recentLogs": { fr: "Derniers logs", en: "Recent logs" },
+  "prerenderStats.noLogs": { fr: "Aucun log pour le moment", en: "No logs yet" },
+
+  // Dashboard extras
+  "dashboard.renders": { fr: "rendus", en: "renders" },
+  "dashboard.chart.cached": { fr: "Cache", en: "Cached" },
+  "dashboard.chart.fresh": { fr: "Frais", en: "Fresh" },
+  "dashboard.chart.noData": { fr: "Aucune donnée disponible", en: "No data available" },
+
   // Navigation
   "nav.home": { fr: "Accueil", en: "Home" },
   "nav.how": { fr: "Comment ça marche", en: "How it works" },
@@ -146,8 +174,7 @@ const staticTranslations: Record<string, Record<Language, string>> = {
   "dashboard.recentActivity": { fr: "Activité récente", en: "Recent activity" },
   "dashboard.noRecentActivity": { fr: "Aucune activité récente", en: "No recent activity" },
 
-  // Dashboard chart
-  "dashboard.chart.noData": { fr: "Aucune donnée disponible", en: "No data available" },
+  // Dashboard chart (already defined above)
   "dashboard.chart.google": { fr: "Google", en: "Google" },
   "dashboard.chart.ai": { fr: "IA", en: "AI" },
 

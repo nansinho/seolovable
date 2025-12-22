@@ -259,10 +259,6 @@ const SiteDetails = () => {
 
   if (!site) return null;
 
-  const totalCrawls = botActivity.length;
-  const totalPages = botActivity.reduce((sum, a) => sum + a.pages_crawled, 0);
-  const googleCrawls = botActivity.filter((a) => a.bot_type === "search").length;
-  const aiCrawls = botActivity.filter((a) => a.bot_type === "ai").length;
   const domain = getDomain(site.url);
 
   return (
@@ -312,7 +308,7 @@ const SiteDetails = () => {
           </div>
 
           {/* Site Info Card */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+          <div className="p-4 lg:p-6 rounded-xl border border-border bg-card mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-center">
@@ -373,7 +369,7 @@ const SiteDetails = () => {
           </div>
 
           {/* DNS Configuration Card */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+          <div className="p-4 lg:p-6 rounded-xl border border-border bg-card mb-6">
             <h3 className="text-base font-semibold font-code text-foreground mb-4">{t("siteDetails.dnsConfig")}</h3>
             <DnsStatusBadge dnsVerified={site.dns_verified} txtRecordToken={site.txt_record_token} cnameTarget={site.cname_target} status={site.status} onVerify={handleVerifyDns} isVerifying={verifyingDns} domain={domain} />
             {site.txt_record_token && (
@@ -403,8 +399,8 @@ const SiteDetails = () => {
             )}
           </div>
 
-          {/* Integration Panel - Token + Middleware Code */}
-          {site.prerender_token && site.dns_verified && (
+          {/* Integration Panel - Token + Middleware Code (toujours visible) */}
+          {site.prerender_token && (
             <div className="mb-6">
               <SiteIntegrationPanel prerenderToken={site.prerender_token} />
             </div>
@@ -415,59 +411,6 @@ const SiteDetails = () => {
             <SitePrerenderStats siteId={site.id} />
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="p-4 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-1">{t("siteDetails.totalCrawls")}</p>
-              <p className="text-2xl font-semibold font-code text-foreground">{totalCrawls}</p>
-            </div>
-            <div className="p-4 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-1">{t("siteDetails.pagesCrawled")}</p>
-              <p className="text-2xl font-semibold font-code text-foreground">{totalPages.toLocaleString()}</p>
-            </div>
-            <div className="p-4 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-1">{t("siteDetails.googleCrawls")}</p>
-              <p className="text-2xl font-semibold font-code text-foreground">{googleCrawls}</p>
-            </div>
-            <div className="p-4 rounded-lg border border-border bg-card">
-              <p className="text-xs text-muted-foreground font-code mb-1">{t("siteDetails.aiCrawls")}</p>
-              <p className="text-2xl font-semibold font-code text-foreground">{aiCrawls}</p>
-            </div>
-          </div>
-
-          {/* Crawl History */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold font-code text-foreground">{t("siteDetails.crawlHistory")}</h2>
-              <span className="text-xs text-muted-foreground font-code">
-                {botActivity.length} {t("siteDetails.activities")}
-              </span>
-            </div>
-
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {botActivity.length === 0 ? (
-                <p className="text-sm text-muted-foreground font-code text-center py-8">{t("siteDetails.noActivity")}</p>
-              ) : (
-                botActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                    <div className="flex items-center gap-3">
-                      {activity.bot_type === "search" ? <Search className="w-4 h-4 text-accent" /> : <Bot className="w-4 h-4 text-accent" />}
-                      <span className="font-code text-sm text-foreground">{activity.bot_name}</span>
-                      <span className="text-xs text-muted-foreground font-code px-2 py-0.5 rounded bg-muted">
-                        {activity.bot_type === "search" ? t("siteDetails.searchEngine") : t("siteDetails.ai")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-muted-foreground font-code">
-                        {activity.pages_crawled} {t("siteDetails.pages")}
-                      </span>
-                      <span className="text-xs text-muted-foreground font-code">{new Date(activity.crawled_at).toLocaleString(dateLocale)}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
       </main>
 
