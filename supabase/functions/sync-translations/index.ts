@@ -43,27 +43,34 @@ serve(async (req) => {
 
     let keysToTranslate: { key: string; value: string }[] = [];
 
+    // Get existing EN translations
+    const { data: enTranslations, error: enError } = await supabase
+      .from("translations")
+      .select("key, is_auto")
+      .eq("lang", "en");
+
+    if (enError) {
+      console.error("Error fetching EN translations:", enError);
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch target translations" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const existingEnKeys = new Map((enTranslations || []).map((t) => [t.key, t.is_auto]));
+
     if (forceRetranslate) {
-      // Force mode: re-translate ALL keys
-      console.log("Force mode: will re-translate all EN translations");
-      keysToTranslate = frTranslations || [];
+      // Force mode: re-translate keys that are NOT already is_auto=true
+      // This converts manual translations to API translations
+      console.log("Force mode: will re-translate non-API EN translations");
+      keysToTranslate = (frTranslations || []).filter((t) => {
+        const isAuto = existingEnKeys.get(t.key);
+        // Include if: no EN exists, or EN exists but is manual (is_auto=false)
+        return isAuto === undefined || isAuto === false;
+      });
     } else {
       // Normal mode: only translate missing keys
-      const { data: enTranslations, error: enError } = await supabase
-        .from("translations")
-        .select("key")
-        .eq("lang", "en");
-
-      if (enError) {
-        console.error("Error fetching EN translations:", enError);
-        return new Response(
-          JSON.stringify({ error: "Failed to fetch target translations" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const existingEnKeys = new Set(enTranslations?.map((t) => t.key) || []);
-      keysToTranslate = frTranslations?.filter((t) => !existingEnKeys.has(t.key)) || [];
+      keysToTranslate = (frTranslations || []).filter((t) => !existingEnKeys.has(t.key));
     }
 
     console.log(`Found ${keysToTranslate.length} keys to translate (force=${forceRetranslate})`);
