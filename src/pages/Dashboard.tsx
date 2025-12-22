@@ -178,43 +178,75 @@ const Dashboard = () => {
         setPendingSeoTestOpen(true);
       }
       
-      // Fetch all data in parallel for better performance
-      const [sitesResult, planResult, activityResult, statsResult] = await Promise.all([
-        supabase
-          .from("sites")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false }),
+      // Fetch sites first
+      const sitesResult = await supabase
+        .from("sites")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      const userSites = sitesResult.data || [];
+      const siteIds = userSites.map(s => s.id);
+      
+      // Fetch rest in parallel
+      const [planResult, activityResult] = await Promise.all([
         supabase
           .from("user_plans")
           .select("plan_type, sites_limit")
           .eq("user_id", userId)
           .maybeSingle(),
-        supabase
-          .from("prerender_logs")
-          .select("id, created_at, cached, url, domain, user_agent, site_id")
-          .order("created_at", { ascending: false })
-          .limit(20),
-        supabase
-          .from("daily_stats")
-          .select("*")
-          .eq("date", new Date().toISOString().split("T")[0])
-          .maybeSingle(),
+        // Fetch prerender_logs for user's sites only (plus de logs pour les stats)
+        siteIds.length > 0 
+          ? supabase
+              .from("prerender_logs")
+              .select("id, created_at, cached, url, domain, user_agent, site_id")
+              .in("site_id", siteIds)
+              .order("created_at", { ascending: false })
+              .limit(100)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      if (sitesResult.data) setSites(sitesResult.data);
+      if (userSites) setSites(userSites);
       if (planResult.data) setUserPlan(planResult.data);
-      if (activityResult.data) setPrerenderLogs(activityResult.data);
       
-      if (statsResult.data) {
+      const logs = activityResult.data || [];
+      if (logs.length > 0) {
+        setPrerenderLogs(logs);
+        
+        // Calculer les stats en temps réel à partir des prerender_logs
+        const today = new Date().toISOString().split("T")[0];
+        const todayLogs = logs.filter(l => l.created_at.startsWith(today));
+        
+        // Total pages rendues aujourd'hui
+        const totalRendered = todayLogs.length;
+        
+        // Compter les bots uniques (par user_agent simplifié)
+        const botUserAgents = new Set(todayLogs.map(l => {
+          const ua = l.user_agent.toLowerCase();
+          if (ua.includes('googlebot')) return 'google';
+          if (ua.includes('gptbot') || ua.includes('chatgpt') || ua.includes('claudebot') || ua.includes('anthropic')) return 'ai';
+          if (ua.includes('bingbot') || ua.includes('yandex') || ua.includes('baidu')) return 'search';
+          return 'other';
+        }));
+        
+        // Compter Google crawls
+        const googleCrawls = todayLogs.filter(l => l.user_agent.toLowerCase().includes('googlebot')).length;
+        
+        // Compter AI crawls
+        const aiCrawls = todayLogs.filter(l => {
+          const ua = l.user_agent.toLowerCase();
+          return ua.includes('gptbot') || ua.includes('chatgpt') || ua.includes('claudebot') || ua.includes('anthropic') || ua.includes('perplexity');
+        }).length;
+        
         setStats({
-          total_pages_rendered: statsResult.data.total_pages_rendered,
-          total_bots: statsResult.data.total_bots,
-          google_crawls: statsResult.data.google_crawls,
-          ai_crawls: statsResult.data.ai_crawls,
+          total_pages_rendered: totalRendered,
+          total_bots: botUserAgents.size,
+          google_crawls: googleCrawls,
+          ai_crawls: aiCrawls,
         });
-        setHasStatsData(true);
+        setHasStatsData(totalRendered > 0);
       } else {
+        setPrerenderLogs([]);
         setHasStatsData(false);
       }
 
