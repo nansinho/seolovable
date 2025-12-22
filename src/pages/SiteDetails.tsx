@@ -28,6 +28,8 @@ import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 import { SimulateCrawlModal } from "@/components/SimulateCrawlModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useI18n } from "@/lib/i18n";
+import { SiteIntegrationPanel } from "@/components/SiteIntegrationPanel";
+import { SitePrerenderStats } from "@/components/SitePrerenderStats";
 
 interface Site {
   id: string;
@@ -42,6 +44,7 @@ interface Site {
   dns_verified: boolean | null;
   dns_verified_at: string | null;
   detected_txt_name?: string | null;
+  prerender_token?: string | null;
 }
 
 interface BotActivity {
@@ -101,7 +104,7 @@ const SiteDetails = () => {
 
       const { data: siteData, error: siteError } = await supabase
         .from("sites")
-        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at")
+        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at, prerender_token")
         .eq("id", id)
         .maybeSingle();
 
@@ -398,6 +401,18 @@ const SiteDetails = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Integration Panel - Token + Middleware Code */}
+          {site.prerender_token && site.dns_verified && (
+            <div className="mb-6">
+              <SiteIntegrationPanel prerenderToken={site.prerender_token} />
+            </div>
+          )}
+
+          {/* Prerender Stats */}
+          <div className="mb-6">
+            <SitePrerenderStats siteId={site.id} />
           </div>
 
           {/* Stats Grid */}

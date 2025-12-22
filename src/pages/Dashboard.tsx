@@ -39,12 +39,14 @@ interface Site {
   last_crawl: string | null;
 }
 
-interface BotActivity {
-  id: string;
-  bot_name: string;
-  bot_type: string;
-  pages_crawled: number;
-  crawled_at: string;
+interface PrerenderLog {
+  id: number;
+  created_at: string;
+  cached: boolean;
+  url: string;
+  domain: string;
+  user_agent: string;
+  site_id: string;
 }
 
 interface DailyStats {
@@ -105,7 +107,7 @@ const Dashboard = () => {
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
-  const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
+  const [prerenderLogs, setPrerenderLogs] = useState<PrerenderLog[]>([]);
   const [stats, setStats] = useState<DailyStats>({
     total_pages_rendered: 0,
     total_bots: 0,
@@ -189,10 +191,10 @@ const Dashboard = () => {
           .eq("user_id", userId)
           .maybeSingle(),
         supabase
-          .from("bot_activity")
-          .select("*")
-          .order("crawled_at", { ascending: false })
-          .limit(10),
+          .from("prerender_logs")
+          .select("id, created_at, cached, url, domain, user_agent, site_id")
+          .order("created_at", { ascending: false })
+          .limit(20),
         supabase
           .from("daily_stats")
           .select("*")
@@ -202,7 +204,7 @@ const Dashboard = () => {
 
       if (sitesResult.data) setSites(sitesResult.data);
       if (planResult.data) setUserPlan(planResult.data);
-      if (activityResult.data) setBotActivity(activityResult.data);
+      if (activityResult.data) setPrerenderLogs(activityResult.data);
       
       if (statsResult.data) {
         setStats({
@@ -422,7 +424,7 @@ const Dashboard = () => {
                 {t("dashboard.last7days")}
               </span>
             </div>
-            <CrawlsChart botActivity={botActivity} />
+            <CrawlsChart prerenderLogs={prerenderLogs} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6 mb-6">
@@ -501,42 +503,38 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Bot Activity */}
+            {/* Prerender Activity */}
             <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.recentActivity")}</h2>
                 <span className="text-xs text-muted-foreground font-code">
-                  {t("dashboard.recentActivity")}
+                  {prerenderLogs.length} {t("dashboard.renders") || "renders"}
                 </span>
               </div>
 
               <div className="space-y-2">
-                {botActivity.length === 0 ? (
+                {prerenderLogs.length === 0 ? (
                   <p className="text-sm text-muted-foreground font-code text-center py-8">
                     {t("dashboard.noRecentActivity")}
                   </p>
                 ) : (
-                  botActivity.slice(0, 5).map((activity) => (
+                  prerenderLogs.slice(0, 5).map((log) => (
                     <div
-                      key={activity.id}
+                      key={log.id}
                       className="flex items-center justify-between py-2 border-b border-border last:border-0"
                     >
-                      <div className="flex items-center gap-3">
-                        {activity.bot_type === "search" ? (
-                          <Search className="w-4 h-4 text-accent" />
-                        ) : (
-                          <Bot className="w-4 h-4 text-accent" />
-                        )}
-                        <span className="font-code text-sm text-foreground">
-                          {activity.bot_name}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${log.cached ? "bg-green-500" : "bg-orange-500"}`} />
+                        <span className="font-code text-sm text-foreground truncate">
+                          {log.domain}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-shrink-0">
                         <span className="text-xs text-muted-foreground font-code">
-                          {activity.pages_crawled} pages
+                          {log.cached ? "Cached" : "Fresh"}
                         </span>
                         <span className="text-xs text-muted-foreground font-code">
-                          {new Date(activity.crawled_at).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(log.created_at).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     </div>
@@ -544,10 +542,12 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {botActivity.length > 0 && (
+              {prerenderLogs.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-accent">
                   <Bot className="w-4 h-4" />
-                  <span className="text-xs font-code">+23% vs. {lang === "en" ? "yesterday" : "hier"}</span>
+                  <span className="text-xs font-code">
+                    {prerenderLogs.filter(l => l.cached).length} cached / {prerenderLogs.length} total
+                  </span>
                 </div>
               )}
             </div>

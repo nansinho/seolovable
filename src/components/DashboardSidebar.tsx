@@ -14,7 +14,6 @@ import {
   Users,
   Globe2,
   Languages,
-  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,7 +50,6 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   const adminItems = [
     { icon: Users, label: t("sidebar.users"), href: "/admin" },
     { icon: Globe2, label: t("sidebar.allSites"), href: "/admin/sites" },
-    { icon: Server, label: "Prerender", href: "/admin/clients" },
     { icon: Languages, label: t("sidebar.translations"), href: "/admin/translations" },
   ];
 

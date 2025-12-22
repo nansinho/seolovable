@@ -56,57 +56,65 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Find client by token
-    logStep('Looking up client by token')
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .select('id, allowed_domains, status')
+    // Find site by prerender_token (NEW: using sites table instead of clients)
+    logStep('Looking up site by prerender_token')
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select('id, url, status, user_id, pages_rendered')
       .eq('prerender_token', token)
       .maybeSingle()
 
-    if (clientError) {
-      logStep('Database error looking up client', clientError)
+    if (siteError) {
+      logStep('Database error looking up site', siteError)
       return new Response(JSON.stringify({ success: false, error: 'Database error' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    if (!client) {
-      logStep('Invalid token - no client found')
+    if (!site) {
+      logStep('Invalid token - no site found')
       return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    logStep('Client found', { clientId: client.id, status: client.status, allowedDomains: client.allowed_domains })
+    logStep('Site found', { siteId: site.id, status: site.status, url: site.url })
 
-    // Check if client is active
-    if (client.status !== 'active') {
-      logStep('Client not active', { status: client.status })
+    // Check if site is active
+    if (site.status !== 'active') {
+      logStep('Site not active', { status: site.status })
       return new Response(JSON.stringify({ success: false, error: 'Service suspended' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Check if domain is allowed
-    const allowedDomains = client.allowed_domains || []
-    if (!allowedDomains.includes(domain)) {
-      logStep('Domain not allowed', { domain, allowedDomains })
+    // Check if domain matches site URL
+    let siteDomain = ''
+    try {
+      if (site.url) {
+        siteDomain = new URL(site.url).hostname
+      }
+    } catch {
+      siteDomain = ''
+    }
+
+    if (siteDomain && siteDomain !== domain) {
+      logStep('Domain mismatch', { requestDomain: domain, siteDomain })
       return new Response(JSON.stringify({ success: false, error: 'Domain not allowed' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Insert log
+    // Insert log with site_id
     logStep('Inserting prerender log')
     const { error: insertError } = await supabase
       .from('prerender_logs')
       .insert({
-        client_id: client.id,
+        site_id: site.id,
         token,
         domain,
         url,
@@ -120,6 +128,21 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
+    }
+
+    // Update site stats: increment pages_rendered and update last_crawl
+    logStep('Updating site stats')
+    const { error: updateError } = await supabase
+      .from('sites')
+      .update({
+        pages_rendered: (site.pages_rendered || 0) + 1,
+        last_crawl: new Date().toISOString()
+      })
+      .eq('id', site.id)
+
+    if (updateError) {
+      logStep('Update site error (non-blocking)', updateError)
+      // Non-blocking - log was already inserted
     }
 
     logStep('Log inserted successfully')
