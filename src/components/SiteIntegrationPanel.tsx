@@ -11,6 +11,7 @@ interface SiteIntegrationPanelProps {
 export function SiteIntegrationPanel({ prerenderToken }: SiteIntegrationPanelProps) {
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
   const { t } = useI18n();
 
   const middlewareCode = `// middleware.ts - Place at the root of your Next.js project
@@ -76,6 +77,8 @@ export const config = {
   ],
 };`;
 
+  const instructionsText = t("integration.instructionsDetail");
+
   const handleCopyToken = async () => {
     await navigator.clipboard.writeText(prerenderToken);
     setCopiedToken(true);
@@ -90,13 +93,49 @@ export const config = {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  const handleCopyAll = async () => {
+    const fullContent = `=== TOKEN PRERENDER ===
+${prerenderToken}
+
+=== MIDDLEWARE.TS ===
+${middlewareCode}
+
+=== INSTRUCTIONS ===
+${instructionsText}`;
+    
+    await navigator.clipboard.writeText(fullContent);
+    setCopiedAll(true);
+    toast.success(t("integration.allCopied") || "Tout copié !");
+    setTimeout(() => setCopiedAll(false), 2000);
+  };
+
   return (
     <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
-      <div className="flex items-center gap-2 mb-4">
-        <Code className="w-5 h-5 text-accent" />
-        <h3 className="text-base font-semibold font-code text-foreground">
-          {t("integration.title")}
-        </h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Code className="w-5 h-5 text-accent" />
+          <h3 className="text-base font-semibold font-code text-foreground">
+            {t("integration.title")}
+          </h3>
+        </div>
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={handleCopyAll}
+          className="font-code text-xs"
+        >
+          {copiedAll ? (
+            <>
+              <CheckCircle className="w-3 h-3 mr-1 text-green-300" />
+              {t("integration.copied")}
+            </>
+          ) : (
+            <>
+              <Copy className="w-3 h-3 mr-1" />
+              {t("integration.copyAll") || "Copier tout"}
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="mb-4">
