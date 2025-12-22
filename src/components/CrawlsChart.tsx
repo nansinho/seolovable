@@ -11,41 +11,43 @@ import {
   Legend,
 } from "recharts";
 
-interface BotActivity {
-  id: string;
-  bot_name: string;
-  bot_type: string;
-  pages_crawled: number;
-  crawled_at: string;
+interface PrerenderLog {
+  id: number;
+  created_at: string;
+  cached: boolean;
+  url: string;
+  domain: string;
+  user_agent: string;
+  site_id: string;
 }
 
 interface CrawlsChartProps {
-  botActivity: BotActivity[];
+  prerenderLogs: PrerenderLog[];
 }
 
-export function CrawlsChart({ botActivity }: CrawlsChartProps) {
+export function CrawlsChart({ prerenderLogs }: CrawlsChartProps) {
   const { t, lang } = useI18n();
   const dateLocale = lang === "en" ? "en-US" : "fr-FR";
 
   const chartData = useMemo(() => {
-    const grouped: Record<string, { date: string; google: number; ai: number; total: number }> = {};
+    const grouped: Record<string, { date: string; cached: number; fresh: number; total: number }> = {};
 
-    botActivity.forEach((activity) => {
-      const date = new Date(activity.crawled_at).toLocaleDateString(dateLocale, {
+    prerenderLogs.forEach((log) => {
+      const date = new Date(log.created_at).toLocaleDateString(dateLocale, {
         day: "2-digit",
         month: "short",
       });
 
-      if (!grouped[date]) grouped[date] = { date, google: 0, ai: 0, total: 0 };
+      if (!grouped[date]) grouped[date] = { date, cached: 0, fresh: 0, total: 0 };
 
-      if (activity.bot_type === "search") grouped[date].google += activity.pages_crawled;
-      else grouped[date].ai += activity.pages_crawled;
+      if (log.cached) grouped[date].cached++;
+      else grouped[date].fresh++;
 
-      grouped[date].total += activity.pages_crawled;
+      grouped[date].total++;
     });
 
     return Object.values(grouped).reverse();
-  }, [botActivity, dateLocale]);
+  }, [prerenderLogs, dateLocale]);
 
   if (chartData.length === 0) {
     return (
@@ -59,11 +61,11 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
     <ResponsiveContainer width="100%" height={300}>
       <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <defs>
-          <linearGradient id="colorGoogle" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="colorCached" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
             <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
           </linearGradient>
-          <linearGradient id="colorAI" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="colorFresh" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.3} />
             <stop offset="95%" stopColor="hsl(var(--secondary))" stopOpacity={0} />
           </linearGradient>
@@ -95,20 +97,20 @@ export function CrawlsChart({ botActivity }: CrawlsChartProps) {
 
         <Area
           type="monotone"
-          dataKey="google"
-          name={t("dashboard.chart.google")}
+          dataKey="cached"
+          name={t("dashboard.chart.cached") || "Cached"}
           stroke="hsl(var(--primary))"
           fillOpacity={1}
-          fill="url(#colorGoogle)"
+          fill="url(#colorCached)"
           strokeWidth={2}
         />
         <Area
           type="monotone"
-          dataKey="ai"
-          name={t("dashboard.chart.ai")}
+          dataKey="fresh"
+          name={t("dashboard.chart.fresh") || "Fresh"}
           stroke="hsl(var(--secondary))"
           fillOpacity={1}
-          fill="url(#colorAI)"
+          fill="url(#colorFresh)"
           strokeWidth={2}
         />
       </AreaChart>

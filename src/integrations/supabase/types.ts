@@ -179,6 +179,7 @@ export type Database = {
           created_at: string | null
           domain: string
           id: number
+          site_id: string | null
           token: string
           url: string
           user_agent: string
@@ -189,6 +190,7 @@ export type Database = {
           created_at?: string | null
           domain: string
           id?: number
+          site_id?: string | null
           token: string
           url: string
           user_agent: string
@@ -199,6 +201,7 @@ export type Database = {
           created_at?: string | null
           domain?: string
           id?: number
+          site_id?: string | null
           token?: string
           url?: string
           user_agent?: string
@@ -209,6 +212,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prerender_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
         ]
@@ -251,6 +261,7 @@ export type Database = {
           last_crawl: string | null
           name: string
           pages_rendered: number
+          prerender_token: string
           status: string
           txt_record_token: string | null
           updated_at: string
@@ -267,6 +278,7 @@ export type Database = {
           last_crawl?: string | null
           name: string
           pages_rendered?: number
+          prerender_token?: string
           status?: string
           txt_record_token?: string | null
           updated_at?: string
@@ -283,6 +295,7 @@ export type Database = {
           last_crawl?: string | null
           name?: string
           pages_rendered?: number
+          prerender_token?: string
           status?: string
           txt_record_token?: string | null
           updated_at?: string
