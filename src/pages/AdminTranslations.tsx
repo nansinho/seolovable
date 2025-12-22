@@ -90,17 +90,20 @@ const AdminTranslations = () => {
 
   // Sync translations via LibreTranslate (translate missing EN from FR)
   // Now processes in batches and loops until all are done
+  // force=true will re-translate ALL including manual ones
   const syncMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (force: boolean = false) => {
       let totalTranslated = 0;
       let totalErrors = 0;
       let hasMore = true;
       let iterations = 0;
-      const maxIterations = 50; // Safety limit
+      const maxIterations = 100; // Safety limit
 
       while (hasMore && iterations < maxIterations) {
         iterations++;
-        const response = await supabase.functions.invoke("sync-translations");
+        const response = await supabase.functions.invoke("sync-translations", {
+          body: { force }
+        });
         if (response.error) throw response.error;
         
         const data = response.data;
@@ -115,10 +118,11 @@ const AdminTranslations = () => {
         }
       }
 
-      return { translated: totalTranslated, errors: totalErrors };
+      return { translated: totalTranslated, errors: totalErrors, force };
     },
     onSuccess: (data) => {
-      toast.success(`Synchronisation terminée: ${data.translated} traductions LibreTranslate${data.errors > 0 ? ` (${data.errors} erreurs)` : ''}`);
+      const modeText = data.force ? "(mode forcé)" : "";
+      toast.success(`Synchronisation terminée ${modeText}: ${data.translated} traductions LibreTranslate${data.errors > 0 ? ` (${data.errors} erreurs)` : ''}`);
       queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
       queryClient.invalidateQueries({ queryKey: ["translations"] });
     },
@@ -210,7 +214,7 @@ const AdminTranslations = () => {
       
       // Step 2: Automatically trigger LibreTranslate sync
       setTimeout(() => {
-        syncMutation.mutate();
+        syncMutation.mutate(false);
       }, 500);
     },
     onError: (error) => {
@@ -379,7 +383,7 @@ const AdminTranslations = () => {
               Importer FR + Traduire EN
             </Button>
             <Button
-              onClick={() => syncMutation.mutate()}
+              onClick={() => syncMutation.mutate(false)}
               disabled={syncMutation.isPending}
               className="font-code"
             >
@@ -389,6 +393,19 @@ const AdminTranslations = () => {
                 <RefreshCw className="h-4 w-4 mr-2" />
               )}
               Traduire EN manquantes
+            </Button>
+            <Button
+              onClick={() => syncMutation.mutate(true)}
+              disabled={syncMutation.isPending}
+              variant="destructive"
+              className="font-code"
+            >
+              {syncMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Forcer 100% API
             </Button>
           </div>
 

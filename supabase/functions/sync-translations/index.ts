@@ -11,6 +11,15 @@ serve(async (req) => {
   }
 
   try {
+    // Parse body for force mode
+    let forceRetranslate = false;
+    try {
+      const body = await req.json();
+      forceRetranslate = body?.force === true;
+    } catch {
+      // No body or invalid JSON, use defaults
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -32,28 +41,36 @@ serve(async (req) => {
       );
     }
 
-    // Get all English translations
-    const { data: enTranslations, error: enError } = await supabase
-      .from("translations")
-      .select("key")
-      .eq("lang", "en");
+    let keysToTranslate: { key: string; value: string }[] = [];
 
-    if (enError) {
-      console.error("Error fetching EN translations:", enError);
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch target translations" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (forceRetranslate) {
+      // Force mode: re-translate ALL keys
+      console.log("Force mode: will re-translate all EN translations");
+      keysToTranslate = frTranslations || [];
+    } else {
+      // Normal mode: only translate missing keys
+      const { data: enTranslations, error: enError } = await supabase
+        .from("translations")
+        .select("key")
+        .eq("lang", "en");
+
+      if (enError) {
+        console.error("Error fetching EN translations:", enError);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch target translations" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const existingEnKeys = new Set(enTranslations?.map((t) => t.key) || []);
+      keysToTranslate = frTranslations?.filter((t) => !existingEnKeys.has(t.key)) || [];
     }
 
-    const existingEnKeys = new Set(enTranslations?.map((t) => t.key) || []);
-    const missingKeys = frTranslations?.filter((t) => !existingEnKeys.has(t.key)) || [];
-
-    console.log(`Found ${missingKeys.length} missing English translations`);
+    console.log(`Found ${keysToTranslate.length} keys to translate (force=${forceRetranslate})`);
 
     // Only process BATCH_SIZE at a time to avoid timeout
-    const batch = missingKeys.slice(0, BATCH_SIZE);
-    const remaining = missingKeys.length - batch.length;
+    const batch = keysToTranslate.slice(0, BATCH_SIZE);
+    const remaining = keysToTranslate.length - batch.length;
 
     let translated = 0;
     let errors = 0;
@@ -84,15 +101,16 @@ serve(async (req) => {
 
         console.log(`Translated ${item.key}: "${item.value}" -> "${translatedText}"`);
 
-        const { error: insertError } = await supabase.from("translations").insert({
-          key: item.key,
-          lang: "en",
-          value: translatedText,
-          is_auto: true,
-        });
+        // Use upsert to handle both new and existing translations
+        const { error: upsertError } = await supabase
+          .from("translations")
+          .upsert(
+            { key: item.key, lang: "en", value: translatedText, is_auto: true },
+            { onConflict: "key,lang" }
+          );
 
-        if (insertError) {
-          console.error(`Failed to save ${item.key}:`, insertError);
+        if (upsertError) {
+          console.error(`Failed to save ${item.key}:`, upsertError);
           errors++;
         } else {
           translated++;
@@ -109,12 +127,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        total: missingKeys.length,
+        total: keysToTranslate.length,
         processed: batch.length,
         translated,
         errors,
         remaining,
         hasMore: remaining > 0,
+        forceMode: forceRetranslate,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
