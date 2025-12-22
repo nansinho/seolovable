@@ -6,10 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Languages, RefreshCw, Search, Check, X, Loader2, Crown, FolderOpen } from "lucide-react";
+import { Languages, RefreshCw, Search, Check, X, Loader2, Crown, FolderOpen, Bot, AlertTriangle, RotateCcw } from "lucide-react";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TranslationRow {
   id: string;
@@ -41,6 +51,15 @@ const PAGE_LABELS: Record<string, string> = {
   legal: "Légal",
   howItWorks: "Comment ça marche",
   notFound: "Page 404",
+  integration: "Intégration",
+  prerenderStats: "Stats Prerender",
+  subscription: "Abonnement",
+  addSite: "Ajout Site",
+  deleteSite: "Suppression Site",
+  dns: "DNS",
+  seoTest: "Test SEO",
+  prerenderTest: "Test Prerender",
+  toast: "Toasts",
 };
 
 const AdminTranslations = () => {
@@ -52,6 +71,8 @@ const AdminTranslations = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editLang, setEditLang] = useState<Language>("fr");
+  const [manualOverrideConfirm, setManualOverrideConfirm] = useState<{key: string; value: string} | null>(null);
+  const [translatingKey, setTranslatingKey] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: translations, isLoading } = useQuery({
@@ -67,6 +88,7 @@ const AdminTranslations = () => {
     enabled: isAdmin,
   });
 
+  // Sync translations via LibreTranslate (translate missing EN from FR)
   const syncMutation = useMutation({
     mutationFn: async () => {
       const response = await supabase.functions.invoke("sync-translations");
@@ -74,7 +96,7 @@ const AdminTranslations = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success(`Synchronisation terminée: ${data.translated} traductions ajoutées`);
+      toast.success(`Synchronisation terminée: ${data.translated} traductions LibreTranslate`);
       queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
       queryClient.invalidateQueries({ queryKey: ["translations"] });
     },
@@ -83,15 +105,16 @@ const AdminTranslations = () => {
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async ({ key, lang, value }: { key: string; lang: string; value: string }) => {
+  // Save FR translation (manual)
+  const saveFrMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
       const { error } = await supabase
         .from("translations")
-        .upsert({ key, lang, value, is_auto: false }, { onConflict: "key,lang" });
+        .upsert({ key, lang: "fr", value, is_auto: false }, { onConflict: "key,lang" });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Traduction sauvegardée");
+      toast.success("Traduction FR sauvegardée");
       setEditingKey(null);
       queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
       queryClient.invalidateQueries({ queryKey: ["translations"] });
@@ -101,21 +124,40 @@ const AdminTranslations = () => {
     },
   });
 
-  const importStaticMutation = useMutation({
-    mutationFn: async () => {
-      const toInsert: { key: string; lang: string; value: string; is_auto: boolean }[] = [];
-      Object.entries(staticTranslations).forEach(([key, langs]) => {
-        toInsert.push({ key, lang: "fr", value: langs.fr, is_auto: false });
-        toInsert.push({ key, lang: "en", value: langs.en, is_auto: false });
+  // Translate single key via LibreTranslate
+  const translateSingleMutation = useMutation({
+    mutationFn: async ({ key, frenchText }: { key: string; frenchText: string }) => {
+      const response = await supabase.functions.invoke("translate-single", {
+        body: { key, frenchText },
       });
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Traduit via LibreTranslate: "${data.translatedText}"`);
+      setEditingKey(null);
+      setTranslatingKey(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
+      queryClient.invalidateQueries({ queryKey: ["translations"] });
+    },
+    onError: (error) => {
+      toast.error("Erreur LibreTranslate: " + error.message);
+      setTranslatingKey(null);
+    },
+  });
+
+  // Manual EN override (with warning)
+  const saveManualEnMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
       const { error } = await supabase
         .from("translations")
-        .upsert(toInsert, { onConflict: "key,lang" });
+        .upsert({ key, lang: "en", value, is_auto: false }, { onConflict: "key,lang" });
       if (error) throw error;
-      return toInsert.length;
     },
-    onSuccess: (count) => {
-      toast.success(`${count} traductions importées`);
+    onSuccess: () => {
+      toast.warning("Traduction EN manuelle sauvegardée (non LibreTranslate)");
+      setEditingKey(null);
+      setManualOverrideConfirm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
       queryClient.invalidateQueries({ queryKey: ["translations"] });
     },
@@ -123,6 +165,50 @@ const AdminTranslations = () => {
       toast.error("Erreur: " + error.message);
     },
   });
+
+  // Import ONLY French static translations (EN will be generated via LibreTranslate)
+  const importStaticMutation = useMutation({
+    mutationFn: async () => {
+      // Step 1: Import ONLY French translations
+      const toInsert: { key: string; lang: string; value: string; is_auto: boolean }[] = [];
+      Object.entries(staticTranslations).forEach(([key, langs]) => {
+        toInsert.push({ key, lang: "fr", value: langs.fr, is_auto: false });
+      });
+      
+      const { error } = await supabase
+        .from("translations")
+        .upsert(toInsert, { onConflict: "key,lang" });
+      if (error) throw error;
+      
+      return toInsert.length;
+    },
+    onSuccess: async (count) => {
+      toast.success(`${count} traductions FR importées. Lancement de la traduction LibreTranslate...`);
+      queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
+      
+      // Step 2: Automatically trigger LibreTranslate sync
+      setTimeout(() => {
+        syncMutation.mutate();
+      }, 500);
+    },
+    onError: (error) => {
+      toast.error("Erreur: " + error.message);
+    },
+  });
+
+  // Re-translate a single key via LibreTranslate
+  const handleRetranslate = (key: string) => {
+    const frTranslation = translations?.find((t) => t.key === key && t.lang === "fr");
+    const frValue = frTranslation?.value || staticTranslations[key]?.fr;
+    
+    if (!frValue) {
+      toast.error("Aucune traduction FR trouvée pour cette clé");
+      return;
+    }
+    
+    setTranslatingKey(key);
+    translateSingleMutation.mutate({ key, frenchText: frValue });
+  };
 
   // Get all unique keys from static + database
   const allKeys = useMemo(() => new Set([
@@ -143,7 +229,7 @@ const AdminTranslations = () => {
       const frTranslation = translations?.find((t) => t.key === key && t.lang === "fr");
       const enTranslation = translations?.find((t) => t.key === key && t.lang === "en");
       const frValue = frTranslation?.value || staticTranslations[key]?.fr;
-      const enValue = enTranslation?.value || staticTranslations[key]?.en;
+      const enValue = enTranslation?.value;
       
       if (!frValue || !enValue) {
         missingCounts[page] = (missingCounts[page] || 0) + 1;
@@ -177,11 +263,31 @@ const AdminTranslations = () => {
     const existing = getTranslation(key, lang);
     setEditingKey(`${key}:${lang}`);
     setEditLang(lang);
-    setEditValue(existing?.value || staticTranslations[key]?.[lang] || "");
+    setEditValue(existing?.value || (lang === "fr" ? staticTranslations[key]?.fr : "") || "");
   };
 
-  const saveEdit = (key: string) => {
-    saveMutation.mutate({ key, lang: editLang, value: editValue });
+  const handleSaveEdit = (key: string) => {
+    if (editLang === "fr") {
+      // Save FR directly
+      saveFrMutation.mutate({ key, value: editValue });
+    } else {
+      // For EN, show confirmation dialog to force LibreTranslate
+      setManualOverrideConfirm({ key, value: editValue });
+    }
+  };
+
+  const handleUseLibreTranslate = (key: string) => {
+    const frTranslation = translations?.find((t) => t.key === key && t.lang === "fr");
+    const frValue = frTranslation?.value || staticTranslations[key]?.fr;
+    
+    if (!frValue) {
+      toast.error("Aucune traduction FR trouvée. Ajoutez d'abord la version française.");
+      return;
+    }
+    
+    setEditingKey(null);
+    setTranslatingKey(key);
+    translateSingleMutation.mutate({ key, frenchText: frValue });
   };
 
   if (adminLoading) {
@@ -225,16 +331,30 @@ const AdminTranslations = () => {
             </Badge>
           </div>
 
+          {/* Rule Banner */}
+          <div className="mb-6 p-4 rounded-lg border border-accent/50 bg-accent/10">
+            <div className="flex items-start gap-3">
+              <Bot className="w-5 h-5 text-accent mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-accent">Règle : 100% LibreTranslate</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Toutes les traductions anglaises doivent passer par LibreTranslate. 
+                  L'import statique importe uniquement le français, puis déclenche automatiquement la traduction.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex flex-wrap gap-2 mb-6">
             <Button
               variant="outline"
               onClick={() => importStaticMutation.mutate()}
-              disabled={importStaticMutation.isPending}
+              disabled={importStaticMutation.isPending || syncMutation.isPending}
               className="font-code"
             >
               {importStaticMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {t("admin.translations.importStatic")}
+              Importer FR + Traduire EN
             </Button>
             <Button
               onClick={() => syncMutation.mutate()}
@@ -246,7 +366,7 @@ const AdminTranslations = () => {
               ) : (
                 <RefreshCw className="h-4 w-4 mr-2" />
               )}
-              {t("admin.translations.translateMissing")}
+              Traduire EN manquantes
             </Button>
           </div>
 
@@ -346,79 +466,134 @@ const AdminTranslations = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
-                    {filteredKeys.map((key) => (
-                      <div key={key} className="p-4 hover:bg-muted/30 transition-colors">
-                        <div className="font-mono text-xs text-accent mb-3 break-all">{key}</div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                          {(["fr", "en"] as Language[]).map((lang) => {
-                            const translation = getTranslation(key, lang);
-                            const isEditing = editingKey === `${key}:${lang}`;
-                            const value = translation?.value || staticTranslations[key]?.[lang];
-                            const isFromDb = !!translation;
-                            const isMissing = !value;
+                    {filteredKeys.map((key) => {
+                      const isTranslating = translatingKey === key;
+                      
+                      return (
+                        <div key={key} className="p-4 hover:bg-muted/30 transition-colors">
+                          <div className="font-mono text-xs text-accent mb-3 break-all">{key}</div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            {(["fr", "en"] as Language[]).map((lang) => {
+                              const translation = getTranslation(key, lang);
+                              const isEditing = editingKey === `${key}:${lang}`;
+                              const value = translation?.value || (lang === "fr" ? staticTranslations[key]?.fr : undefined);
+                              const isFromDb = !!translation;
+                              const isMissing = !value;
+                              const isAuto = translation?.is_auto === true;
 
-                            return (
-                              <div key={lang} className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    variant={lang === "fr" ? "default" : "secondary"} 
-                                    className="font-code text-xs"
-                                  >
-                                    {lang.toUpperCase()}
-                                  </Badge>
-                                  {isMissing && (
-                                    <Badge variant="destructive" className="text-xs">
-                                      Manquante
+                              return (
+                                <div key={lang} className="space-y-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Badge 
+                                      variant={lang === "fr" ? "default" : "secondary"} 
+                                      className="font-code text-xs"
+                                    >
+                                      {lang.toUpperCase()}
                                     </Badge>
-                                  )}
-                                  {!isMissing && !isFromDb && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Statique
-                                    </Badge>
+                                    {isMissing && (
+                                      <Badge variant="destructive" className="text-xs">
+                                        Manquante
+                                      </Badge>
+                                    )}
+                                    {!isMissing && !isFromDb && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Statique
+                                      </Badge>
+                                    )}
+                                    {isFromDb && lang === "en" && (
+                                      <Badge 
+                                        variant={isAuto ? "default" : "outline"} 
+                                        className={cn(
+                                          "text-xs",
+                                          isAuto ? "bg-green-600 hover:bg-green-700" : "border-orange-500 text-orange-500"
+                                        )}
+                                      >
+                                        {isAuto ? (
+                                          <>
+                                            <Bot className="w-3 h-3 mr-1" />
+                                            LibreTranslate
+                                          </>
+                                        ) : (
+                                          <>
+                                            <AlertTriangle className="w-3 h-3 mr-1" />
+                                            Manuel
+                                          </>
+                                        )}
+                                      </Badge>
+                                    )}
+                                    {lang === "en" && isFromDb && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => handleRetranslate(key)}
+                                        disabled={isTranslating}
+                                      >
+                                        {isTranslating ? (
+                                          <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                          <>
+                                            <RotateCcw className="w-3 h-3 mr-1" />
+                                            Re-traduire
+                                          </>
+                                        )}
+                                      </Button>
+                                    )}
+                                  </div>
+                                  {isEditing ? (
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={editValue}
+                                        onChange={(e) => setEditValue(e.target.value)}
+                                        className="flex-1 font-code text-sm"
+                                        autoFocus
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleSaveEdit(key)}
+                                        disabled={saveFrMutation.isPending}
+                                      >
+                                        <Check className="h-4 w-4" />
+                                      </Button>
+                                      {lang === "en" && (
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => handleUseLibreTranslate(key)}
+                                          disabled={translateSingleMutation.isPending}
+                                          title="Traduire via LibreTranslate"
+                                        >
+                                          <Bot className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setEditingKey(null)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div
+                                      className={cn(
+                                        "text-sm font-code p-2 rounded border cursor-pointer transition-colors",
+                                        isMissing 
+                                          ? "bg-destructive/10 border-destructive/30 text-destructive italic" 
+                                          : "bg-background border-border hover:border-accent/50"
+                                      )}
+                                      onClick={() => startEdit(key, lang)}
+                                    >
+                                      {value || (lang === "en" ? "Cliquer pour traduire via LibreTranslate" : "Non définie - cliquer pour ajouter")}
+                                    </div>
                                   )}
                                 </div>
-                                {isEditing ? (
-                                  <div className="flex gap-2">
-                                    <Input
-                                      value={editValue}
-                                      onChange={(e) => setEditValue(e.target.value)}
-                                      className="flex-1 font-code text-sm"
-                                      autoFocus
-                                    />
-                                    <Button
-                                      size="sm"
-                                      onClick={() => saveEdit(key)}
-                                      disabled={saveMutation.isPending}
-                                    >
-                                      <Check className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setEditingKey(null)}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <div
-                                    className={cn(
-                                      "text-sm font-code p-2 rounded border cursor-pointer transition-colors",
-                                      isMissing 
-                                        ? "bg-destructive/10 border-destructive/30 text-destructive italic" 
-                                        : "bg-background border-border hover:border-accent/50"
-                                    )}
-                                    onClick={() => startEdit(key, lang)}
-                                  >
-                                    {value || "Non définie - cliquer pour ajouter"}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -426,6 +601,56 @@ const AdminTranslations = () => {
           </div>
         </div>
       </main>
+
+      {/* Manual Override Confirmation Dialog */}
+      <AlertDialog open={!!manualOverrideConfirm} onOpenChange={() => setManualOverrideConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              Traduction manuelle détectée
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Vous êtes sur le point de sauvegarder une traduction anglaise <strong>manuelle</strong>.
+              </p>
+              <p className="text-orange-500 font-medium">
+                ⚠️ La règle est d'utiliser LibreTranslate pour toutes les traductions EN.
+              </p>
+              <p>
+                Voulez-vous plutôt traduire automatiquement via LibreTranslate ?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setManualOverrideConfirm(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <Button
+              variant="default"
+              onClick={() => {
+                if (manualOverrideConfirm) {
+                  handleUseLibreTranslate(manualOverrideConfirm.key);
+                  setManualOverrideConfirm(null);
+                }
+              }}
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              Utiliser LibreTranslate
+            </Button>
+            <AlertDialogAction
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={() => {
+                if (manualOverrideConfirm) {
+                  saveManualEnMutation.mutate({ key: manualOverrideConfirm.key, value: manualOverrideConfirm.value });
+                }
+              }}
+            >
+              Forcer manuel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
