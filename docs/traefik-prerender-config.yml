@@ -1,0 +1,140 @@
+# SEOLovable - Configuration Traefik pour Prerender
+# Pour Coolify avec Traefik comme reverse proxy
+#
+# Cette config détecte les bots (Google, Bing, ChatGPT, etc.)
+# et les redirige vers votre service de prerendering
+
+# ============================================
+# OPTION 1: Middleware dans docker-compose.yml
+# ============================================
+# Ajoutez ces labels à votre service dans docker-compose.yml
+
+# labels:
+#   - "traefik.enable=true"
+#   - "traefik.http.routers.myapp.rule=Host(`wpgrok.com`)"
+#   - "traefik.http.routers.myapp.middlewares=prerender@file"
+
+# ============================================
+# OPTION 2: Configuration dynamique Traefik
+# ============================================
+# Créez ce fichier dans /etc/traefik/dynamic/ ou votre dossier de config dynamique
+
+http:
+  middlewares:
+    # Middleware de détection des bots
+    prerender:
+      plugin:
+        prerender:
+          prerenderUrl: "https://prerender.seolovable.cloud"
+          prerenderToken: "VOTRE_TOKEN_ICI"  # Remplacez par: w6i94rwf
+
+  routers:
+    wpgrok:
+      rule: "Host(`wpgrok.com`) || Host(`www.wpgrok.com`)"
+      service: wpgrok-service
+      middlewares:
+        - prerender
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    wpgrok-service:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3000"  # Ajustez le port de votre app
+
+# ============================================
+# OPTION 3: Sans plugin (via headers)
+# ============================================
+# Si vous n'avez pas le plugin prerender, utilisez cette approche
+# avec un middleware de redirection basé sur les headers
+
+http:
+  middlewares:
+    # Détection basique des bots via regex sur User-Agent
+    bot-detector:
+      headers:
+        customRequestHeaders:
+          X-Bot-Request: "true"
+        # Note: Traefik natif ne supporte pas la redirection conditionnelle
+        # basée sur User-Agent sans plugin
+
+    # Alternative: Utilisez un service intermédiaire
+    prerender-redirect:
+      redirectRegex:
+        regex: "^https://wpgrok.com/(.*)"
+        replacement: "https://prerender.seolovable.cloud/https://wpgrok.com/${1}"
+        permanent: false
+
+# ============================================
+# OPTION 4: Script middleware personnalisé
+# ============================================
+# Créez ce fichier comme middleware personnalisé Traefik
+
+# Fichier: /plugins-local/prerender/prerender.go
+# (Voir la doc Traefik pour les plugins locaux)
+
+---
+# ============================================
+# CONFIGURATION RECOMMANDÉE POUR COOLIFY
+# ============================================
+# Dans Coolify, allez dans votre application et ajoutez ces labels:
+
+# Version simplifiée avec redirection via votre propre service:
+# 1. Créez un service "prerender-proxy" dans Coolify
+# 2. Configurez-le pour intercepter les requêtes bot
+
+# Labels pour votre app principale:
+# traefik.http.routers.wpgrok.rule: Host(`wpgrok.com`)
+# traefik.http.routers.wpgrok.middlewares: prerender-check@docker
+# traefik.http.services.wpgrok.loadbalancer.server.port: 3000
+
+# ============================================
+# ALTERNATIVE: Nginx Sidecar dans Coolify
+# ============================================
+# La méthode la plus fiable est d'ajouter un conteneur Nginx
+# comme sidecar qui gère la logique de prerendering.
+# 
+# Dans votre docker-compose Coolify:
+
+# services:
+#   nginx-prerender:
+#     image: nginx:alpine
+#     volumes:
+#       - ./nginx-prerender.conf:/etc/nginx/nginx.conf:ro
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.routers.wpgrok.rule=Host(`wpgrok.com`)"
+#       - "traefik.http.services.wpgrok.loadbalancer.server.port=80"
+#     depends_on:
+#       - app
+#
+#   app:
+#     # Votre application
+#     expose:
+#       - "3000"
+
+# ============================================
+# SCRIPT LUA POUR OPENRESTY (Alternative)
+# ============================================
+# Si vous utilisez OpenResty au lieu de Nginx standard:
+
+# location / {
+#     access_by_lua_block {
+#         local ua = ngx.var.http_user_agent or ""
+#         local bots = {"googlebot", "bingbot", "gptbot", "chatgpt", "claude"}
+#         
+#         for _, bot in ipairs(bots) do
+#             if string.find(string.lower(ua), bot) then
+#                 return ngx.exec("@prerender")
+#             end
+#         end
+#     }
+#     
+#     proxy_pass http://app:3000;
+# }
+#
+# location @prerender {
+#     proxy_pass https://prerender.seolovable.cloud/https://$host$request_uri;
+#     proxy_set_header X-Prerender-Token "w6i94rwf";
+# }
