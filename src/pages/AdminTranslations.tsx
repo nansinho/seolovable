@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Languages, RefreshCw, Search, Check, X, Loader2, Crown, FolderOpen, Bot, AlertTriangle, RotateCcw } from "lucide-react";
+import { Languages, RefreshCw, Search, Check, X, Loader2, Crown, FolderOpen, Bot, AlertTriangle, RotateCcw, CheckCircle2, Zap } from "lucide-react";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
@@ -272,6 +272,22 @@ const AdminTranslations = () => {
     return pagesWithCounts.reduce((acc, { missing }) => acc + missing, 0);
   }, [pagesWithCounts]);
 
+  // Count manual translations (is_auto = false)
+  const manualCount = useMemo(() => {
+    return translations?.filter((t) => t.lang === "en" && !t.is_auto).length || 0;
+  }, [translations]);
+
+  // Smart sync status
+  const syncStatus = useMemo(() => {
+    if (totalMissing > 0) {
+      return { status: "missing", label: `${totalMissing} traductions manquantes`, color: "destructive" as const };
+    }
+    if (manualCount > 0) {
+      return { status: "manual", label: `${manualCount} traductions manuelles`, color: "warning" as const };
+    }
+    return { status: "ok", label: "Tout est à jour", color: "success" as const };
+  }, [totalMissing, manualCount]);
+
   const getTranslation = (key: string, lang: Language): TranslationRow | undefined => {
     return translations?.find((t) => t.key === key && t.lang === lang);
   };
@@ -357,56 +373,52 @@ const AdminTranslations = () => {
             </Badge>
           </div>
 
-          {/* Rule Banner */}
-          <div className="mb-6 p-4 rounded-lg border border-accent/50 bg-accent/10">
-            <div className="flex items-start gap-3">
-              <Bot className="w-5 h-5 text-accent mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-accent">Règle : 100% LibreTranslate</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Toutes les traductions anglaises doivent passer par LibreTranslate. 
-                  L'import statique importe uniquement le français, puis déclenche automatiquement la traduction.
-                </p>
-              </div>
+          {/* Status & Smart Sync Button */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            {/* Status Indicator */}
+            <div className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg border",
+              syncStatus.status === "ok" && "bg-green-500/10 border-green-500/30 text-green-500",
+              syncStatus.status === "missing" && "bg-destructive/10 border-destructive/30 text-destructive",
+              syncStatus.status === "manual" && "bg-yellow-500/10 border-yellow-500/30 text-yellow-500"
+            )}>
+              {syncStatus.status === "ok" ? (
+                <CheckCircle2 className="w-5 h-5" />
+              ) : syncStatus.status === "missing" ? (
+                <AlertTriangle className="w-5 h-5" />
+              ) : (
+                <Bot className="w-5 h-5" />
+              )}
+              <span className="font-medium font-code">{syncStatus.label}</span>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Button
-              variant="outline"
-              onClick={() => importStaticMutation.mutate()}
-              disabled={importStaticMutation.isPending || syncMutation.isPending}
-              className="font-code"
-            >
-              {importStaticMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Importer FR + Traduire EN
-            </Button>
-            <Button
-              onClick={() => syncMutation.mutate(false)}
-              disabled={syncMutation.isPending}
-              className="font-code"
-            >
-              {syncMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Traduire EN manquantes
-            </Button>
-            <Button
-              onClick={() => syncMutation.mutate(true)}
-              disabled={syncMutation.isPending}
-              variant="destructive"
-              className="font-code"
-            >
-              {syncMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Forcer 100% API
-            </Button>
+            {/* Smart Sync Button */}
+            {syncStatus.status !== "ok" && (
+              <Button
+                onClick={() => {
+                  if (syncStatus.status === "missing") {
+                    // First import FR then sync
+                    importStaticMutation.mutate();
+                  } else {
+                    // Force API for manual translations
+                    syncMutation.mutate(true);
+                  }
+                }}
+                disabled={syncMutation.isPending || importStaticMutation.isPending}
+                className="font-code gap-2"
+                variant={syncStatus.status === "missing" ? "default" : "outline"}
+              >
+                {(syncMutation.isPending || importStaticMutation.isPending) ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4" />
+                )}
+                {syncStatus.status === "missing" 
+                  ? "Synchroniser tout" 
+                  : "Convertir en API"
+                }
+              </Button>
+            )}
           </div>
 
           {/* Layout: Pages List + Translations */}
