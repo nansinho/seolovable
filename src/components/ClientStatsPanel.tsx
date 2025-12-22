@@ -1,17 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { format } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BarChart3, CheckCircle, RefreshCw } from "lucide-react";
-
-interface ClientStats {
-  total_renders: number;
-  cached_renders: number;
-  fresh_renders: number;
-}
+import { BarChart3, CheckCircle, RefreshCw, TrendingUp, Database, Zap } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface PrerenderLog {
   id: number;
@@ -24,40 +19,99 @@ interface PrerenderLog {
 
 interface ClientStatsPanelProps {
   clientId: string;
-  stats?: ClientStats;
 }
 
-export function ClientStatsPanel({ clientId, stats }: ClientStatsPanelProps) {
+export function ClientStatsPanel({ clientId }: ClientStatsPanelProps) {
   const [logs, setLogs] = useState<PrerenderLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch logs for this client
+  const fetchLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("prerender_logs")
+        .select("id, url, domain, user_agent, cached, created_at")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setLogs(data || []);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("prerender_logs")
-          .select("*")
-          .eq("client_id", clientId)
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        if (error) throw error;
-        setLogs(data || []);
-      } catch (error) {
-        console.error("Error fetching logs:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchLogs();
   }, [clientId]);
+
+  // Realtime subscription for new logs
+  useEffect(() => {
+    const channel = supabase
+      .channel(`prerender_logs_client_${clientId}`)
+      .on(
+        "postgres_changes",
+        { 
+          event: "INSERT", 
+          schema: "public", 
+          table: "prerender_logs",
+          filter: `client_id=eq.${clientId}`
+        },
+        (payload) => {
+          const newLog = payload.new as PrerenderLog;
+          setLogs(prev => [newLog, ...prev].slice(0, 100));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clientId]);
+
+  // Calculate stats from logs
+  const stats = useMemo(() => {
+    const total = logs.length;
+    const cached = logs.filter(l => l.cached).length;
+    const fresh = logs.filter(l => !l.cached).length;
+    const cacheRate = total > 0 ? Math.round((cached / total) * 100) : 0;
+    return { total, cached, fresh, cacheRate };
+  }, [logs]);
+
+  // Monthly breakdown for chart (last 6 months)
+  const monthlyData = useMemo(() => {
+    const months: { name: string; total: number; cached: number; fresh: number }[] = [];
+    
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(new Date(), i);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+      
+      const monthLogs = logs.filter(log => {
+        const logDate = new Date(log.created_at);
+        return logDate >= monthStart && logDate <= monthEnd;
+      });
+      
+      months.push({
+        name: format(monthDate, "MMM", { locale: fr }),
+        total: monthLogs.length,
+        cached: monthLogs.filter(l => l.cached).length,
+        fresh: monthLogs.filter(l => !l.cached).length,
+      });
+    }
+    
+    return months;
+  }, [logs]);
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-20 w-full" />
         <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full" />
       </div>
     );
   }
@@ -67,40 +121,76 @@ export function ClientStatsPanel({ clientId, stats }: ClientStatsPanelProps) {
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-muted rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold">{stats?.total_renders || 0}</p>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <TrendingUp className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <p className="text-2xl font-bold">{stats.total}</p>
           <p className="text-xs text-muted-foreground">Total</p>
         </div>
         <div className="bg-green-500/10 rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-green-500">
-            {stats?.cached_renders || 0}
-          </p>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Database className="h-3 w-3 text-green-500" />
+          </div>
+          <p className="text-2xl font-bold text-green-500">{stats.cached}</p>
           <p className="text-xs text-muted-foreground">Cache</p>
         </div>
         <div className="bg-blue-500/10 rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-blue-500">
-            {stats?.fresh_renders || 0}
-          </p>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Zap className="h-3 w-3 text-blue-500" />
+          </div>
+          <p className="text-2xl font-bold text-blue-500">{stats.fresh}</p>
           <p className="text-xs text-muted-foreground">Fresh</p>
         </div>
       </div>
 
       {/* Cache Hit Rate */}
-      {stats && stats.total_renders > 0 && (
+      {stats.total > 0 && (
         <div className="bg-muted rounded-lg p-3">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-muted-foreground">Cache hit rate</span>
-            <span className="font-bold">
-              {Math.round((stats.cached_renders / stats.total_renders) * 100)}%
-            </span>
+            <span className="font-bold">{stats.cacheRate}%</span>
           </div>
           <div className="h-2 bg-background rounded-full overflow-hidden">
             <div
-              className="h-full bg-green-500 transition-all"
-              style={{
-                width: `${(stats.cached_renders / stats.total_renders) * 100}%`,
-              }}
+              className="h-full bg-green-500 transition-all duration-500"
+              style={{ width: `${stats.cacheRate}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {/* Monthly Chart */}
+      {monthlyData.some(m => m.total > 0) && (
+        <div className="bg-muted rounded-lg p-3">
+          <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Renders par mois
+          </h4>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={monthlyData}>
+              <XAxis 
+                dataKey="name" 
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+                formatter={(value: number, name: string) => [
+                  value,
+                  name === "cached" ? "Cache" : name === "fresh" ? "Fresh" : "Total"
+                ]}
+              />
+              <Bar dataKey="cached" stackId="a" fill="hsl(142, 76%, 36%)" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="fresh" stackId="a" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
 
@@ -108,7 +198,7 @@ export function ClientStatsPanel({ clientId, stats }: ClientStatsPanelProps) {
       <div>
         <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
           <BarChart3 className="h-4 w-4" />
-          Derniers logs
+          Derniers logs ({logs.length})
         </h4>
         <ScrollArea className="h-[200px]">
           {logs.length === 0 ? (
@@ -117,7 +207,7 @@ export function ClientStatsPanel({ clientId, stats }: ClientStatsPanelProps) {
             </p>
           ) : (
             <div className="space-y-2">
-              {logs.map(log => (
+              {logs.slice(0, 50).map(log => (
                 <div
                   key={log.id}
                   className="text-xs bg-muted rounded p-2 space-y-1"
@@ -135,11 +225,14 @@ export function ClientStatsPanel({ clientId, stats }: ClientStatsPanelProps) {
                       {format(new Date(log.created_at), "dd/MM HH:mm", { locale: fr })}
                     </span>
                   </div>
+                  <p className="truncate font-medium" title={log.url}>
+                    {log.domain}
+                  </p>
                   <p className="truncate text-muted-foreground" title={log.url}>
-                    {log.url}
+                    {log.url.replace(/^https?:\/\/[^/]+/, '')}
                   </p>
                   <p className="truncate text-muted-foreground opacity-60" title={log.user_agent}>
-                    {log.user_agent.slice(0, 50)}...
+                    {log.user_agent.length > 60 ? `${log.user_agent.slice(0, 60)}...` : log.user_agent}
                   </p>
                 </div>
               ))}

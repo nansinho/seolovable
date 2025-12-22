@@ -466,10 +466,7 @@ export default function AdminClients() {
                         </TabsTrigger>
                       </TabsList>
                       <TabsContent value="stats" className="mt-4">
-                        <ClientStatsPanel
-                          clientId={selectedClient.id}
-                          stats={clientStats[selectedClient.id]}
-                        />
+                        <ClientStatsPanel clientId={selectedClient.id} />
                       </TabsContent>
                       <TabsContent value="code" className="mt-4">
                         <ClientCodePanel token={selectedClient.prerender_token} />
