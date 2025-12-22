@@ -392,33 +392,36 @@ const AdminTranslations = () => {
               <span className="font-medium font-code">{syncStatus.label}</span>
             </div>
 
-            {/* Smart Sync Button */}
-            {syncStatus.status !== "ok" && (
-              <Button
-                onClick={() => {
-                  if (syncStatus.status === "missing") {
-                    // First import FR then sync
-                    importStaticMutation.mutate();
-                  } else {
-                    // Force API for manual translations
-                    syncMutation.mutate(true);
-                  }
-                }}
-                disabled={syncMutation.isPending || importStaticMutation.isPending}
-                className="font-code gap-2"
-                variant={syncStatus.status === "missing" ? "default" : "outline"}
-              >
-                {(syncMutation.isPending || importStaticMutation.isPending) ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Zap className="h-4 w-4" />
-                )}
-                {syncStatus.status === "missing" 
+            {/* Smart Sync Button - adapts to situation */}
+            <Button
+              onClick={() => {
+                if (syncStatus.status === "ok") {
+                  // Check for new words from code
+                  importStaticMutation.mutate();
+                } else if (syncStatus.status === "missing") {
+                  // Import FR then sync
+                  importStaticMutation.mutate();
+                } else {
+                  // Force API for manual translations
+                  syncMutation.mutate(true);
+                }
+              }}
+              disabled={syncMutation.isPending || importStaticMutation.isPending}
+              className="font-code gap-2"
+              variant={syncStatus.status === "ok" ? "outline" : "default"}
+            >
+              {(syncMutation.isPending || importStaticMutation.isPending) ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {syncStatus.status === "ok" 
+                ? "Vérifier nouveaux mots" 
+                : syncStatus.status === "missing" 
                   ? "Synchroniser tout" 
                   : "Convertir en API"
-                }
-              </Button>
-            )}
+              }
+            </Button>
           </div>
 
           {/* Layout: Pages List + Translations */}
