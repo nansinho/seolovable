@@ -20,7 +20,7 @@ serve(async (req) => {
       );
     }
 
-    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
+    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud";
 
     console.log(`Translating from ${sourceLang} to ${targetLang}`);
 

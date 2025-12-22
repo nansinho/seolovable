@@ -15,7 +15,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
+    const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud";
     const BATCH_SIZE = 20; // Process 20 translations max per call to avoid timeout
 
     // Get all French translations (source)
