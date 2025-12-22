@@ -30,6 +30,7 @@ import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSideba
 import { useI18n } from "@/lib/i18n";
 import { SiteIntegrationPanel } from "@/components/SiteIntegrationPanel";
 import { SitePrerenderStats } from "@/components/SitePrerenderStats";
+import { CloudflareWorkerPanel } from "@/components/CloudflareWorkerPanel";
 
 interface Site {
   id: string;
@@ -399,10 +400,11 @@ const SiteDetails = () => {
             )}
           </div>
 
-          {/* Integration Panel - Token + Middleware Code (toujours visible) */}
+          {/* Integration Panels - Next.js Middleware & Cloudflare Worker */}
           {site.prerender_token && (
-            <div className="mb-6">
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <SiteIntegrationPanel prerenderToken={site.prerender_token} />
+              <CloudflareWorkerPanel prerenderToken={site.prerender_token} siteUrl={site.url || ""} />
             </div>
           )}
 
