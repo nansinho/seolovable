@@ -174,33 +174,42 @@ export type Database = {
       }
       prerender_logs: {
         Row: {
+          bot_name: string | null
+          bot_type: string | null
           cached: boolean
           client_id: string | null
           created_at: string | null
           domain: string
           id: number
+          render_time_ms: number | null
           site_id: string | null
           token: string
           url: string
           user_agent: string
         }
         Insert: {
+          bot_name?: string | null
+          bot_type?: string | null
           cached?: boolean
           client_id?: string | null
           created_at?: string | null
           domain: string
           id?: number
+          render_time_ms?: number | null
           site_id?: string | null
           token: string
           url: string
           user_agent: string
         }
         Update: {
+          bot_name?: string | null
+          bot_type?: string | null
           cached?: boolean
           client_id?: string | null
           created_at?: string | null
           domain?: string
           id?: number
+          render_time_ms?: number | null
           site_id?: string | null
           token?: string
           url?: string
