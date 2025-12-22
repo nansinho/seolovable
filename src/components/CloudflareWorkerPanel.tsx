@@ -41,10 +41,11 @@ const BOT_AGENTS = [
 ];
 
 // URL du service de prerendering
-const PRERENDER_SERVICE = 'https://prerender.seolovable.fr';
+const PRERENDER_SERVICE = 'https://prerender.seolovable.cloud';
 
 // Token et config
 const PRERENDER_TOKEN = '${prerenderToken}';
+const SITE_URL = '${siteUrl}';
 const LOG_ENDPOINT = '${supabaseUrl}/functions/v1/log-prerender';
 
 const IGNORE_EXTENSIONS = [
@@ -95,9 +96,10 @@ async function handleRequest(request) {
     return fetch(request);
   }
 
-  // Prerender for bots
+  // Prerender for bots - construct full URL to prerender
   const startTime = Date.now();
-  const prerenderUrl = \`\${PRERENDER_SERVICE}/\${encodeURIComponent(url.toString())}?token=\${PRERENDER_TOKEN}\`;
+  const fullUrl = url.toString();
+  const prerenderUrl = \`\${PRERENDER_SERVICE}/\${fullUrl}\`;
   
   try {
     const response = await fetch(prerenderUrl, {
