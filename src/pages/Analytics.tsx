@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Bot, Search, Calendar, RefreshCw, BarChart3 } from "lucide-react";
 import {
   AreaChart,
@@ -28,12 +29,13 @@ import { toast } from "sonner";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useI18n } from "@/lib/i18n";
 
-interface BotActivity {
-  id: string;
-  bot_name: string;
-  bot_type: string;
-  pages_crawled: number;
-  crawled_at: string;
+interface PrerenderLog {
+  id: number;
+  created_at: string;
+  cached: boolean;
+  url: string;
+  domain: string;
+  user_agent: string;
   site_id: string | null;
 }
 
@@ -42,16 +44,43 @@ interface Site {
   name: string;
 }
 
+interface BotInfo {
+  name: string;
+  type: 'search' | 'ai' | 'other';
+  color: string;
+}
+
 const BOT_COLORS: Record<string, string> = {
   Googlebot: "hsl(var(--primary))",
   Bingbot: "hsl(210, 100%, 50%)",
   YandexBot: "hsl(0, 80%, 50%)",
+  Baidu: "hsl(220, 80%, 50%)",
+  DuckDuckBot: "hsl(25, 90%, 55%)",
+  Applebot: "hsl(0, 0%, 40%)",
   GPTBot: "hsl(160, 60%, 45%)",
   ClaudeBot: "hsl(30, 90%, 55%)",
-  "ChatGPT-User": "hsl(160, 60%, 55%)",
-  Anthropic: "hsl(25, 85%, 55%)",
+  PerplexityBot: "hsl(250, 60%, 55%)",
   Other: "hsl(var(--muted-foreground))",
 };
+
+function detectBotFromUserAgent(userAgent: string): BotInfo {
+  const ua = userAgent.toLowerCase();
+  
+  // Search engines
+  if (ua.includes('googlebot')) return { name: 'Googlebot', type: 'search', color: BOT_COLORS['Googlebot'] };
+  if (ua.includes('bingbot')) return { name: 'Bingbot', type: 'search', color: BOT_COLORS['Bingbot'] };
+  if (ua.includes('yandex')) return { name: 'YandexBot', type: 'search', color: BOT_COLORS['YandexBot'] };
+  if (ua.includes('baidu')) return { name: 'Baidu', type: 'search', color: BOT_COLORS['Baidu'] };
+  if (ua.includes('duckduckbot')) return { name: 'DuckDuckBot', type: 'search', color: BOT_COLORS['DuckDuckBot'] };
+  if (ua.includes('applebot')) return { name: 'Applebot', type: 'search', color: BOT_COLORS['Applebot'] };
+  
+  // AI bots
+  if (ua.includes('gptbot') || ua.includes('chatgpt')) return { name: 'GPTBot', type: 'ai', color: BOT_COLORS['GPTBot'] };
+  if (ua.includes('claudebot') || ua.includes('anthropic')) return { name: 'ClaudeBot', type: 'ai', color: BOT_COLORS['ClaudeBot'] };
+  if (ua.includes('perplexity')) return { name: 'PerplexityBot', type: 'ai', color: BOT_COLORS['PerplexityBot'] };
+  
+  return { name: 'Other', type: 'other', color: BOT_COLORS['Other'] };
+}
 
 export default function Analytics() {
   const navigate = useNavigate();
@@ -63,7 +92,7 @@ export default function Analytics() {
   const [selectedSite, setSelectedSite] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
+  const [prerenderLogs, setPrerenderLogs] = useState<PrerenderLog[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
 
   const PERIODS = useMemo(
@@ -99,19 +128,20 @@ export default function Analytics() {
       if (userSites) {
         setSites(userSites);
         
-        // Only fetch bot_activity for user's sites
+        // Fetch prerender_logs for user's sites
         const siteIds = userSites.map(s => s.id);
         if (siteIds.length > 0) {
-          const { data: activity } = await supabase
-            .from("bot_activity")
-            .select("*")
+          const { data: logs } = await supabase
+            .from("prerender_logs")
+            .select("id, created_at, cached, url, domain, user_agent, site_id")
             .in("site_id", siteIds)
-            .gte("crawled_at", daysAgo.toISOString())
-            .order("crawled_at", { ascending: false });
+            .gte("created_at", daysAgo.toISOString())
+            .order("created_at", { ascending: false })
+            .limit(1000);
           
-          if (activity) setBotActivity(activity);
+          if (logs) setPrerenderLogs(logs);
         } else {
-          setBotActivity([]);
+          setPrerenderLogs([]);
         }
       }
     } catch {
@@ -132,57 +162,68 @@ export default function Analytics() {
     await fetchData();
   };
 
-  const filteredActivity = useMemo(() => {
-    if (selectedSite === "all") return botActivity;
-    return botActivity.filter((a) => a.site_id === selectedSite);
-  }, [botActivity, selectedSite]);
+  // Filter logs by selected site
+  const filteredLogs = useMemo(() => {
+    if (selectedSite === "all") return prerenderLogs;
+    return prerenderLogs.filter((log) => log.site_id === selectedSite);
+  }, [prerenderLogs, selectedSite]);
 
+  // Process logs with bot detection
+  const logsWithBotInfo = useMemo(() => {
+    return filteredLogs.map(log => ({
+      ...log,
+      botInfo: detectBotFromUserAgent(log.user_agent)
+    }));
+  }, [filteredLogs]);
+
+  // Chart data grouped by date
   const chartDataByDate = useMemo(() => {
     const grouped: Record<string, { date: string; google: number; ai: number; total: number }> = {};
 
-    filteredActivity.forEach((activity) => {
-      const date = new Date(activity.crawled_at).toLocaleDateString(dateLocale, {
+    logsWithBotInfo.forEach((log) => {
+      const date = new Date(log.created_at).toLocaleDateString(dateLocale, {
         day: "2-digit",
         month: "short",
       });
 
       if (!grouped[date]) grouped[date] = { date, google: 0, ai: 0, total: 0 };
 
-      if (activity.bot_type === "search") grouped[date].google += activity.pages_crawled;
-      else grouped[date].ai += activity.pages_crawled;
+      if (log.botInfo.type === "search") grouped[date].google += 1;
+      else if (log.botInfo.type === "ai") grouped[date].ai += 1;
 
-      grouped[date].total += activity.pages_crawled;
+      grouped[date].total += 1;
     });
 
     return Object.values(grouped).reverse();
-  }, [filteredActivity, dateLocale]);
+  }, [logsWithBotInfo, dateLocale]);
 
+  // Chart data grouped by bot
   const chartDataByBot = useMemo(() => {
-    const grouped: Record<string, number> = {};
+    const grouped: Record<string, { name: string; value: number; color: string; type: string }> = {};
 
-    filteredActivity.forEach((activity) => {
-      grouped[activity.bot_name] = (grouped[activity.bot_name] || 0) + activity.pages_crawled;
+    logsWithBotInfo.forEach((log) => {
+      const { name, color, type } = log.botInfo;
+      if (!grouped[name]) {
+        grouped[name] = { name, value: 0, color, type };
+      }
+      grouped[name].value += 1;
     });
 
-    return Object.entries(grouped)
-      .map(([name, value]) => ({
-        name,
-        value,
-        color: BOT_COLORS[name] || BOT_COLORS["Other"],
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [filteredActivity]);
+    return Object.values(grouped).sort((a, b) => b.value - a.value);
+  }, [logsWithBotInfo]);
 
+  // Stats calculations
   const stats = useMemo(() => {
-    const totalCrawls = filteredActivity.reduce((acc, a) => acc + a.pages_crawled, 0);
-    const searchCrawls = filteredActivity.filter((a) => a.bot_type === "search").reduce((acc, a) => acc + a.pages_crawled, 0);
-    const aiCrawls = filteredActivity.filter((a) => a.bot_type === "ai").reduce((acc, a) => acc + a.pages_crawled, 0);
-    const uniqueBots = new Set(filteredActivity.map((a) => a.bot_name)).size;
+    const totalCrawls = logsWithBotInfo.length;
+    const searchCrawls = logsWithBotInfo.filter((l) => l.botInfo.type === "search").length;
+    const aiCrawls = logsWithBotInfo.filter((l) => l.botInfo.type === "ai").length;
+    const uniqueBots = new Set(logsWithBotInfo.map((l) => l.botInfo.name)).size;
 
     return { totalCrawls, searchCrawls, aiCrawls, uniqueBots };
-  }, [filteredActivity]);
+  }, [logsWithBotInfo]);
 
-  const recentActivity = useMemo(() => filteredActivity.slice(0, 20), [filteredActivity]);
+  // Recent activity for table (last 20)
+  const recentActivity = useMemo(() => logsWithBotInfo.slice(0, 20), [logsWithBotInfo]);
 
   if (loading) {
     return (
@@ -432,48 +473,64 @@ export default function Analytics() {
               <Card>
                 <CardHeader>
                   <CardTitle className="font-code">{t("analytics.recentActivity")}</CardTitle>
-                  <CardDescription>{t("analytics.last20crawls")}</CardDescription>
+                  <CardDescription>{t("analytics.last20Crawls")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {recentActivity.length === 0 ? (
-                    <div className="flex items-center justify-center h-40 text-muted-foreground">{t("analytics.noRecentActivity")}</div>
+                    <div className="flex items-center justify-center h-32 text-muted-foreground">{t("analytics.noDataPeriod")}</div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("analytics.bot")}</TableHead>
-                          <TableHead>{t("analytics.type")}</TableHead>
-                          <TableHead>{t("analytics.pages")}</TableHead>
-                          <TableHead>{t("analytics.date")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {recentActivity.map((activity) => (
-                          <TableRow key={activity.id}>
-                            <TableCell className="font-code font-medium">{activity.bot_name}</TableCell>
-                            <TableCell>
-                              <span
-                                className={cn(
-                                  "px-2 py-1 rounded text-xs font-medium",
-                                  activity.bot_type === "search" ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"
-                                )}
-                              >
-                                {activity.bot_type === "search" ? t("analytics.engine") : t("analytics.ai")}
-                              </span>
-                            </TableCell>
-                            <TableCell className="font-code">{activity.pages_crawled}</TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {new Date(activity.crawled_at).toLocaleString(dateLocale, {
-                                day: "2-digit",
-                                month: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Bot</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>URL</TableHead>
+                            <TableHead>Cache</TableHead>
+                            <TableHead>{t("analytics.date")}</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {recentActivity.map((log) => (
+                            <TableRow key={log.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-2 h-2 rounded-full shrink-0" 
+                                    style={{ backgroundColor: log.botInfo.color }}
+                                  />
+                                  <span className="truncate">{log.botInfo.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={log.botInfo.type === 'search' ? 'default' : log.botInfo.type === 'ai' ? 'secondary' : 'outline'}
+                                  className="text-xs"
+                                >
+                                  {log.botInfo.type === 'search' ? 'Search' : log.botInfo.type === 'ai' ? 'AI' : 'Other'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="max-w-[200px] truncate" title={log.url}>
+                                {log.url}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={log.cached ? 'default' : 'outline'} className="text-xs">
+                                  {log.cached ? 'Cached' : 'Fresh'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground whitespace-nowrap">
+                                {new Date(log.created_at).toLocaleString(dateLocale, {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
