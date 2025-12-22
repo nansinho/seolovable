@@ -25,9 +25,10 @@ export function CloudflareWorkerPanel({ prerenderToken, siteUrl }: CloudflareWor
   // Get Supabase URL from env
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-  const workerCode = `// SEOLovable Cloudflare Worker - Prerender avec tracking
+  const workerCode = `// SEOLovable Cloudflare Worker - Prerender avec tracking fiable
 // Site: ${siteUrl}
 // Token: ${prerenderToken}
+// Version: 2.0 - URL encoding + fallback + waitUntil logging
 
 const BOT_AGENTS = [
   'googlebot', 'bingbot', 'yandex', 'baiduspider', 'facebookexternalhit',
@@ -55,10 +56,11 @@ const IGNORE_EXTENSIONS = [
   '.woff2', '.ttf', '.svg', '.eot', '.webp', '.webm', '.mp4', '.m4a', '.swf'
 ];
 
-async function logPrerender(url, userAgent, cached, renderTimeMs) {
+// Logging fiable avec waitUntil
+async function logPrerender(url, userAgent, cached, renderTimeMs, source) {
   try {
     const domain = new URL(url).hostname;
-    await fetch(LOG_ENDPOINT, {
+    const response = await fetch(LOG_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -67,18 +69,35 @@ async function logPrerender(url, userAgent, cached, renderTimeMs) {
         url,
         cached,
         user_agent: userAgent,
-        render_time_ms: renderTimeMs
+        render_time_ms: renderTimeMs,
+        source: source // Pour debug: quel format a fonctionné
       })
     });
+    if (!response.ok) {
+      console.error('Log failed:', response.status, await response.text());
+    }
   } catch (e) {
     console.error('Log error:', e);
   }
 }
 
-async function handleRequest(request) {
+// Tente un format d'URL prerender
+async function tryPrerender(prerenderUrl, userAgent) {
+  const response = await fetch(prerenderUrl, {
+    headers: {
+      'User-Agent': userAgent,
+      'X-Prerender-Token': PRERENDER_TOKEN
+    },
+    cf: { cacheTtl: 0 } // Pas de cache CF pour le debug
+  });
+  return response;
+}
+
+async function handleRequest(request, ctx) {
   const url = new URL(request.url);
   const userAgent = request.headers.get('User-Agent') || '';
   const pathname = url.pathname.toLowerCase();
+  const isDebug = url.searchParams.has('__prerender_debug');
 
   // Ignore static files
   for (const ext of IGNORE_EXTENSIONS) {
@@ -92,47 +111,105 @@ async function handleRequest(request) {
     userAgent.toLowerCase().includes(bot.toLowerCase())
   );
 
-  if (!isBot) {
+  if (!isBot && !isDebug) {
     return fetch(request);
   }
 
-  // Prerender for bots - construct full URL to prerender
   const startTime = Date.now();
   const fullUrl = url.toString();
-  const prerenderUrl = \`\${PRERENDER_SERVICE}/\${fullUrl}\`;
   
+  // Format A: URL encodée (recommandé)
+  const encodedUrl = encodeURIComponent(fullUrl);
+  const prerenderUrlA = PRERENDER_SERVICE + '/' + encodedUrl;
+  
+  // Format B: Token + path (fallback legacy)
+  const prerenderUrlB = PRERENDER_SERVICE + '/' + PRERENDER_TOKEN + url.pathname + url.search;
+
+  let response = null;
+  let source = 'none';
+  let lastError = null;
+
+  // Essayer Format A d'abord
   try {
-    const response = await fetch(prerenderUrl, {
-      headers: {
-        'User-Agent': userAgent,
-        'X-Prerender-Token': PRERENDER_TOKEN
-      },
-    });
-    
-    const renderTimeMs = Date.now() - startTime;
-    const cached = response.headers.get('X-Prerender-Cache') === 'HIT';
-    
-    // Log the prerender (non-blocking)
-    logPrerender(url.toString(), userAgent, cached, renderTimeMs);
-    
-    return new Response(response.body, {
-      status: response.status,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Prerender-Status': 'rendered',
-        'X-Prerender-Time': renderTimeMs.toString() + 'ms',
-        'X-Prerender-Cache': cached ? 'HIT' : 'MISS'
-      },
-    });
-  } catch (error) {
-    console.error('Prerender error:', error);
-    return fetch(request);
+    response = await tryPrerender(prerenderUrlA, userAgent);
+    if (response.ok || response.status === 304) {
+      source = 'encodedUrl';
+    } else {
+      console.log('Format A failed:', response.status);
+      response = null;
+    }
+  } catch (e) {
+    console.error('Format A error:', e);
+    lastError = e;
   }
+
+  // Fallback Format B si A a échoué
+  if (!response) {
+    try {
+      response = await tryPrerender(prerenderUrlB, userAgent);
+      if (response.ok || response.status === 304) {
+        source = 'tokenPath';
+      } else {
+        console.log('Format B failed:', response.status);
+        response = null;
+      }
+    } catch (e) {
+      console.error('Format B error:', e);
+      lastError = e;
+    }
+  }
+
+  // Si les deux ont échoué, retourner la page originale
+  if (!response) {
+    console.error('All prerender formats failed, serving original');
+    const originalResponse = await fetch(request);
+    return new Response(originalResponse.body, {
+      status: originalResponse.status,
+      headers: {
+        ...Object.fromEntries(originalResponse.headers),
+        'X-Prerender-Status': 'fallback',
+        'X-Prerender-Error': lastError ? lastError.message : 'All formats failed'
+      }
+    });
+  }
+  
+  const renderTimeMs = Date.now() - startTime;
+  const cached = response.headers.get('X-Prerender-Cache') === 'HIT';
+  
+  // Log avec waitUntil pour fiabilité (non-blocking mais garanti)
+  if (ctx && ctx.waitUntil) {
+    ctx.waitUntil(logPrerender(fullUrl, userAgent, cached, renderTimeMs, source));
+  } else {
+    // Fallback si pas de ctx
+    logPrerender(fullUrl, userAgent, cached, renderTimeMs, source);
+  }
+  
+  // Headers de debug
+  const responseHeaders = {
+    'Content-Type': 'text/html; charset=utf-8',
+    'X-Prerender-Status': 'rendered',
+    'X-Prerender-Source': source,
+    'X-Prerender-Time': renderTimeMs + 'ms',
+    'X-Prerender-Cache': cached ? 'HIT' : 'MISS'
+  };
+  
+  if (isDebug) {
+    responseHeaders['X-Prerender-Debug'] = 'true';
+    responseHeaders['X-Prerender-URL-A'] = prerenderUrlA;
+    responseHeaders['X-Prerender-URL-B'] = prerenderUrlB;
+  }
+  
+  return new Response(response.body, {
+    status: response.status,
+    headers: responseHeaders
+  });
 }
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});`;
+export default {
+  async fetch(request, env, ctx) {
+    return handleRequest(request, ctx);
+  }
+};`;
 
   const handleCopyWorker = async () => {
     await navigator.clipboard.writeText(workerCode);
