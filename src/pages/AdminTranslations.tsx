@@ -89,14 +89,36 @@ const AdminTranslations = () => {
   });
 
   // Sync translations via LibreTranslate (translate missing EN from FR)
+  // Now processes in batches and loops until all are done
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const response = await supabase.functions.invoke("sync-translations");
-      if (response.error) throw response.error;
-      return response.data;
+      let totalTranslated = 0;
+      let totalErrors = 0;
+      let hasMore = true;
+      let iterations = 0;
+      const maxIterations = 50; // Safety limit
+
+      while (hasMore && iterations < maxIterations) {
+        iterations++;
+        const response = await supabase.functions.invoke("sync-translations");
+        if (response.error) throw response.error;
+        
+        const data = response.data;
+        totalTranslated += data.translated || 0;
+        totalErrors += data.errors || 0;
+        hasMore = data.hasMore || false;
+        
+        // Update UI during process
+        if (hasMore) {
+          toast.info(`Traduction en cours... ${totalTranslated} faites, ${data.remaining} restantes`);
+          queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
+        }
+      }
+
+      return { translated: totalTranslated, errors: totalErrors };
     },
     onSuccess: (data) => {
-      toast.success(`Synchronisation terminée: ${data.translated} traductions LibreTranslate`);
+      toast.success(`Synchronisation terminée: ${data.translated} traductions LibreTranslate${data.errors > 0 ? ` (${data.errors} erreurs)` : ''}`);
       queryClient.invalidateQueries({ queryKey: ["admin-translations"] });
       queryClient.invalidateQueries({ queryKey: ["translations"] });
     },

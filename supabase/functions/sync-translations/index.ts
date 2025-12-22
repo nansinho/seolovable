@@ -16,6 +16,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const LIBRETRANSLATE_URL = "https://libretranslate.seolovable.cloud:5000";
+    const BATCH_SIZE = 20; // Process 20 translations max per call to avoid timeout
 
     // Get all French translations (source)
     const { data: frTranslations, error: frError } = await supabase
@@ -50,10 +51,14 @@ serve(async (req) => {
 
     console.log(`Found ${missingKeys.length} missing English translations`);
 
+    // Only process BATCH_SIZE at a time to avoid timeout
+    const batch = missingKeys.slice(0, BATCH_SIZE);
+    const remaining = missingKeys.length - batch.length;
+
     let translated = 0;
     let errors = 0;
 
-    for (const item of missingKeys) {
+    for (const item of batch) {
       try {
         console.log(`Translating key: ${item.key}`);
 
@@ -68,13 +73,16 @@ serve(async (req) => {
         });
 
         if (!translateResponse.ok) {
-          console.error(`Failed to translate ${item.key}: ${translateResponse.status}`);
+          const errorText = await translateResponse.text();
+          console.error(`Failed to translate ${item.key}: ${translateResponse.status} - ${errorText}`);
           errors++;
           continue;
         }
 
         const result = await translateResponse.json();
         const translatedText = result.translatedText;
+
+        console.log(`Translated ${item.key}: "${item.value}" -> "${translatedText}"`);
 
         const { error: insertError } = await supabase.from("translations").insert({
           key: item.key,
@@ -88,11 +96,10 @@ serve(async (req) => {
           errors++;
         } else {
           translated++;
-          console.log(`Translated: ${item.key}`);
         }
 
         // Small delay to avoid overwhelming LibreTranslate
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (e) {
         console.error(`Error translating ${item.key}:`, e);
         errors++;
@@ -103,8 +110,11 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         total: missingKeys.length,
+        processed: batch.length,
         translated,
         errors,
+        remaining,
+        hasMore: remaining > 0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
