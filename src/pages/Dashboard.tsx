@@ -389,27 +389,27 @@ const Dashboard = () => {
               </div>
             )}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.pagesRendered")}</p>
-                <p className="text-2xl font-semibold font-code text-foreground">
+              <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">{t("dashboard.pagesRendered")}</p>
+                <p className="text-2xl font-bold font-code text-foreground">
                   {stats.total_pages_rendered.toLocaleString()}
                 </p>
               </div>
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.botsToday")}</p>
-                <p className="text-2xl font-semibold font-code text-foreground">
+              <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">{t("dashboard.botsToday")}</p>
+                <p className="text-2xl font-bold font-code text-foreground">
                   {stats.total_bots}
                 </p>
               </div>
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.googleCrawls")}</p>
-                <p className="text-2xl font-semibold font-code text-foreground">
+              <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">{t("dashboard.googleCrawls")}</p>
+                <p className="text-2xl font-bold font-code text-foreground">
                   {stats.google_crawls}
                 </p>
               </div>
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-xs text-muted-foreground font-code mb-1">{t("dashboard.aiCrawls")}</p>
-                <p className="text-2xl font-semibold font-code text-foreground">
+              <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground font-code mb-2">{t("dashboard.aiCrawls")}</p>
+                <p className="text-2xl font-bold font-code text-foreground">
                   {stats.ai_crawls}
                 </p>
               </div>
@@ -417,7 +417,7 @@ const Dashboard = () => {
           </div>
 
           {/* Charts Section */}
-          <div className="p-4 lg:p-6 rounded-lg border border-border bg-card mb-6">
+          <div className="p-4 lg:p-6 rounded-xl border border-border bg-card mb-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.crawlsEvolution")}</h2>
               <span className="text-xs text-muted-foreground font-code">
@@ -429,7 +429,7 @@ const Dashboard = () => {
 
           <div className="grid lg:grid-cols-2 gap-6 mb-6">
             {/* Sites List */}
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+            <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.mySites")}</h2>
                 <span className="text-xs text-muted-foreground font-code">
@@ -504,7 +504,7 @@ const Dashboard = () => {
             </div>
 
             {/* Prerender Activity */}
-            <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+            <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold font-code text-foreground">{t("dashboard.recentActivity")}</h2>
                 <span className="text-xs text-muted-foreground font-code">
@@ -531,7 +531,7 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         <span className="text-xs text-muted-foreground font-code">
-                          {log.cached ? "Cached" : "Fresh"}
+                          {log.cached ? t("dashboard.chart.cached") : t("dashboard.chart.fresh")}
                         </span>
                         <span className="text-xs text-muted-foreground font-code">
                           {new Date(log.created_at).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })}

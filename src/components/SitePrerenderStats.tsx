@@ -103,7 +103,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
 
   if (isLoading) {
     return (
-      <div className="p-4 lg:p-6 rounded-lg border border-border bg-card space-y-4">
+      <div className="p-4 lg:p-6 rounded-xl border border-border bg-card space-y-4">
         <Skeleton className="h-6 w-40" />
         <div className="grid grid-cols-3 gap-4">
           <Skeleton className="h-20" />
@@ -116,35 +116,35 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
   }
 
   return (
-    <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
+    <div className="p-4 lg:p-6 rounded-xl border border-border bg-card">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-5 h-5 text-accent" />
         <h3 className="text-base font-semibold font-code text-foreground">
-          {t("prerenderStats.title") || "Statistiques Prerender"}
+          {t("prerenderStats.title")}
         </h3>
       </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-          <Database className="w-5 h-5 text-accent mx-auto mb-1" />
-          <p className="text-xl font-bold font-code text-foreground">{stats.total}</p>
+        <div className="p-4 rounded-xl bg-muted/50 border border-border text-center">
+          <Database className="w-5 h-5 text-accent mx-auto mb-2" />
+          <p className="text-2xl font-bold font-code text-foreground">{stats.total}</p>
           <p className="text-xs text-muted-foreground font-code">
-            {t("prerenderStats.total") || "Total"}
+            {t("prerenderStats.total")}
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-center">
-          <Zap className="w-5 h-5 text-green-500 mx-auto mb-1" />
-          <p className="text-xl font-bold font-code text-green-500">{stats.cached}</p>
+        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
+          <Zap className="w-5 h-5 text-green-500 mx-auto mb-2" />
+          <p className="text-2xl font-bold font-code text-green-500">{stats.cached}</p>
           <p className="text-xs text-muted-foreground font-code">
-            {t("prerenderStats.cached") || "Cached"}
+            {t("prerenderStats.cached")}
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 text-center">
-          <Clock className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-          <p className="text-xl font-bold font-code text-orange-500">{stats.fresh}</p>
+        <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-center">
+          <Clock className="w-5 h-5 text-orange-500 mx-auto mb-2" />
+          <p className="text-2xl font-bold font-code text-orange-500">{stats.fresh}</p>
           <p className="text-xs text-muted-foreground font-code">
-            {t("prerenderStats.fresh") || "Fresh"}
+            {t("prerenderStats.fresh")}
           </p>
         </div>
       </div>
@@ -153,9 +153,9 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-code text-muted-foreground">
-            {t("prerenderStats.cacheRate") || "Taux de cache"}
+            {t("prerenderStats.cacheRate")}
           </span>
-          <span className="text-sm font-code text-accent">{stats.cacheRate}%</span>
+          <span className="text-sm font-bold font-code text-accent">{stats.cacheRate}%</span>
         </div>
         <Progress value={stats.cacheRate} className="h-2" />
       </div>
@@ -164,7 +164,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
       {monthlyData.some((m) => m.total > 0) && (
         <div className="mb-6">
           <p className="text-xs text-muted-foreground font-code mb-3">
-            {t("prerenderStats.last6months") || "6 derniers mois"}
+            {t("prerenderStats.last6months")}
           </p>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={monthlyData}>
@@ -180,18 +180,17 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
                 }}
               />
               <Legend wrapperStyle={{ fontSize: "10px" }} />
-              <Bar dataKey="cached" fill="hsl(var(--primary))" name="Cached" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="fresh" fill="hsl(var(--accent))" name="Fresh" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="cached" fill="hsl(var(--primary))" name={t("prerenderStats.cached")} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="fresh" fill="hsl(var(--accent))" name={t("prerenderStats.fresh")} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Recent Logs */}
       {logs.length > 0 && (
         <div>
           <p className="text-xs text-muted-foreground font-code mb-2">
-            {t("prerenderStats.recentLogs") || "Derniers logs"}
+            {t("prerenderStats.recentLogs")}
           </p>
           <div className="max-h-40 overflow-y-auto space-y-1">
             {logs.slice(0, 10).map((log) => (
@@ -221,7 +220,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
 
       {logs.length === 0 && (
         <p className="text-sm text-muted-foreground font-code text-center py-4">
-          {t("prerenderStats.noLogs") || "Aucun log pour le moment"}
+          {t("prerenderStats.noLogs")}
         </p>
       )}
     </div>

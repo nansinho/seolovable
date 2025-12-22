@@ -98,7 +98,7 @@ export function CrawlsChart({ prerenderLogs }: CrawlsChartProps) {
         <Area
           type="monotone"
           dataKey="cached"
-          name={t("dashboard.chart.cached") || "Cached"}
+          name={t("dashboard.chart.cached")}
           stroke="hsl(var(--primary))"
           fillOpacity={1}
           fill="url(#colorCached)"
@@ -107,7 +107,7 @@ export function CrawlsChart({ prerenderLogs }: CrawlsChartProps) {
         <Area
           type="monotone"
           dataKey="fresh"
-          name={t("dashboard.chart.fresh") || "Fresh"}
+          name={t("dashboard.chart.fresh")}
           stroke="hsl(var(--secondary))"
           fillOpacity={1}
           fill="url(#colorFresh)"
