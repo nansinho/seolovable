@@ -334,12 +334,8 @@ const SiteDetails = () => {
             </div>
           </div>
 
-          {/* Step 1: DNS Configuration */}
+          {/* DNS Configuration */}
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${site.dns_verified ? 'bg-green-500/20 text-green-500' : 'bg-accent/20 text-accent'}`}>1</div>
-              <h3 className="text-lg font-bold font-code text-foreground">{t("siteDetails.stepDns")}</h3>
-            </div>
             <DnsConfigCard
               dnsVerified={site.dns_verified}
               txtRecordToken={site.txt_record_token}
@@ -351,13 +347,9 @@ const SiteDetails = () => {
             />
           </div>
 
-          {/* Step 2: Integration Guide - Only show if DNS verified */}
+          {/* Integration Guide - Only show if DNS verified */}
           {site.dns_verified && site.prerender_token && (
             <div className="mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-bold">2</div>
-                <h3 className="text-lg font-bold font-code text-foreground">{t("siteDetails.stepIntegration")}</h3>
-              </div>
               <IntegrationGuide prerenderToken={site.prerender_token} siteUrl={site.url || ""} />
             </div>
           )}
