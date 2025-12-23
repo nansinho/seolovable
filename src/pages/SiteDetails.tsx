@@ -11,11 +11,9 @@ import {
   Clock,
   AlertTriangle,
   Bot,
-  Search,
   TrendingUp,
   Calendar,
   FileText,
-  Copy,
   Play,
   Lock,
   RefreshCw,
@@ -23,14 +21,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useBlockedUserCheck } from "@/hooks/useBlockedUserCheck";
-import { DnsStatusBadge } from "@/components/DnsStatusBadge";
+import { DnsConfigCard } from "@/components/DnsConfigCard";
 import { PrerenderTestModal } from "@/components/PrerenderTestModal";
 import { SimulateCrawlModal } from "@/components/SimulateCrawlModal";
 import { DashboardSidebar, MobileMenuButton } from "@/components/DashboardSidebar";
 import { useI18n } from "@/lib/i18n";
-import { SiteIntegrationPanel } from "@/components/SiteIntegrationPanel";
+import { IntegrationGuide } from "@/components/IntegrationGuide";
 import { SitePrerenderStats } from "@/components/SitePrerenderStats";
-import { CloudflareWorkerPanel } from "@/components/CloudflareWorkerPanel";
 
 interface Site {
   id: string;
@@ -62,8 +59,6 @@ const SiteDetails = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [copiedTxtName, setCopiedTxtName] = useState(false);
   const [prerenderTestOpen, setPrerenderTestOpen] = useState(false);
   const [simulateCrawlOpen, setSimulateCrawlOpen] = useState(false);
 
@@ -193,23 +188,6 @@ const SiteDetails = () => {
     }
   };
 
-  const handleCopyToken = async () => {
-    if (site?.txt_record_token) {
-      await navigator.clipboard.writeText(site.txt_record_token);
-      setCopied(true);
-      toast.success(t("siteDetails.copiedToken"));
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleCopyTxtName = async () => {
-    if (site?.detected_txt_name) {
-      await navigator.clipboard.writeText(site.detected_txt_name);
-      setCopiedTxtName(true);
-      toast.success(t("siteDetails.txtNameCopied"));
-      setTimeout(() => setCopiedTxtName(false), 2000);
-    }
-  };
 
   const handleRefresh = async () => {
     if (!id) return;
@@ -357,41 +335,22 @@ const SiteDetails = () => {
           </div>
 
           {/* DNS Configuration Card */}
-          <div className="p-4 lg:p-6 rounded-xl border border-border bg-card mb-6">
-            <h3 className="text-base font-semibold font-code text-foreground mb-4">{t("siteDetails.dnsConfig")}</h3>
-            <DnsStatusBadge dnsVerified={site.dns_verified} txtRecordToken={site.txt_record_token} cnameTarget={site.cname_target} status={site.status} onVerify={handleVerifyDns} isVerifying={verifyingDns} domain={domain} />
-            {site.txt_record_token && (
-              <div className="mt-3 flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleCopyToken} className="font-code text-xs">
-                  {copied ? <CheckCircle className="w-3 h-3 mr-1 text-green-500" /> : <Copy className="w-3 h-3 mr-1" />}
-                  {copied ? t("siteDetails.copied") : t("siteDetails.copyToken")}
-                </Button>
-              </div>
-            )}
-            {site.dns_verified && site.dns_verified_at && (
-              <div className="mt-3 space-y-1">
-                <p className="text-xs text-muted-foreground font-code">
-                  {t("siteDetails.verifiedOn")} {new Date(site.dns_verified_at).toLocaleString(dateLocale)}
-                </p>
-                {site.detected_txt_name && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground font-code">
-                      {t("siteDetails.detectedRecord")} <code className="text-accent">{site.detected_txt_name}</code>
-                    </p>
-                    <Button variant="ghost" size="sm" onClick={handleCopyTxtName} className="h-6 px-2">
-                      {copiedTxtName ? <CheckCircle className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+          <div className="mb-6">
+            <DnsConfigCard
+              dnsVerified={site.dns_verified}
+              txtRecordToken={site.txt_record_token}
+              status={site.status}
+              onVerify={handleVerifyDns}
+              isVerifying={verifyingDns}
+              domain={domain}
+              dnsVerifiedAt={site.dns_verified_at}
+            />
           </div>
 
-          {/* Integration Panels - Next.js Middleware & Cloudflare Worker */}
+          {/* Integration Guide */}
           {site.prerender_token && (
-            <div className="grid lg:grid-cols-2 gap-6 mb-6">
-              <SiteIntegrationPanel prerenderToken={site.prerender_token} />
-              <CloudflareWorkerPanel prerenderToken={site.prerender_token} siteUrl={site.url || ""} />
+            <div className="mb-6">
+              <IntegrationGuide prerenderToken={site.prerender_token} siteUrl={site.url || ""} />
             </div>
           )}
 
