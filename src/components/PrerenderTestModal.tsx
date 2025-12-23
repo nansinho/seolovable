@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Play, Code, Eye, FileText, CheckCircle, XCircle, Clock, HardDrive, Copy } from "lucide-react";
+import { Loader2, Play, Code, Eye, FileText, CheckCircle, XCircle, Clock, HardDrive, Copy, Search, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
 
@@ -195,11 +195,216 @@ function SyntaxHighlightedHtml({ html }: { html: string }) {
   return (
     <code className="block">
       {lines.map((line, i) => (
-        <div key={i} className="leading-relaxed">
-          {highlightLine(line, i)}
+        <div key={i} className="leading-relaxed flex">
+          <span className="select-none w-10 pr-3 text-right text-muted-foreground/50 border-r border-border/30 mr-3 shrink-0">
+            {i + 1}
+          </span>
+          <span className="flex-1">{highlightLine(line, i)}</span>
         </div>
       ))}
     </code>
+  );
+}
+
+// Syntax highlighter with search highlight
+function SyntaxHighlightedHtmlWithSearch({ html, searchQuery }: { html: string; searchQuery: string }) {
+  const lines = html.split("\n");
+  const lowerQuery = searchQuery.toLowerCase();
+
+  const highlightLine = (line: string, lineIndex: number) => {
+    const elements: React.ReactNode[] = [];
+    let remaining = line;
+    let keyIndex = 0;
+
+    // Helper to wrap text with search highlight if needed
+    const wrapWithSearchHighlight = (text: string, className: string, key: string) => {
+      if (!searchQuery || !text.toLowerCase().includes(lowerQuery)) {
+        return <span key={key} className={className}>{text}</span>;
+      }
+
+      // Split and highlight matches
+      const parts: React.ReactNode[] = [];
+      let lastIndex = 0;
+      const lowerText = text.toLowerCase();
+      let matchIndex = lowerText.indexOf(lowerQuery, lastIndex);
+      let partKey = 0;
+
+      while (matchIndex !== -1) {
+        if (matchIndex > lastIndex) {
+          parts.push(
+            <span key={`${key}-${partKey++}`} className={className}>
+              {text.slice(lastIndex, matchIndex)}
+            </span>
+          );
+        }
+        parts.push(
+          <span key={`${key}-${partKey++}`} className="bg-yellow-500/40 text-yellow-200 rounded px-0.5">
+            {text.slice(matchIndex, matchIndex + searchQuery.length)}
+          </span>
+        );
+        lastIndex = matchIndex + searchQuery.length;
+        matchIndex = lowerText.indexOf(lowerQuery, lastIndex);
+      }
+
+      if (lastIndex < text.length) {
+        parts.push(
+          <span key={`${key}-${partKey++}`} className={className}>
+            {text.slice(lastIndex)}
+          </span>
+        );
+      }
+
+      return <>{parts}</>;
+    };
+
+    while (remaining.length > 0) {
+      // Match DOCTYPE
+      const doctypeMatch = remaining.match(/^(<!DOCTYPE[^>]*>)/i);
+      if (doctypeMatch) {
+        elements.push(wrapWithSearchHighlight(doctypeMatch[1], "text-muted-foreground", `${lineIndex}-${keyIndex++}`));
+        remaining = remaining.slice(doctypeMatch[1].length);
+        continue;
+      }
+
+      // Match comment
+      const commentMatch = remaining.match(/^(<!--[\s\S]*?-->)/);
+      if (commentMatch) {
+        elements.push(wrapWithSearchHighlight(commentMatch[1], "text-muted-foreground italic", `${lineIndex}-${keyIndex++}`));
+        remaining = remaining.slice(commentMatch[1].length);
+        continue;
+      }
+
+      // Match closing tag
+      const closingTagMatch = remaining.match(/^(<\/)([\w-]+)(>)/);
+      if (closingTagMatch) {
+        elements.push(
+          <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">&lt;/</span>,
+          wrapWithSearchHighlight(closingTagMatch[2], "text-pink-400", `${lineIndex}-${keyIndex++}`),
+          <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">&gt;</span>
+        );
+        remaining = remaining.slice(closingTagMatch[0].length);
+        continue;
+      }
+
+      // Match opening tag with attributes
+      const openingTagMatch = remaining.match(/^(<)([\w-]+)/);
+      if (openingTagMatch) {
+        elements.push(
+          <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">&lt;</span>,
+          wrapWithSearchHighlight(openingTagMatch[2], "text-pink-400", `${lineIndex}-${keyIndex++}`)
+        );
+        remaining = remaining.slice(openingTagMatch[0].length);
+
+        // Parse attributes until we hit > or />
+        while (remaining.length > 0) {
+          // Match end of tag
+          const endTagMatch = remaining.match(/^(\s*)(\/?>)/);
+          if (endTagMatch) {
+            elements.push(
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{endTagMatch[1]}</span>,
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">{endTagMatch[2]}</span>
+            );
+            remaining = remaining.slice(endTagMatch[0].length);
+            break;
+          }
+
+          // Match attribute with value (double quotes)
+          const attrDoubleMatch = remaining.match(/^(\s+)([\w:-]+)(=)("([^"]*)")/);
+          if (attrDoubleMatch) {
+            elements.push(
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{attrDoubleMatch[1]}</span>,
+              wrapWithSearchHighlight(attrDoubleMatch[2], "text-sky-400", `${lineIndex}-${keyIndex++}`),
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">=</span>,
+              wrapWithSearchHighlight(attrDoubleMatch[4], "text-amber-400", `${lineIndex}-${keyIndex++}`)
+            );
+            remaining = remaining.slice(attrDoubleMatch[0].length);
+            continue;
+          }
+
+          // Match attribute with value (single quotes)
+          const attrSingleMatch = remaining.match(/^(\s+)([\w:-]+)(=)('([^']*)')/);
+          if (attrSingleMatch) {
+            elements.push(
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{attrSingleMatch[1]}</span>,
+              wrapWithSearchHighlight(attrSingleMatch[2], "text-sky-400", `${lineIndex}-${keyIndex++}`),
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-muted-foreground">=</span>,
+              wrapWithSearchHighlight(attrSingleMatch[4], "text-amber-400", `${lineIndex}-${keyIndex++}`)
+            );
+            remaining = remaining.slice(attrSingleMatch[0].length);
+            continue;
+          }
+
+          // Match boolean attribute
+          const boolAttrMatch = remaining.match(/^(\s+)([\w:-]+)(?=\s|\/?>)/);
+          if (boolAttrMatch) {
+            elements.push(
+              <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{boolAttrMatch[1]}</span>,
+              wrapWithSearchHighlight(boolAttrMatch[2], "text-sky-400", `${lineIndex}-${keyIndex++}`)
+            );
+            remaining = remaining.slice(boolAttrMatch[0].length);
+            continue;
+          }
+
+          // Fallback: take one character
+          elements.push(
+            <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{remaining[0]}</span>
+          );
+          remaining = remaining.slice(1);
+        }
+        continue;
+      }
+
+      // Match text content (everything until next tag)
+      const textMatch = remaining.match(/^([^<]+)/);
+      if (textMatch) {
+        elements.push(wrapWithSearchHighlight(textMatch[1], "text-foreground", `${lineIndex}-${keyIndex++}`));
+        remaining = remaining.slice(textMatch[1].length);
+        continue;
+      }
+
+      // Fallback
+      elements.push(
+        <span key={`${lineIndex}-${keyIndex++}`} className="text-foreground">{remaining[0]}</span>
+      );
+      remaining = remaining.slice(1);
+    }
+
+    return elements;
+  };
+
+  // Check if line contains the search query
+  const lineContainsMatch = (line: string) => {
+    if (!searchQuery) return false;
+    return line.toLowerCase().includes(lowerQuery);
+  };
+
+  // Count matches
+  const matchCount = useMemo(() => {
+    if (!searchQuery) return 0;
+    return lines.filter(line => line.toLowerCase().includes(lowerQuery)).length;
+  }, [lines, lowerQuery, searchQuery]);
+
+  return (
+    <>
+      {searchQuery && (
+        <div className="absolute top-2 left-2 z-10 text-xs text-muted-foreground font-code bg-zinc-900/80 px-2 py-1 rounded">
+          {matchCount} ligne{matchCount > 1 ? "s" : ""} trouvée{matchCount > 1 ? "s" : ""}
+        </div>
+      )}
+      <code className="block">
+        {lines.map((line, i) => (
+          <div 
+            key={i} 
+            className={`leading-relaxed flex ${lineContainsMatch(line) ? "bg-yellow-500/10" : ""}`}
+          >
+            <span className={`select-none w-10 pr-3 text-right border-r border-border/30 mr-3 shrink-0 ${lineContainsMatch(line) ? "text-yellow-400" : "text-muted-foreground/50"}`}>
+              {i + 1}
+            </span>
+            <span className="flex-1">{highlightLine(line, i)}</span>
+          </div>
+        ))}
+      </code>
+    </>
   );
 }
 
@@ -227,6 +432,7 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PrerenderResult | null>(null);
   const [copiedHtml, setCopiedHtml] = useState(false);
+  const [htmlSearch, setHtmlSearch] = useState("");
 
   // Format the HTML for better readability
   const formattedHtml = useMemo(() => {
@@ -374,29 +580,53 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
               </TabsList>
 
               <TabsContent value="html" className="flex-1 min-h-0 mt-4">
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopyHtml}
-                    className="absolute top-2 right-2 z-10 font-code text-xs"
-                  >
-                    {copiedHtml ? (
-                      <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
-                    ) : (
-                      <Copy className="w-3 h-3 mr-1" />
-                    )}
-                    {copiedHtml ? "Copié" : "Copier"}
-                  </Button>
-                  <ScrollArea className="h-[400px] rounded-lg border border-border bg-zinc-950 p-4">
-                    <pre className="font-mono text-xs whitespace-pre">
-                      {formattedHtml ? (
-                        <SyntaxHighlightedHtml html={formattedHtml} />
-                      ) : (
-                        <span className="text-muted-foreground">{t("prerenderTest.noContent")}</span>
+                <div className="relative flex flex-col gap-2">
+                  {/* Search bar */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Rechercher dans le HTML..."
+                        value={htmlSearch}
+                        onChange={(e) => setHtmlSearch(e.target.value)}
+                        className="pl-9 pr-8 font-code text-xs h-8"
+                      />
+                      {htmlSearch && (
+                        <button
+                          onClick={() => setHtmlSearch("")}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       )}
-                    </pre>
-                  </ScrollArea>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyHtml}
+                      className="font-code text-xs h-8"
+                    >
+                      {copiedHtml ? (
+                        <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                      ) : (
+                        <Copy className="w-3 h-3 mr-1" />
+                      )}
+                      {copiedHtml ? "Copié" : "Copier"}
+                    </Button>
+                  </div>
+
+                  {/* Code view */}
+                  <div className="relative">
+                    <ScrollArea className="h-[360px] rounded-lg border border-border bg-zinc-950 p-4">
+                      <pre className="font-mono text-xs whitespace-pre">
+                        {formattedHtml ? (
+                          <SyntaxHighlightedHtmlWithSearch html={formattedHtml} searchQuery={htmlSearch} />
+                        ) : (
+                          <span className="text-muted-foreground">{t("prerenderTest.noContent")}</span>
+                        )}
+                      </pre>
+                    </ScrollArea>
+                  </div>
                 </div>
               </TabsContent>
 
