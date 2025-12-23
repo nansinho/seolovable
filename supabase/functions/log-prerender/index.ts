@@ -87,9 +87,9 @@ Deno.serve(async (req) => {
   try {
     const startTime = Date.now()
     const body = await req.json()
-    const { token, domain, url, cached, user_agent, render_time_ms } = body
+    const { token, domain, url, cached, user_agent, render_time_ms, source = 'prerender' } = body
     
-    logStep('Received request', { token: token?.substring(0, 8) + '...', domain, url, cached })
+    logStep('Received request', { token: token?.substring(0, 8) + '...', domain, url, cached, source })
 
     // Validate required fields
     if (!token || !domain || !url || cached === undefined || !user_agent) {
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
 
     // Detect bot type
     const botInfo = detectBot(user_agent)
-    logStep('Bot detection', botInfo)
+    logStep('Bot detection', { ...botInfo, source })
 
     // Create Supabase client with SERVICE_ROLE_KEY (bypass RLS)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Insert log with bot info
+    // Insert log with bot info and source
     logStep('Inserting prerender log')
     const { error: insertError } = await supabase
       .from('prerender_logs')
@@ -187,7 +187,8 @@ Deno.serve(async (req) => {
         user_agent,
         bot_name: botInfo.name,
         bot_type: botInfo.type,
-        render_time_ms: render_time_ms || null
+        render_time_ms: render_time_ms || null,
+        source: source // 'prerender', 'simulate', or 'proxy'
       })
 
     if (insertError) {
@@ -198,22 +199,22 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Update site stats: increment pages_rendered and update last_crawl
-    logStep('Updating site stats')
-    const { error: updateError } = await supabase
-      .from('sites')
-      .update({
-        pages_rendered: (site.pages_rendered || 0) + 1,
-        last_crawl: new Date().toISOString()
-      })
-      .eq('id', site.id)
+    // ONLY update site stats if this is a REAL BOT (not a manual test)
+    if (botInfo.name) {
+      logStep('Real bot detected - updating site stats')
+      const { error: updateError } = await supabase
+        .from('sites')
+        .update({
+          pages_rendered: (site.pages_rendered || 0) + 1,
+          last_crawl: new Date().toISOString()
+        })
+        .eq('id', site.id)
 
-    if (updateError) {
-      logStep('Update site error (non-blocking)', updateError)
-    }
+      if (updateError) {
+        logStep('Update site error (non-blocking)', updateError)
+      }
 
-    // If it's a real bot, also update daily_stats
-    if (botInfo.type) {
+      // Also update daily_stats for real bots
       const today = new Date().toISOString().split('T')[0]
       
       // Try to get existing stats for today
@@ -254,14 +255,17 @@ Deno.serve(async (req) => {
             ai_crawls: botInfo.type === 'ai' ? 1 : 0
           })
       }
+    } else {
+      logStep('Manual test - NOT updating stats counters')
     }
 
     const processingTime = Date.now() - startTime
-    logStep('Log inserted successfully', { processingTime, botName: botInfo.name, botType: botInfo.type })
+    logStep('Log inserted successfully', { processingTime, botName: botInfo.name, botType: botInfo.type, source })
     
     return new Response(JSON.stringify({ 
       success: true, 
       bot: botInfo,
+      source,
       processingTime 
     }), {
       status: 200,
