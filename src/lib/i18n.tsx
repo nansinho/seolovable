@@ -448,8 +448,11 @@ const staticTranslations: Record<string, Record<Language, string>> = {
   "siteDetails.dnsVerifyError": { fr: "Erreur lors de la vérification DNS. Réessayez.", en: "" },
   "siteDetails.refreshError": { fr: "Erreur lors du rafraîchissement", en: "" },
   "siteDetails.dataRefreshed": { fr: "Données rafraîchies !", en: "" },
+  "siteDetails.stepTest": { fr: "Tester le prerendering", en: "" },
+  "siteDetails.stepTestDesc": { fr: "Vérifiez que votre site fonctionne correctement avec notre service de prerendering avant de continuer.", en: "" },
+  "siteDetails.stepDns": { fr: "Configurer le DNS", en: "" },
+  "siteDetails.stepIntegration": { fr: "Intégrer sur votre serveur", en: "" },
 
-  // Analytics Page
   "analytics.title": { fr: "Analytics", en: "" },
   "analytics.subtitle": { fr: "Statistiques détaillées de crawl par bot et période", en: "" },
   "analytics.allSites": { fr: "Tous les sites", en: "" },
