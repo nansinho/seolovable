@@ -37,6 +37,7 @@ interface Site {
   status: string;
   pages_rendered: number;
   last_crawl: string | null;
+  dns_verified: boolean | null;
 }
 
 interface PrerenderLog {
@@ -478,15 +479,24 @@ const Dashboard = () => {
                   sites.map((site) => (
                     <div
                       key={site.id}
-                      className="p-3 rounded-lg border border-border bg-background hover:border-accent/50 transition-colors cursor-pointer"
+                      className={`p-3 rounded-lg border bg-background transition-colors cursor-pointer ${
+                        site.dns_verified 
+                          ? "border-border hover:border-accent/50" 
+                          : "border-yellow-500/30 bg-yellow-500/5"
+                      }`}
                       onClick={() => navigate(`/dashboard/sites/${site.id}`)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Globe2 className="w-4 h-4 text-accent" />
+                          <Globe2 className={`w-4 h-4 ${site.dns_verified ? "text-accent" : "text-yellow-500"}`} />
                           <span className="font-code text-sm text-foreground">
                             {site.name}
                           </span>
+                          {!site.dns_verified && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 font-code">
+                              DNS
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           {site.url && (
@@ -510,15 +520,19 @@ const Dashboard = () => {
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          {site.status === "active" ? (
+                          {site.status === "active" && site.dns_verified ? (
                             <CheckCircle className="w-4 h-4 text-green-500" />
+                          ) : !site.dns_verified ? (
+                            <Clock className="w-4 h-4 text-yellow-500" />
                           ) : site.status === "pending" ? (
                             <Clock className="w-4 h-4 text-yellow-500" />
                           ) : (
                             <AlertTriangle className="w-4 h-4 text-destructive" />
                           )}
                           <span className="text-xs text-muted-foreground font-code">
-                            {site.status === "active"
+                            {!site.dns_verified
+                              ? t("dashboard.dnsRequired")
+                              : site.status === "active"
                               ? t("dashboard.active")
                               : site.status === "pending"
                               ? t("dashboard.pending")
