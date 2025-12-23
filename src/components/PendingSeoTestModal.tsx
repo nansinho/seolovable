@@ -58,11 +58,19 @@ export const PendingSeoTestModal = ({
         body: { email: userEmail, url },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        console.error("Function invoke error:", fnError);
+        throw fnError;
+      }
 
       if (data.success) {
         setResult(data.result);
         toast.success(t("seoTest.toastSuccess"));
+      } else if (data.rateLimited) {
+        setError(data.error || t("seoTest.rateLimited"));
+      } else if (data.result?.error) {
+        // Site-specific error (timeout, SSL, etc.)
+        setError(data.result.error);
       } else {
         setError(data.error || t("seoTest.error"));
       }

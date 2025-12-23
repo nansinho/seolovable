@@ -5,6 +5,8 @@ export const ALLOWED_ORIGINS = [
   "https://dcjurgffzjpjxqpmqtkd.lovableproject.com",
   "https://seolovable.com",
   "https://www.seolovable.com",
+  "https://seolovable.cloud",
+  "https://www.seolovable.cloud",
 ];
 
 // Generate dynamic CORS headers based on request origin

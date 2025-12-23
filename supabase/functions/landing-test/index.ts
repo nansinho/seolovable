@@ -130,15 +130,24 @@ Deno.serve(async (req) => {
     let testResult: Record<string, unknown> = { success: false };
 
     try {
-      // Simple fetch test to check if URL is accessible
+      // Simple fetch test to check if URL is accessible with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
       const response = await fetch(formattedUrl, {
         method: "GET",
         headers: {
           "User-Agent": "Googlebot/2.1 (+http://www.google.com/bot.html)",
-          "Accept": "text/html,application/xhtml+xml",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Accept-Encoding": "gzip, deflate",
+          "Connection": "keep-alive",
         },
         redirect: "follow",
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const responseTime = Date.now() - testStartTime;
       const html = await response.text();
@@ -165,12 +174,28 @@ Deno.serve(async (req) => {
         needsPrerender: isJavaScriptHeavy || contentLength < 3000,
         score: (hasTitle ? 25 : 0) + (hasMetaDescription ? 25 : 0) + (hasH1 ? 25 : 0) + (hasCanonical ? 25 : 0),
       };
+
+      console.log(`Test successful: score=${testResult.score}, responseTime=${responseTime}ms`);
     } catch (fetchError) {
       console.error("Fetch error:", fetchError);
-      testResult = {
-        success: false,
-        error: "Impossible d'accéder au site. Vérifiez l'URL.",
-      };
+      const errorMessage = fetchError instanceof Error ? fetchError.message : "Unknown error";
+      
+      if (errorMessage.includes("abort") || errorMessage.includes("timeout")) {
+        testResult = {
+          success: false,
+          error: "Le site met trop de temps à répondre (timeout 15s).",
+        };
+      } else if (errorMessage.includes("certificate") || errorMessage.includes("SSL")) {
+        testResult = {
+          success: false,
+          error: "Erreur de certificat SSL. Vérifiez que le site est bien en HTTPS.",
+        };
+      } else {
+        testResult = {
+          success: false,
+          error: "Impossible d'accéder au site. Vérifiez l'URL et réessayez.",
+        };
+      }
     }
 
     // Hash IP for privacy before storing
