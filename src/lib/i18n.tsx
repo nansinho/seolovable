@@ -211,6 +211,7 @@ const staticTranslations: Record<string, Record<Language, string>> = {
   "seoTest.toastSuccess": { fr: "Analyse SEO terminée !", en: "" },
   "seoTest.error": { fr: "Erreur lors de l'analyse", en: "" },
   "seoTest.errorLater": { fr: "Erreur lors de l'analyse. Réessayez plus tard.", en: "" },
+  "seoTest.rateLimited": { fr: "Limite atteinte. Créez un compte gratuit pour plus de tests.", en: "" },
 
   // Modals: prerender test
   "prerenderTest.title": { fr: "Tester le Prerendering", en: "" },
