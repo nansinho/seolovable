@@ -123,7 +123,7 @@ serve(async (req) => {
     if (siteId) {
       const { data, error } = await supabaseClient
         .from("sites")
-        .select("id, user_id, pages_rendered")
+        .select("id, user_id, pages_rendered, prerender_token, url")
         .eq("id", siteId)
         .single();
       
@@ -147,7 +147,7 @@ serve(async (req) => {
       
       const { data, error } = await supabaseClient
         .from("sites")
-        .select("id, user_id, pages_rendered")
+        .select("id, user_id, pages_rendered, prerender_token, url")
         .ilike("url", `%${hostname}%`)
         .limit(1)
         .maybeSingle();
@@ -172,21 +172,37 @@ serve(async (req) => {
 
     logStep("Site found", { siteId: site.id });
 
-    // Insert bot activity
-    const { error: activityError } = await supabaseClient
-      .from("bot_activity")
+    // Get domain from site URL
+    let domain = '';
+    try {
+      if (site.url) {
+        domain = new URL(site.url).hostname;
+      }
+    } catch {
+      domain = 'unknown';
+    }
+
+    // INSERT INTO prerender_logs (unified table) instead of bot_activity
+    const logUrl = url || site.url || '';
+    const { error: logError } = await supabaseClient
+      .from("prerender_logs")
       .insert({
         site_id: site.id,
-        user_id: site.user_id,
+        token: site.prerender_token,
+        domain: domain,
+        url: logUrl,
+        cached: false, // Simulated crawls are not cached
+        user_agent: userAgent,
         bot_name: botInfo.botName,
         bot_type: botInfo.botType,
-        pages_crawled: pagesCrawled,
+        render_time_ms: null,
+        source: 'simulate' // Mark as simulated crawl
       });
 
-    if (activityError) {
-      logStep("Error inserting bot activity", { error: activityError.message });
+    if (logError) {
+      logStep("Error inserting prerender log", { error: logError.message });
     } else {
-      logStep("Bot activity logged");
+      logStep("Prerender log inserted with source=simulate");
     }
 
     // Update site stats
@@ -269,6 +285,7 @@ serve(async (req) => {
         botName: botInfo.botName,
         botType: botInfo.botType,
         siteId: site.id,
+        source: 'simulate'
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

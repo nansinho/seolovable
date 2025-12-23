@@ -37,6 +37,9 @@ interface PrerenderLog {
   domain: string;
   user_agent: string;
   site_id: string | null;
+  bot_name: string | null;
+  bot_type: string | null;
+  source: string | null;
 }
 
 interface Site {
@@ -133,7 +136,7 @@ export default function Analytics() {
         if (siteIds.length > 0) {
           const { data: logs } = await supabase
             .from("prerender_logs")
-            .select("id, created_at, cached, url, domain, user_agent, site_id")
+            .select("id, created_at, cached, url, domain, user_agent, site_id, bot_name, bot_type, source")
             .in("site_id", siteIds)
             .gte("created_at", daysAgo.toISOString())
             .order("created_at", { ascending: false })

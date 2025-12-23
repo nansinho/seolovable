@@ -48,13 +48,6 @@ interface Site {
   prerender_token?: string | null;
 }
 
-interface BotActivity {
-  id: string;
-  bot_name: string;
-  bot_type: string;
-  pages_crawled: number;
-  crawled_at: string;
-}
 
 const SiteDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +57,7 @@ const SiteDetails = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [site, setSite] = useState<Site | null>(null);
-  const [botActivity, setBotActivity] = useState<BotActivity[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [verifyingDns, setVerifyingDns] = useState(false);
@@ -117,9 +110,6 @@ const SiteDetails = () => {
 
       setSite(siteData as Site);
 
-      const { data: activityData } = await supabase.from("bot_activity").select("*").eq("site_id", id).order("crawled_at", { ascending: false }).limit(50);
-
-      if (activityData) setBotActivity(activityData);
       setLoading(false);
     };
 
@@ -238,9 +228,6 @@ const SiteDetails = () => {
 
       setSite((prev) => ({ ...siteData, detected_txt_name: prev?.detected_txt_name } as Site));
 
-      const { data: activityData } = await supabase.from("bot_activity").select("*").eq("site_id", id).order("crawled_at", { ascending: false }).limit(50);
-
-      if (activityData) setBotActivity(activityData);
 
       toast.success(t("siteDetails.dataRefreshed"));
     } catch {

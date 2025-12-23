@@ -183,6 +183,7 @@ export type Database = {
           id: number
           render_time_ms: number | null
           site_id: string | null
+          source: string | null
           token: string
           url: string
           user_agent: string
@@ -197,6 +198,7 @@ export type Database = {
           id?: number
           render_time_ms?: number | null
           site_id?: string | null
+          source?: string | null
           token: string
           url: string
           user_agent: string
@@ -211,6 +213,7 @@ export type Database = {
           id?: number
           render_time_ms?: number | null
           site_id?: string | null
+          source?: string | null
           token?: string
           url?: string
           user_agent?: string

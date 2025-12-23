@@ -18,6 +18,7 @@ interface PrerenderLog {
   bot_name: string | null;
   bot_type: string | null;
   render_time_ms: number | null;
+  source: string | null;
 }
 
 interface SitePrerenderStatsProps {
@@ -32,7 +33,24 @@ const BOT_CONFIG: Record<string, { icon: typeof Bot; color: string; label: strin
   other: { icon: HelpCircle, color: "text-gray-500", label: "Other" },
 };
 
-function BotBadge({ botName, botType }: { botName: string | null; botType: string | null }) {
+function BotBadge({ botName, botType, source }: { botName: string | null; botType: string | null; source: string | null }) {
+  // Show source badge for simulations
+  if (source === 'simulate') {
+    const config = botType ? BOT_CONFIG[botType] || BOT_CONFIG.other : BOT_CONFIG.other;
+    const Icon = config.icon;
+    return (
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className={`text-xs gap-1 font-code ${config.color} border-current/30 bg-current/10`}>
+          <Icon className="w-3 h-3" />
+          {botName || 'Test'}
+        </Badge>
+        <Badge variant="secondary" className="text-xs font-code bg-orange-500/10 text-orange-500 border-orange-500/30">
+          Simulation
+        </Badge>
+      </div>
+    );
+  }
+
   if (!botName || !botType) {
     return (
       <Badge variant="outline" className="text-xs gap-1 font-code bg-muted/50">
@@ -65,7 +83,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
       setIsLoading(true);
       const { data, error } = await supabase
         .from("prerender_logs")
-        .select("id, created_at, cached, url, user_agent, domain, bot_name, bot_type, render_time_ms")
+        .select("id, created_at, cached, url, user_agent, domain, bot_name, bot_type, render_time_ms, source")
         .eq("site_id", siteId)
         .order("created_at", { ascending: false })
         .limit(100);
@@ -104,8 +122,9 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
 
   const filteredLogs = useMemo(() => {
     if (filter === "all") return logs;
-    if (filter === "bots") return logs.filter((l) => l.bot_type);
-    if (filter === "manual") return logs.filter((l) => !l.bot_type);
+    if (filter === "bots") return logs.filter((l) => l.bot_type && l.source !== 'simulate');
+    if (filter === "simulate") return logs.filter((l) => l.source === 'simulate');
+    if (filter === "manual") return logs.filter((l) => !l.bot_type && l.source !== 'simulate');
     return logs.filter((l) => l.bot_type === filter);
   }, [logs, filter]);
 
@@ -115,14 +134,15 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
     const fresh = total - cached;
     const cacheRate = total > 0 ? Math.round((cached / total) * 100) : 0;
     
-    // Bot stats
-    const realBots = logs.filter((l) => l.bot_type).length;
-    const manualTests = total - realBots;
-    const searchBots = logs.filter((l) => l.bot_type === "search").length;
-    const aiBots = logs.filter((l) => l.bot_type === "ai").length;
-    const socialBots = logs.filter((l) => l.bot_type === "social").length;
+    // Bot stats - exclude simulations for real bot counts
+    const realBots = logs.filter((l) => l.bot_type && l.source !== 'simulate').length;
+    const simulations = logs.filter((l) => l.source === 'simulate').length;
+    const manualTests = logs.filter((l) => !l.bot_type && l.source !== 'simulate').length;
+    const searchBots = logs.filter((l) => l.bot_type === "search" && l.source !== 'simulate').length;
+    const aiBots = logs.filter((l) => l.bot_type === "ai" && l.source !== 'simulate').length;
+    const socialBots = logs.filter((l) => l.bot_type === "social" && l.source !== 'simulate').length;
     
-    return { total, cached, fresh, cacheRate, realBots, manualTests, searchBots, aiBots, socialBots };
+    return { total, cached, fresh, cacheRate, realBots, simulations, manualTests, searchBots, aiBots, socialBots };
   }, [logs]);
 
   const monthlyData = useMemo(() => {
@@ -178,7 +198,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
           <Database className="w-4 h-4 text-accent mx-auto mb-1" />
           <p className="text-xl font-bold font-code text-foreground">{stats.total}</p>
@@ -195,8 +215,13 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
           <p className="text-xs text-muted-foreground font-code">AI Bots</p>
         </div>
         <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-center">
-          <User className="w-4 h-4 text-orange-500 mx-auto mb-1" />
-          <p className="text-xl font-bold font-code text-orange-500">{stats.manualTests}</p>
+          <Bot className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+          <p className="text-xl font-bold font-code text-orange-500">{stats.simulations}</p>
+          <p className="text-xs text-muted-foreground font-code">Simulations</p>
+        </div>
+        <div className="p-3 rounded-xl bg-gray-500/10 border border-gray-500/30 text-center">
+          <User className="w-4 h-4 text-gray-500 mx-auto mb-1" />
+          <p className="text-xl font-bold font-code text-gray-500">{stats.manualTests}</p>
           <p className="text-xs text-muted-foreground font-code">Tests manuels</p>
         </div>
       </div>
@@ -278,8 +303,8 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
             <p className="text-xs text-muted-foreground font-code">
               {t("prerenderStats.recentLogs")} ({filteredLogs.length})
             </p>
-            <div className="flex gap-1">
-              {["all", "bots", "search", "ai", "manual"].map((f) => (
+            <div className="flex gap-1 flex-wrap">
+              {["all", "bots", "simulate", "search", "ai", "manual"].map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
@@ -289,7 +314,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
                       : "bg-muted/50 text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  {f === "all" ? "Tous" : f === "bots" ? "Bots" : f === "manual" ? "Tests" : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === "all" ? "Tous" : f === "bots" ? "Bots réels" : f === "simulate" ? "Simulations" : f === "manual" ? "Manuels" : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
             </div>
@@ -309,7 +334,7 @@ export function SitePrerenderStats({ siteId }: SitePrerenderStatsProps) {
                       }`}
                       title={log.cached ? "Cached" : "Fresh render"}
                     />
-                    <BotBadge botName={log.bot_name} botType={log.bot_type} />
+                    <BotBadge botName={log.bot_name} botType={log.bot_type} source={log.source} />
                   </div>
                   <span className="text-muted-foreground/70 flex-shrink-0">
                     {new Date(log.created_at).toLocaleString(dateLocale, {
