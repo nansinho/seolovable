@@ -185,6 +185,7 @@ const staticTranslations: Record<string, Record<Language, string>> = {
   "dashboard.active": { fr: "Actif", en: "" },
   "dashboard.pending": { fr: "En attente", en: "" },
   "dashboard.error": { fr: "Erreur", en: "" },
+  "dashboard.dnsRequired": { fr: "Config DNS requise", en: "" },
   "dashboard.lastCrawl": { fr: "Dernier crawl", en: "" },
   "dashboard.never": { fr: "Jamais", en: "" },
   "dashboard.recentActivity": { fr: "Activité récente", en: "" },

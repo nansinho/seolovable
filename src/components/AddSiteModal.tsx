@@ -245,11 +245,11 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             {/* Step 1 */}
             <div className="relative">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
                   1
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-2">{t("addSite.step1Title")}</h4>
+                  <h4 className="font-semibold text-foreground mb-1">{t("addSite.step1Title")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {t("addSite.step1Desc")}
                   </p>
@@ -260,7 +260,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             {/* Step 2 */}
             <div className="relative">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
                   2
                 </div>
                 <div className="flex-1">
@@ -268,30 +268,26 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                   
                   <div className="space-y-3">
                     {/* Type */}
-                    <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.type")}</span>
-                          <span className="font-mono font-bold text-primary text-lg">TXT</span>
-                        </div>
-                      </div>
+                    <div className="p-3 rounded-lg bg-muted border border-border">
+                      <span className="text-xs text-muted-foreground font-code">{t("addSite.type")}</span>
+                      <p className="font-code font-bold text-accent text-lg">TXT</p>
                     </div>
 
                     {/* Name */}
-                    <div className="p-3 rounded-lg bg-primary/5 border-2 border-primary/30">
+                    <div className="p-3 rounded-lg bg-accent/10 border-2 border-accent/40">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.name")}</span>
-                          <code className="font-mono font-bold text-primary text-base break-all">_seolovable</code>
+                          <span className="text-xs text-muted-foreground font-code">{t("addSite.name")}</span>
+                          <p className="font-code font-bold text-accent text-base">_seolovable</p>
                         </div>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={handleCopyName}
-                          className="flex-shrink-0 h-8 px-2"
+                          className="h-8 w-8"
                         >
                           {copied === "name" ? (
-                            <CheckCircle className="w-4 h-4 text-primary" />
+                            <CheckCircle className="w-4 h-4 text-green-500" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -299,21 +295,21 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                       </div>
                     </div>
 
-                    {/* Value */}
-                    <div className="p-3 rounded-lg bg-secondary/10 border-2 border-secondary/30">
+                    {/* Value - HIGHLIGHTED */}
+                    <div className="p-3 rounded-lg bg-primary/10 border-2 border-primary/40">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-muted-foreground block mb-1">{t("addSite.value")}</span>
-                          <code className="font-mono font-bold text-secondary text-sm break-all">{newSiteData.txtToken}</code>
+                          <span className="text-xs text-muted-foreground font-code">{t("addSite.value")}</span>
+                          <p className="font-code font-bold text-primary text-base break-all">{newSiteData.txtToken}</p>
                         </div>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={handleCopyValue}
-                          className="flex-shrink-0 h-8 px-2"
+                          className="h-8 w-8"
                         >
                           {copied === "value" ? (
-                            <CheckCircle className="w-4 h-4 text-secondary" />
+                            <CheckCircle className="w-4 h-4 text-green-500" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -328,11 +324,11 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             {/* Step 3 */}
             <div className="relative">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
                   3
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-2">{t("addSite.step3Title")}</h4>
+                  <h4 className="font-semibold text-foreground mb-1">{t("addSite.step3Title")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {t("addSite.step3Desc")}
                   </p>
@@ -341,15 +337,15 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
             </div>
 
             {/* Info box */}
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted border border-border">
+              <Shield className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
                 <span className="text-foreground font-medium">{t("addSite.whyVerify")}</span><br />
-                {t("addSite.whyVerifyDesc")} <span className="text-primary font-mono">{newSiteData.domain}</span>
+                {t("addSite.whyVerifyDesc")} <span className="text-accent font-code">{newSiteData.domain}</span>
               </p>
             </div>
 
-            <Button onClick={handleClose} className="w-full font-code glow-green">
+            <Button onClick={handleClose} className="w-full font-code">
               <CheckCircle className="w-4 h-4 mr-2" />
               {t("addSite.dnsConfigured")}
             </Button>
