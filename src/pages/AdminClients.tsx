@@ -344,13 +344,14 @@ export default function AdminClients() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-[100px]">
-                                    {client.prerender_token.slice(0, 8)}...
+                                  <code className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+                                    ••••{client.prerender_token.slice(-4)}
                                   </code>
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-6 w-6"
+                                    title="Copier le token"
                                     onClick={e => {
                                       e.stopPropagation();
                                       copyToClipboard(client.prerender_token);

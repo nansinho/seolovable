@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Copy, CheckCircle, Cloud, Server, Globe, FileCode, Code2 } from "lucide-react";
+import { Copy, CheckCircle, Cloud, Server, Globe, FileCode, Code2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface IntegrationGuideProps {
@@ -13,6 +13,7 @@ interface IntegrationGuideProps {
 export function IntegrationGuide({ prerenderToken, siteUrl }: IntegrationGuideProps) {
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showToken, setShowToken] = useState(false);
 
   let domain = "";
   try {
@@ -24,6 +25,10 @@ export function IntegrationGuide({ prerenderToken, siteUrl }: IntegrationGuidePr
   const backendUrl = import.meta.env.VITE_SUPABASE_URL;
   const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+  // Masquer le token dans le code affiché
+  const maskedToken = "••••••••••••••••";
+  const displayToken = showToken ? prerenderToken : maskedToken;
+
   const handleCopyToken = async () => {
     await navigator.clipboard.writeText(prerenderToken);
     setCopiedToken(true);
@@ -32,9 +37,11 @@ export function IntegrationGuide({ prerenderToken, siteUrl }: IntegrationGuidePr
   };
 
   const handleCopyCode = async (code: string, id: string) => {
-    await navigator.clipboard.writeText(code);
+    // Toujours copier avec le vrai token
+    const codeWithRealToken = code.replace(maskedToken, prerenderToken);
+    await navigator.clipboard.writeText(codeWithRealToken);
     setCopiedCode(id);
-    toast.success("Code copié !");
+    toast.success("Code copié avec le token !");
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
@@ -46,7 +53,7 @@ const BOT_AGENTS = [
 ];
 
 const PRERENDER_SERVICE = 'https://prerender.seolovable.fr';
-const PRERENDER_TOKEN = '${prerenderToken}';
+const PRERENDER_TOKEN = '${displayToken}';
 const LOG_ENDPOINT = '${backendUrl}/functions/v1/log-prerender';
 const API_KEY = '${publishableKey}';
 
@@ -86,7 +93,7 @@ map $http_user_agent $is_bot {
 
 location / {
     if ($is_bot) {
-        set $prerender_url "https://prerender.seolovable.fr/$scheme://$host$request_uri?token=${prerenderToken}";
+        set $prerender_url "https://prerender.seolovable.fr/$scheme://$host$request_uri?token=${displayToken}";
         proxy_pass $prerender_url;
         break;
     }
@@ -98,12 +105,12 @@ location / {
     RewriteEngine On
     RewriteCond %{HTTP_USER_AGENT} (googlebot|bingbot|GPTBot|ChatGPT|anthropic|Claude) [NC]
     RewriteCond %{REQUEST_URI} !\\.(js|css|png|jpg|gif|ico|svg)$
-    RewriteRule ^(.*)$ https://prerender.seolovable.fr/%{REQUEST_SCHEME}://%{HTTP_HOST}/$1?token=${prerenderToken} [P,L]
+    RewriteRule ^(.*)$ https://prerender.seolovable.fr/%{REQUEST_SCHEME}://%{HTTP_HOST}/$1?token=${displayToken} [P,L]
 </IfModule>`;
 
   const expressCode = `// SEOLovable - Express.js Middleware
 const BOT_AGENTS = ['googlebot', 'bingbot', 'GPTBot', 'ChatGPT', 'anthropic', 'Claude'];
-const PRERENDER_TOKEN = '${prerenderToken}';
+const PRERENDER_TOKEN = '${displayToken}';
 
 function prerenderMiddleware(req, res, next) {
   const userAgent = req.get('User-Agent') || '';
@@ -149,18 +156,32 @@ module.exports = prerenderMiddleware;`;
     <div className="space-y-4">
       {/* Token Section */}
       <div className="p-4 lg:p-6 rounded-lg border border-border bg-card">
-        <div className="flex items-center gap-2 mb-3">
-          <Code2 className="w-5 h-5 text-accent" />
-          <h3 className="font-code font-semibold text-foreground">Token Prerender</h3>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Code2 className="w-5 h-5 text-accent" />
+            <h3 className="font-code font-semibold text-foreground">Token Prerender</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowToken(!showToken)}
+            className="h-8 text-xs font-code"
+          >
+            {showToken ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
+            {showToken ? "Masquer" : "Afficher"}
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <code className="flex-1 px-3 py-2 rounded-lg bg-muted font-code text-sm text-foreground break-all border border-border">
-            {prerenderToken}
+            {displayToken}
           </code>
           <Button variant="outline" size="icon" onClick={handleCopyToken} className="h-9 w-9 shrink-0">
             {copiedToken ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground mt-2 font-code">
+          ⚠️ Ne partagez jamais ce token. Le bouton "Copier" copie le token réel.
+        </p>
       </div>
 
       {/* Integration Tabs */}
