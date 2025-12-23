@@ -1,13 +1,62 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Play, Code, Eye, FileText, CheckCircle, XCircle, Clock, HardDrive } from "lucide-react";
+import { Loader2, Play, Code, Eye, FileText, CheckCircle, XCircle, Clock, HardDrive, Copy } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
+
+// Simple HTML formatter with proper indentation
+function formatHtml(html: string): string {
+  if (!html) return "";
+
+  const INLINE_TAGS = new Set([
+    "a", "abbr", "b", "bdo", "br", "button", "cite", "code", "dfn", "em", "i",
+    "img", "input", "kbd", "label", "map", "object", "q", "samp", "script",
+    "select", "small", "span", "strong", "sub", "sup", "textarea", "tt", "var",
+  ]);
+
+  let formatted = "";
+  let indent = 0;
+  const TAB = "  ";
+
+  // Normalize whitespace
+  const normalized = html.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
+
+  // Split into tokens (tags and text)
+  const tokens = normalized.match(/(<[^>]+>|[^<]+)/g) || [];
+
+  for (const token of tokens) {
+    const trimmed = token.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.startsWith("</")) {
+      // Closing tag
+      indent = Math.max(0, indent - 1);
+      formatted += TAB.repeat(indent) + trimmed + "\n";
+    } else if (trimmed.startsWith("<")) {
+      // Opening or self-closing tag
+      const tagMatch = trimmed.match(/^<(\w+)/);
+      const tagName = tagMatch ? tagMatch[1].toLowerCase() : "";
+      const isSelfClosing = trimmed.endsWith("/>") || ["meta", "link", "br", "hr", "img", "input", "!doctype"].includes(tagName);
+      const isInline = INLINE_TAGS.has(tagName);
+
+      formatted += TAB.repeat(indent) + trimmed + "\n";
+
+      if (!isSelfClosing && !isInline && !trimmed.startsWith("<!")) {
+        indent++;
+      }
+    } else {
+      // Text content
+      formatted += TAB.repeat(indent) + trimmed + "\n";
+    }
+  }
+
+  return formatted.trim();
+}
 
 interface PrerenderTestModalProps {
   open: boolean;
@@ -32,6 +81,21 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
   const [url, setUrl] = useState(defaultUrl);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PrerenderResult | null>(null);
+  const [copiedHtml, setCopiedHtml] = useState(false);
+
+  // Format the HTML for better readability
+  const formattedHtml = useMemo(() => {
+    if (!result?.html) return result?.error || "";
+    return formatHtml(result.html);
+  }, [result]);
+
+  const handleCopyHtml = async () => {
+    if (!result?.html) return;
+    await navigator.clipboard.writeText(result.html);
+    setCopiedHtml(true);
+    toast.success("HTML copié !");
+    setTimeout(() => setCopiedHtml(false), 2000);
+  };
 
   const handleTest = async () => {
     if (!url) {
@@ -165,11 +229,26 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
               </TabsList>
 
               <TabsContent value="html" className="flex-1 min-h-0 mt-4">
-                <ScrollArea className="h-[400px] rounded-lg border border-border bg-background p-4">
-                  <pre className="font-mono text-xs whitespace-pre-wrap break-all text-foreground">
-                    {result.html || result.error || t("prerenderTest.noContent")}
-                  </pre>
-                </ScrollArea>
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyHtml}
+                    className="absolute top-2 right-2 z-10 font-code text-xs"
+                  >
+                    {copiedHtml ? (
+                      <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                    ) : (
+                      <Copy className="w-3 h-3 mr-1" />
+                    )}
+                    {copiedHtml ? "Copié" : "Copier"}
+                  </Button>
+                  <ScrollArea className="h-[400px] rounded-lg border border-border bg-muted/30 p-4">
+                    <pre className="font-mono text-xs whitespace-pre text-foreground leading-relaxed">
+                      {formattedHtml || t("prerenderTest.noContent")}
+                    </pre>
+                  </ScrollArea>
+                </div>
               </TabsContent>
 
               <TabsContent value="preview" className="flex-1 min-h-0 mt-4">
