@@ -195,7 +195,7 @@ const SiteDetails = () => {
     try {
       const { data: siteData, error: siteError } = await supabase
         .from("sites")
-        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at")
+        .select("id, name, url, status, pages_rendered, last_crawl, created_at, cname_target, txt_record_token, dns_verified, dns_verified_at, prerender_token")
         .eq("id", id)
         .maybeSingle();
 
