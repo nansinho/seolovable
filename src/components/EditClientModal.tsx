@@ -181,9 +181,10 @@ export function EditClientModal({ client, open, onClose, onSuccess }: EditClient
 
           <div className="space-y-2">
             <Label>Token</Label>
-            <code className="block text-xs bg-muted p-2 rounded break-all">
-              {client.prerender_token}
+            <code className="block text-xs bg-muted p-2 rounded break-all text-muted-foreground">
+              ••••••••{client.prerender_token.slice(-4)}
             </code>
+            <p className="text-xs text-muted-foreground">Token masqué pour la sécurité</p>
           </div>
 
           <DialogFooter>

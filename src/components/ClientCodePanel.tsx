@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Eye, EyeOff } from "lucide-react";
 
 interface ClientCodePanelProps {
   token: string;
@@ -9,6 +9,10 @@ interface ClientCodePanelProps {
 
 export function ClientCodePanel({ token }: ClientCodePanelProps) {
   const [copied, setCopied] = useState(false);
+  const [showToken, setShowToken] = useState(false);
+
+  const maskedToken = "••••••••••••••••";
+  const displayToken = showToken ? token : maskedToken;
 
   const middlewareCode = `import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -35,7 +39,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = '${token}';
+  const token = '${displayToken}';
   const host = request.headers.get('host') || '';
   const pathname = request.nextUrl.pathname;
   const search = request.nextUrl.search;
@@ -50,9 +54,11 @@ export const config = {
 };`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(middlewareCode);
+    // Toujours copier avec le vrai token
+    const codeWithRealToken = middlewareCode.replace(maskedToken, token);
+    navigator.clipboard.writeText(codeWithRealToken);
     setCopied(true);
-    toast.success("Code copié dans le presse-papier");
+    toast.success("Code copié avec le token réel");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -60,30 +66,48 @@ export const config = {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">middleware.ts</h4>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopy}
-          className="gap-2"
-        >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4 text-green-500" />
-              Copié
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4" />
-              Copier
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowToken(!showToken)}
+            className="gap-1 h-8 text-xs"
+          >
+            {showToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            {showToken ? "Masquer" : "Afficher"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopy}
+            className="gap-2"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 text-green-500" />
+                Copié
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                Copier
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
         <pre className="text-xs bg-muted p-4 rounded-lg overflow-x-auto max-h-[300px]">
           <code>{middlewareCode}</code>
         </pre>
+      </div>
+
+      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-sm">
+        <p className="font-medium text-amber-400 mb-1">⚠️ Sécurité</p>
+        <p className="text-muted-foreground text-xs">
+          Le token est masqué par défaut. Le bouton "Copier" copie toujours le code avec le token réel.
+        </p>
       </div>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm">
