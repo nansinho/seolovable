@@ -1,19 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders, validateUrlSafe } from "../_shared/security.ts";
 
-const PRERENDER_URL = "http://prerender.seolovable.cloud:3000";
+const PRERENDER_URL = "https://prerender.seolovable.cloud";
+
+const FETCH_TIMEOUT_MS = 20_000;
 
 // Decode HTML entities
 function decodeHtmlEntities(text: string): string {
   return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#x27;/g, "'")
     .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
+    .replace(/&nbsp;/g, " ")
     .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
     .replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
@@ -30,10 +32,10 @@ serve(async (req) => {
     const { url } = await req.json();
 
     if (!url) {
-      return new Response(
-        JSON.stringify({ success: false, error: "URL is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: "URL is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Validate URL with SSRF protection
@@ -45,16 +47,48 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Testing prerender for URL: ${url}`);
+    console.log(`[test-prerender] Testing prerender for URL: ${url}`);
     const startTime = Date.now();
 
-    // Call the prerender service
-    const prerenderResponse = await fetch(`${PRERENDER_URL}/${url}`, {
-      method: "GET",
-      headers: {
-        "User-Agent": "SEOLovable-Test/1.0",
-      },
-    });
+    // Call the prerender service with a hard timeout to avoid infinite loading in UI
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    let prerenderResponse: Response;
+    try {
+      prerenderResponse = await fetch(`${PRERENDER_URL}/${url}`, {
+        method: "GET",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "SEOLovable-Test/1.0",
+        },
+      });
+    } catch (err) {
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      const message = isAbort
+        ? `Timeout after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s (no response from prerender server)`
+        : err instanceof Error
+          ? err.message
+          : "Failed to reach prerender server";
+
+      console.error("[test-prerender] Fetch failed:", message);
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          status: isAbort ? 504 : 502,
+          renderTime: Date.now() - startTime,
+          title: "",
+          description: "",
+          size: "0",
+          html: "",
+          error: message,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const renderTime = Date.now() - startTime;
     const html = await prerenderResponse.text();
