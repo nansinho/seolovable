@@ -7,6 +7,28 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[LOG-CRAWL] ${step}${detailsStr}`);
 };
 
+// Simple in-memory rate limiting (per token)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 100; // requests per hour per token
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
+
+function checkRateLimit(token: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(token);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(token, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
 // Detect bot type from user agent
 function detectBotType(userAgent: string): { botName: string; botType: string } | null {
   const ua = userAgent.toLowerCase();
@@ -93,13 +115,37 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const { siteId, url, userAgent, pagesCrawled = 1 } = body;
+    const { siteId, url, userAgent, pagesCrawled = 1, token } = body;
+
+    // SECURITY: Token is now REQUIRED for authentication
+    if (!token) {
+      logStep("Missing required token");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Token is required for authentication",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!siteId && !url) {
       throw new Error("Either siteId or url is required");
     }
 
-    logStep("Request received", { siteId, userAgent: userAgent?.substring(0, 50) });
+    // Rate limiting per token
+    if (!checkRateLimit(token)) {
+      logStep("Rate limit exceeded", { tokenPrefix: token.slice(0, 8) });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Rate limit exceeded. Maximum 100 requests per hour.",
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    logStep("Request received", { tokenPrefix: token.slice(0, 8), siteId, userAgent: userAgent?.substring(0, 50) });
 
     // Detect bot from user agent
     const botInfo = userAgent ? detectBotType(userAgent) : null;
@@ -118,16 +164,26 @@ serve(async (req) => {
 
     logStep("Bot detected", botInfo);
 
-    // Find site by ID or URL
+    // SECURITY: Find site by ID or URL AND validate token matches
     let site;
     if (siteId) {
       const { data, error } = await supabaseClient
         .from("sites")
-        .select("id, user_id, pages_rendered, prerender_token, url")
+        .select("id, user_id, pages_rendered, prerender_token, url, status")
         .eq("id", siteId)
+        .eq("prerender_token", token) // SECURITY: Validate token matches site
         .single();
       
-      if (error || !data) throw new Error("Site not found");
+      if (error || !data) {
+        logStep("Site not found or token mismatch", { siteId, tokenPrefix: token.slice(0, 8) });
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Invalid site ID or token",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       site = data;
     } else if (url) {
       // Validate URL with SSRF protection before processing
@@ -145,22 +201,23 @@ serve(async (req) => {
 
       const hostname = urlValidation.url.hostname;
       
+      // SECURITY: Find site by URL AND validate token
       const { data, error } = await supabaseClient
         .from("sites")
-        .select("id, user_id, pages_rendered, prerender_token, url")
+        .select("id, user_id, pages_rendered, prerender_token, url, status")
+        .eq("prerender_token", token) // SECURITY: Validate token first
         .ilike("url", `%${hostname}%`)
         .limit(1)
         .maybeSingle();
       
       if (error || !data) {
-        logStep("Site not found for URL", { hostname });
+        logStep("Site not found or token mismatch", { hostname, tokenPrefix: token.slice(0, 8) });
         return new Response(
           JSON.stringify({
-            success: true,
-            logged: false,
-            reason: "Site not registered",
+            success: false,
+            error: "Invalid token or site not found",
           }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       site = data;
@@ -170,7 +227,19 @@ serve(async (req) => {
       throw new Error("Could not determine site");
     }
 
-    logStep("Site found", { siteId: site.id });
+    // SECURITY: Check if site is active
+    if (site.status !== 'active') {
+      logStep("Site not active", { status: site.status });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Site is not active",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    logStep("Site found and authenticated", { siteId: site.id, status: site.status });
 
     // Get domain from site URL
     let domain = '';

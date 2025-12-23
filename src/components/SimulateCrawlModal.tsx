@@ -23,6 +23,7 @@ interface SimulateCrawlModalProps {
   onOpenChange: (open: boolean) => void;
   siteId: string;
   siteName: string;
+  siteToken: string; // Required for authentication
   onSuccess?: () => void;
 }
 
@@ -35,7 +36,7 @@ const BOT_OPTIONS = [
   { value: "yandexbot", label: "YandexBot", type: "search", userAgent: "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)" },
 ];
 
-export function SimulateCrawlModal({ open, onOpenChange, siteId, siteName, onSuccess }: SimulateCrawlModalProps) {
+export function SimulateCrawlModal({ open, onOpenChange, siteId, siteName, siteToken, onSuccess }: SimulateCrawlModalProps) {
   const [selectedBot, setSelectedBot] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -58,6 +59,7 @@ export function SimulateCrawlModal({ open, onOpenChange, siteId, siteName, onSuc
           siteId,
           userAgent: bot.userAgent,
           pagesCrawled: 1,
+          token: siteToken, // Required for authentication
         },
       });
 

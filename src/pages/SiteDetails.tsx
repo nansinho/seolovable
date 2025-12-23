@@ -362,7 +362,7 @@ const SiteDetails = () => {
         </div>
       </main>
 
-      <SimulateCrawlModal open={simulateCrawlOpen} onOpenChange={setSimulateCrawlOpen} siteId={site?.id || ""} siteName={site?.name || ""} onSuccess={handleRefresh} />
+      <SimulateCrawlModal open={simulateCrawlOpen} onOpenChange={setSimulateCrawlOpen} siteId={site?.id || ""} siteName={site?.name || ""} siteToken={site?.prerender_token || ""} onSuccess={handleRefresh} />
     </div>
   );
 };
