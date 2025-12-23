@@ -47,10 +47,19 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
     setLoading(true);
     setResult(null);
 
+    const TIMEOUT_MS = 25_000;
+
     try {
-      const { data, error } = await supabase.functions.invoke("test-prerender", {
+      const invokePromise = supabase.functions.invoke("test-prerender", {
         body: { url: testUrl },
       });
+
+      const { data, error } = await Promise.race([
+        invokePromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`Timeout après ${Math.round(TIMEOUT_MS / 1000)}s`)), TIMEOUT_MS)
+        ),
+      ]);
 
       if (error) throw error;
 
@@ -60,7 +69,8 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
       else toast.error(data.error || t("prerenderTest.failToast"));
     } catch (error) {
       console.error("Prerender test error:", error);
-      toast.error(t("prerenderTest.errorToast"));
+      const message = error instanceof Error ? error.message : t("prerenderTest.unknownError");
+      toast.error(message);
       setResult({
         success: false,
         html: "",
@@ -69,7 +79,7 @@ export const PrerenderTestModal = ({ open, onOpenChange, defaultUrl = "" }: Prer
         title: "",
         description: "",
         size: "0",
-        error: error instanceof Error ? error.message : t("prerenderTest.unknownError"),
+        error: message,
       });
     } finally {
       setLoading(false);
