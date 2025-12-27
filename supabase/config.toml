@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.translate-single]
 verify_jwt = false
+
+[functions.prerender-api]
+verify_jwt = false
