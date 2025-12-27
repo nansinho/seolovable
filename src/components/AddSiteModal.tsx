@@ -28,6 +28,7 @@ import { useI18n } from "@/lib/i18n";
 type SiteFormData = {
   name: string;
   url: string;
+  originUrl: string;
 };
 
 interface AddSiteModalProps {
@@ -72,6 +73,12 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
       .min(1, t("addSite.urlRequired"))
       .url(t("addSite.urlInvalid"))
       .max(255, t("addSite.urlMax")),
+    originUrl: z
+      .string()
+      .trim()
+      .min(1, t("addSite.originUrlRequired") || "L'URL origin est requise")
+      .url(t("addSite.originUrlInvalid") || "L'URL origin n'est pas valide")
+      .max(255, t("addSite.urlMax")),
   });
 
   const form = useForm<SiteFormData>({
@@ -79,6 +86,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
     defaultValues: {
       name: "",
       url: "",
+      originUrl: "",
     },
   });
 
@@ -161,6 +169,7 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
       const { error } = await supabase.from("sites").insert({
         name: data.name,
         url: data.url,
+        origin_url: data.originUrl,
         user_id: session.user.id,
         status: "pending",
         cname_target: cnameTarget,
@@ -400,6 +409,27 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="originUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-code">{t("addSite.originUrl") || "Serveur Origin"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://mon-serveur.vercel.app"
+                        className="font-code"
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("addSite.originUrlHelp") || "L'URL où votre site est réellement hébergé (Vercel, Netlify, etc.)"}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

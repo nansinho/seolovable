@@ -272,6 +272,7 @@ export type Database = {
           id: string
           last_crawl: string | null
           name: string
+          origin_url: string | null
           pages_rendered: number
           prerender_token: string
           status: string
@@ -289,6 +290,7 @@ export type Database = {
           id?: string
           last_crawl?: string | null
           name: string
+          origin_url?: string | null
           pages_rendered?: number
           prerender_token?: string
           status?: string
@@ -306,6 +308,7 @@ export type Database = {
           id?: string
           last_crawl?: string | null
           name?: string
+          origin_url?: string | null
           pages_rendered?: number
           prerender_token?: string
           status?: string
@@ -420,6 +423,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_pages_rendered: {
+        Args: { site_id_param: string }
+        Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
     }
