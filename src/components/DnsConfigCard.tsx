@@ -125,23 +125,51 @@ export function DnsConfigCard({
             <p className="text-xs text-muted-foreground font-code mb-3">
               Pour activer le prerendering automatique, pointez votre domaine vers notre proxy :
             </p>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border gap-2">
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground font-code">CNAME → Valeur</span>
-                <p className="font-code text-sm text-primary font-bold break-all">{cnameTarget}</p>
+            
+            {/* CNAME Record */}
+            <div className="space-y-2 mb-4">
+              <div className="p-2 rounded bg-muted/50 border border-border">
+                <span className="text-xs text-muted-foreground font-code">Type</span>
+                <p className="font-code text-sm text-foreground font-bold">CNAME</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleCopy(cnameTarget, "cname")}
-                className="h-8 w-8 shrink-0"
-              >
-                {copiedCname ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
+              <div className="p-2 rounded bg-muted/50 border border-border">
+                <span className="text-xs text-muted-foreground font-code">Nom / Hôte</span>
+                <p className="font-code text-sm text-foreground">@ (ou votre domaine)</p>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border-2 border-primary/40 gap-2">
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground font-code">Valeur (copier)</span>
+                  <p className="font-code text-sm text-primary font-bold break-all">{cnameTarget}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleCopy(cnameTarget, "cname")}
+                  className="h-8 w-8 shrink-0"
+                >
+                  {copiedCname ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground font-code mt-2">
-              💡 Une fois configuré, les bots (Google, GPT, etc.) recevront automatiquement le HTML prérendu.
-            </p>
+
+            {/* How it works */}
+            <div className="p-3 rounded-lg bg-muted/30 border border-border">
+              <p className="text-xs font-code font-semibold text-foreground mb-2">Comment ça fonctionne :</p>
+              <ul className="text-xs text-muted-foreground space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">→</span>
+                  <span>Les <strong>bots</strong> (Google, GPT, etc.) reçoivent le HTML prérendu</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">→</span>
+                  <span>Les <strong>humains</strong> sont redirigés vers votre serveur origin</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">→</span>
+                  <span>Les crawls sont <strong>automatiquement enregistrés</strong> dans votre dashboard</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       )}

@@ -1,0 +1,16 @@
+{
+  "name": "seolovable-prerender",
+  "version": "1.0.0",
+  "description": "SEOLovable Prerender Service - Headless rendering for bots",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "puppeteer-core": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

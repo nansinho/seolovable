@@ -419,17 +419,35 @@ export function AddSiteModal({ open, onOpenChange, onSiteAdded, currentSitesCoun
                 name="originUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-code">{t("addSite.originUrl") || "Serveur Origin"}</FormLabel>
+                    <FormLabel className="font-code flex items-center gap-2">
+                      {t("addSite.originUrl") || "Serveur Origin"}
+                      <span className="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">Important</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://mon-serveur.vercel.app"
+                        placeholder="https://mon-site.vercel.app"
                         className="font-code"
                         {...field}
                       />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t("addSite.originUrlHelp") || "L'URL où votre site est réellement hébergé (Vercel, Netlify, etc.)"}
-                    </p>
+                    <div className="space-y-2 mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        {t("addSite.originUrlHelp") || "L'URL où votre site est réellement hébergé (Vercel, Netlify, etc.)"}
+                      </p>
+                      <div className="p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
+                        <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-1">
+                          ⚠️ Important : évitez les boucles !
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          L'origin URL doit pointer vers un serveur <strong>différent</strong> du domaine principal.
+                        </p>
+                        <ul className="text-xs text-muted-foreground mt-1 space-y-0.5 ml-3 list-disc">
+                          <li><span className="text-green-500">✓</span> <code className="font-code text-primary">https://mon-site.vercel.app</code></li>
+                          <li><span className="text-green-500">✓</span> <code className="font-code text-primary">https://origin.example.com</code></li>
+                          <li><span className="text-red-500">✗</span> <code className="font-code text-red-400">https://example.com</code> (boucle !)</li>
+                        </ul>
+                      </div>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
