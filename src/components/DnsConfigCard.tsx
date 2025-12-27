@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, Clock, AlertTriangle, RefreshCw, Loader2, Copy, Shield } from "lucide-react";
+import { CheckCircle, Clock, AlertTriangle, RefreshCw, Loader2, Copy, Shield, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -27,18 +27,23 @@ export function DnsConfigCard({
   const { lang } = useI18n();
   const [copiedName, setCopiedName] = useState(false);
   const [copiedValue, setCopiedValue] = useState(false);
+  const [copiedCname, setCopiedCname] = useState(false);
   const dateLocale = lang === "en" ? "en-US" : "fr-FR";
 
   const txtRecordName = "_seolovable";
+  const cnameTarget = "prerender.seolovable.cloud";
 
-  const handleCopy = async (text: string, type: "name" | "value") => {
+  const handleCopy = async (text: string, type: "name" | "value" | "cname") => {
     await navigator.clipboard.writeText(text);
     if (type === "name") {
       setCopiedName(true);
       setTimeout(() => setCopiedName(false), 2000);
-    } else {
+    } else if (type === "value") {
       setCopiedValue(true);
       setTimeout(() => setCopiedValue(false), 2000);
+    } else {
+      setCopiedCname(true);
+      setTimeout(() => setCopiedCname(false), 2000);
     }
     toast.success("Copié !");
   };
@@ -96,17 +101,47 @@ export function DnsConfigCard({
 
       {/* Verified State */}
       {dnsVerified && (
-        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            <div>
-              <p className="font-code text-sm text-foreground">Domaine vérifié</p>
-              {dnsVerifiedAt && (
-                <p className="text-xs text-muted-foreground font-code">
-                  {new Date(dnsVerifiedAt).toLocaleDateString(dateLocale)}
-                </p>
-              )}
+        <div className="space-y-4">
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <div>
+                <p className="font-code text-sm text-foreground">Domaine vérifié</p>
+                {dnsVerifiedAt && (
+                  <p className="text-xs text-muted-foreground font-code">
+                    {new Date(dnsVerifiedAt).toLocaleDateString(dateLocale)}
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* CNAME Instructions for verified sites */}
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <ArrowRight className="w-4 h-4 text-primary" />
+              <h4 className="font-code font-semibold text-foreground text-sm">Étape finale : Configurer le CNAME</h4>
+            </div>
+            <p className="text-xs text-muted-foreground font-code mb-3">
+              Pour activer le prerendering automatique, pointez votre domaine vers notre proxy :
+            </p>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border gap-2">
+              <div className="flex-1 min-w-0">
+                <span className="text-xs text-muted-foreground font-code">CNAME → Valeur</span>
+                <p className="font-code text-sm text-primary font-bold break-all">{cnameTarget}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleCopy(cnameTarget, "cname")}
+                className="h-8 w-8 shrink-0"
+              >
+                {copiedCname ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground font-code mt-2">
+              💡 Une fois configuré, les bots (Google, GPT, etc.) recevront automatiquement le HTML prérendu.
+            </p>
           </div>
         </div>
       )}
@@ -114,48 +149,66 @@ export function DnsConfigCard({
       {/* Configuration Instructions */}
       {txtRecordToken && !dnsVerified && (
         <div className="space-y-4">
-          <p className="text-xs text-muted-foreground font-code">
-            Ajoutez cet enregistrement TXT dans votre gestionnaire DNS :
-          </p>
-
-          <div className="space-y-3">
-            {/* Type */}
-            <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <span className="text-xs text-muted-foreground font-code">Type</span>
-              <p className="font-code text-sm text-foreground">TXT</p>
+          {/* Step 1: TXT Record */}
+          <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">1</span>
+              <h4 className="font-code font-semibold text-foreground text-sm">Vérification du domaine (TXT)</h4>
             </div>
+            <p className="text-xs text-muted-foreground font-code mb-3">
+              Ajoutez cet enregistrement TXT pour prouver que vous êtes propriétaire du domaine :
+            </p>
 
-            {/* Name/Host */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border gap-2">
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground font-code">Nom / Hôte</span>
-                <p className="font-code text-sm text-foreground break-all">{txtRecordName}</p>
+            <div className="space-y-2">
+              {/* Type */}
+              <div className="p-2 rounded bg-muted/50 border border-border">
+                <span className="text-xs text-muted-foreground font-code">Type</span>
+                <p className="font-code text-sm text-foreground">TXT</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleCopy(txtRecordName, "name")}
-                className="h-8 w-8 shrink-0"
-              >
-                {copiedName ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
 
-            {/* Value */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border gap-2">
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground font-code">Valeur</span>
-                <p className="font-code text-sm text-foreground break-all">{txtRecordToken}</p>
+              {/* Name/Host */}
+              <div className="flex items-center justify-between p-2 rounded bg-muted/50 border border-border gap-2">
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground font-code">Nom / Hôte</span>
+                  <p className="font-code text-sm text-foreground break-all">{txtRecordName}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleCopy(txtRecordName, "name")}
+                  className="h-7 w-7 shrink-0"
+                >
+                  {copiedName ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleCopy(txtRecordToken, "value")}
-                className="h-8 w-8 shrink-0"
-              >
-                {copiedValue ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
+
+              {/* Value */}
+              <div className="flex items-center justify-between p-2 rounded bg-muted/50 border border-border gap-2">
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground font-code">Valeur</span>
+                  <p className="font-code text-sm text-foreground break-all">{txtRecordToken}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleCopy(txtRecordToken, "value")}
+                  className="h-7 w-7 shrink-0"
+                >
+                  {copiedValue ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
             </div>
+          </div>
+
+          {/* Step 2: CNAME Preview */}
+          <div className="p-4 rounded-lg bg-muted/30 border border-border opacity-60">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold">2</span>
+              <h4 className="font-code font-semibold text-muted-foreground text-sm">CNAME (après vérification)</h4>
+            </div>
+            <p className="text-xs text-muted-foreground font-code">
+              Une fois le TXT vérifié, vous pourrez configurer le CNAME vers <span className="text-foreground">{cnameTarget}</span>
+            </p>
           </div>
 
           {/* Verify Button */}
